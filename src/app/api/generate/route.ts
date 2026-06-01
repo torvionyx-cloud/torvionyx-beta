@@ -158,7 +158,6 @@ export async function POST(req: Request) {
      title: extractTitle(content, input.client_name),
      client_name: input.client_name,
      client_email: input.client_email ?? null,
-        client_name: input.client_name,
         proposal_type: input.proposal_type,
         content,
         status: "draft",
