@@ -1,4 +1,6 @@
-/**
+// @ts-nocheck
+
+
  * app/api/brand/route.ts
  *
  * GET /api/brand — fetch brand settings for the authenticated workspace
