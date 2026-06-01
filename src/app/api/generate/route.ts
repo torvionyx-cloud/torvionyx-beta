@@ -1,8 +1,8 @@
-// @ts-nocheck
+/** @ts-nocheck
  * app/api/generate/route.ts
  *
  * POST /api/generate
- *
+ *... (rest of the JSDoc)
  * AI proposal generation endpoint — the core wedge.
  * Security measures applied:
  * - Clerk auth required (middleware guards this route + defence-in-depth check here)
