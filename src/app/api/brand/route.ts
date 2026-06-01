@@ -1,3 +1,5 @@
+import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 // @ts-nocheck
 
 export const dynamic = 'force-dynamic';
