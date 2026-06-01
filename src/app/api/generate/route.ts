@@ -1,6 +1,6 @@
-/** @ts-nocheck
- * app/api/generate/route.ts
- *
+// @ts-nocheck
+ 
+ /**
  * POST /api/generate
  *... (rest of the JSDoc)
  * AI proposal generation endpoint — the core wedge.
