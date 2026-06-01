@@ -1,13 +1,11 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-// @ts-nocheck
+import { getWorkspaceId } from "@/lib/workspace";
+import { createAdminClient } from "@/lib/supabase";
+import { checkGeneralRateLimit } from "@/lib/rate-limit";
+import { brandSettingsSchema } from "@/lib/validation";
 
 export const dynamic = 'force-dynamic';
-// @ts-nocheck
-
-// @ts-nocheck
-
-// @ts-nocheck
 
 /**
  * app/api/brand/route.ts
@@ -63,7 +61,7 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
     }
 
-    const validation = validateInput(brandSettingsSchema, body);
+    const validation = brandSettingsSchema.safeParse(body);
     if (!validation.success) {
       return NextResponse.json({ error: validation.error }, { status: 422 });
     }
