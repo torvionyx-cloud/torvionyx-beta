@@ -1,5 +1,6 @@
 // @ts-nocheck
 
+export const dynamic = 'force-dynamic';
 // @ts-nocheck
 
 // @ts-nocheck
