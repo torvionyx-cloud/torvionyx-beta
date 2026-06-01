@@ -154,7 +154,13 @@ export async function POST(req: Request) {
     const { data: proposal, error: insertError } = await supabase
       .from("proposals")
       .insert({
-        workspace_id: workspaceId,
+     workspace_id: workspaceId,
+     title: extractTitle(content, input.client_name),
+     client_name: input.client_name,
+     client_email: input.client_email ?? null,
+     // ... rest of fields
+   } as any)
+        
         title: extractTitle(content, input.client_name),
         client_name: input.client_name,
         client_email: input.client_email ?? null,
