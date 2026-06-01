@@ -69,7 +69,7 @@ export async function PUT(req: Request) {
 
     const { data: brand, error: updateError } = await supabase
       .from("brand_settings")
-      .update(validation.data as any)
+      .update(validation.data as any as never)
       .eq("workspace_id", workspaceId)
       .select()
       .single();
