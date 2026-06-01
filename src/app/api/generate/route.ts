@@ -158,11 +158,8 @@ export async function POST(req: Request) {
      title: extractTitle(content, input.client_name),
      client_name: input.client_name,
      client_email: input.client_email ?? null,
-        title: extractTitle(content, input.client_name),
         client_name: input.client_name,
-        client_email: input.client_email ?? null,
         proposal_type: input.proposal_type,
-        brief: input.brief,
         content,
         status: "draft",
       } as any)
