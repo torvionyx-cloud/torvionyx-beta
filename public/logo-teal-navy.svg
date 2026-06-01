@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="torvionyx-g" x1="50" y1="8" x2="50" y2="98" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0891B2"/>
+      <stop offset="100%" stop-color="#1E293B"/>
+    </linearGradient>
+  </defs>
+  <!-- Stylised T: bevelled outer top corners, chamfered inner armpits, tapered stem to point -->
+  <path
+    d="M13,8 L87,8 L95,18 L93,40 L65,40 L61,44 L59,78 L54,93 L50,98 L46,93 L41,78 L39,44 L35,40 L7,40 L5,18 Z"
+    fill="url(#torvionyx-g)"
+  />
+</svg>

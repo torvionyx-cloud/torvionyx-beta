@@ -1,0 +1,44 @@
+# --- Environment & Secrets (NEVER commit these) ---
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.production
+
+# --- Next.js ---
+/.next/
+/out/
+next-env.d.ts
+
+# --- Node ---
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Build outputs ---
+/build
+/dist
+
+# --- Vercel ---
+.vercel
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- IDE ---
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# --- TypeScript ---
+*.tsbuildinfo
+
+# --- Testing ---
+/coverage
+
+# --- Misc ---
+*.pem
