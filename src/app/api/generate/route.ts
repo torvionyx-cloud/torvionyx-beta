@@ -172,7 +172,7 @@ export async function POST(req: Request) {
     if (insertError || !proposal) {
       console.error("[generate] DB insert error:", insertError);
       return NextResponse.json(
-        { error: "Failed to create proposal. Please try again." } as any),
+        { error: "Failed to create proposal. Please try again." } as any,
         { status: 500 }
       );
     }
