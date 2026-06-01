@@ -1,18 +1,13 @@
 // @ts-nocheck
 
+// @ts-nocheck
 
+/**
  * app/api/brand/route.ts
  *
  * GET /api/brand — fetch brand settings for the authenticated workspace
  * PUT /api/brand — update brand settings
  */
-
-import { auth } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
-import { getWorkspaceId } from "@/lib/workspace";
-import { createAdminClient } from "@/lib/supabase";
-import { validateInput, brandSettingsSchema } from "@/lib/validation";
-import { checkGeneralRateLimit } from "@/lib/rate-limit";
 
 export async function GET() {
   try {

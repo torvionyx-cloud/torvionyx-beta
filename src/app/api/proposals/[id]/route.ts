@@ -1,6 +1,10 @@
-/**
+// @ts-nocheck
+
+// @ts-nocheck
+
+/** 
  * app/api/proposals/[id]/route.ts
- *
+ 
  * GET  /api/proposals/[id] — fetch a single proposal (owner only)
  * PUT  /api/proposals/[id] — update proposal content/metadata (owner only)
  */

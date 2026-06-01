@@ -1,4 +1,6 @@
 // @ts-nocheck
+
+// @ts-nocheck
  
  /**
  * POST /api/generate
