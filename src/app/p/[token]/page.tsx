@@ -59,55 +59,65 @@ export default async function PublicProposalPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-        {/* Brand header */}
-        <header className="border-b border-neutral-100 print:hidden">
-          <div className="mx-auto max-w-3xl px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              {brand?.logo_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={brand.logo_url}
-                  alt={brand.company_name || "Logo"}
-                  className="h-7 w-auto"
-                />
-              ) : (
-                <span className="font-semibold text-neutral-900 text-sm">
-                  {brand?.company_name || ""}
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="text-xs text-neutral-400">Proposal</span>
-              <PrintButton />
-            </div>
-          </div>
-        </header>
+      <style>{`
+        @media print {
+          section { break-inside: avoid; }
+          table { break-inside: avoid; }
+          h2 { break-after: avoid; }
+          li { break-inside: avoid; }
+          tr { break-inside: avoid; }
+        }
+      `}</style>
 
-        {/* Proposal content */}
-        <main className="mx-auto max-w-3xl px-6 py-10">
-          <ProposalRenderer content={proposal.content} brand={brand} />
-
-          {/* Accept section — interactive, hidden when printing */}
-          <div className="print:hidden">
-            <AcceptSection
-              proposal={proposal as unknown as Proposal}
-              brand={brand as unknown as BrandSettings | null}
-              primaryColor={primaryColor}
-            />
-          </div>
-        </main>
-
-        {/* Footer */}
-        <footer className="border-t border-neutral-100 mt-16 print:hidden">
-          <div className="mx-auto max-w-3xl px-6 py-6 text-center">
-            <p className="text-xs text-neutral-300">
-              Created with{" "}
-              <span className="font-medium" style={{ color: primaryColor }}>
-                Torvionyx
+      {/* Brand header */}
+      <header className="border-b border-neutral-100 print:hidden">
+        <div className="mx-auto max-w-3xl px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {brand?.logo_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={brand.logo_url}
+                alt={brand.company_name || "Logo"}
+                className="h-7 w-auto"
+              />
+            ) : (
+              <span className="font-semibold text-neutral-900 text-sm">
+                {brand?.company_name || ""}
               </span>
-            </p>
+            )}
           </div>
-        </footer>
+          <div className="flex items-center gap-4">
+            <span className="text-xs text-neutral-400">Proposal</span>
+            <PrintButton />
+          </div>
+        </div>
+      </header>
+
+      {/* Proposal content */}
+      <main className="mx-auto max-w-3xl px-6 py-10">
+        <ProposalRenderer content={proposal.content} brand={brand} />
+
+        {/* Accept section — interactive, hidden when printing */}
+        <div className="print:hidden">
+          <AcceptSection
+            proposal={proposal as unknown as Proposal}
+            brand={brand as unknown as BrandSettings | null}
+            primaryColor={primaryColor}
+          />
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-neutral-100 mt-16 print:hidden">
+        <div className="mx-auto max-w-3xl px-6 py-6 text-center">
+          <p className="text-xs text-neutral-300">
+            Created with{" "}
+            <span className="font-medium" style={{ color: primaryColor }}>
+              Torvionyx
+            </span>
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }

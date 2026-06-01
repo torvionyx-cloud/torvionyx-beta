@@ -125,7 +125,7 @@ function HeroBlock({
 function TextBlock({ block }: { block: Extract<ProposalBlock, { type: "text" }> }) {
   const paragraphs = block.body.split(/\n\n+/);
   return (
-    <section className="py-8 px-1">
+    <section className="py-8 px-1 print:break-inside-avoid">
       <h2 className="text-xl font-semibold text-neutral-900 mb-4 tracking-tight">
         {block.heading}
       </h2>
@@ -148,7 +148,7 @@ function BulletsBlock({
   primaryColor: string;
 }) {
   return (
-    <section className="py-8 px-1">
+    <section className="py-8 px-1 print:break-inside-avoid">
       <h2 className="text-xl font-semibold text-neutral-900 mb-5 tracking-tight">
         {block.heading}
       </h2>
@@ -173,13 +173,13 @@ function ScopeTableBlock({
   block: Extract<ProposalBlock, { type: "scope_table" }>;
 }) {
   return (
-    <section className="py-8 px-1">
+    <section className="py-8 px-1 print:break-inside-avoid">
       {block.heading && (
         <h2 className="text-xl font-semibold text-neutral-900 mb-5 tracking-tight">
           {block.heading}
         </h2>
       )}
-      <div className="overflow-x-auto rounded-xl border border-neutral-200 print:overflow-visible">
+      <div className="overflow-x-auto rounded-xl border border-neutral-200 print:overflow-visible print:break-inside-avoid">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-neutral-200 bg-neutral-50">
@@ -220,7 +220,7 @@ function TimelineBlock({
 }) {
   const heading = block.heading ?? "Timeline";
   return (
-    <section className="py-8 px-1">
+    <section className="py-8 px-1 print:break-inside-avoid">
       <h2 className="text-xl font-semibold text-neutral-900 mb-7 tracking-tight">
         {heading}
       </h2>
@@ -268,11 +268,11 @@ function PricingBlock({
   const heading = block.heading ?? "Investment";
 
   return (
-    <section className="py-8 px-1">
+    <section className="py-8 px-1 print:break-inside-avoid">
       <h2 className="text-xl font-semibold text-neutral-900 mb-5 tracking-tight">
         {heading}
       </h2>
-      <div className="rounded-xl border border-neutral-200 overflow-hidden print:overflow-visible">
+      <div className="rounded-xl border border-neutral-200 overflow-hidden print:overflow-visible print:break-inside-avoid">
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-neutral-200 bg-neutral-50">
