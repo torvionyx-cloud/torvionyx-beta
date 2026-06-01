@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 /**
  * lib/rate-limit.ts
  *

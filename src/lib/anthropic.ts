@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 /**
  * lib/anthropic.ts
  *

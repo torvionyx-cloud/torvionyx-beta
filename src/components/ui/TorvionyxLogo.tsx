@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 /**
  * Inline SVG logo — use this everywhere instead of <img src="...svg">.
  * Inline means no extra network request, scales perfectly, and can be

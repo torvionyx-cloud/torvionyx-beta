@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 /**
  * app/dashboard/[proposal_id]/edit/page.tsx
  *

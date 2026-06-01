@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";

@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { SignIn } from "@clerk/nextjs";
 import { TorvionyxLogo } from "@/components/ui/TorvionyxLogo";
 

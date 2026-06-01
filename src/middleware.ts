@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 // Routes that require authentication

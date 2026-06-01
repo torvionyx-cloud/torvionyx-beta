@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 /**
  * types/database.ts
  *

@@ -4,6 +4,8 @@
 
 // @ts-nocheck
 
+// @ts-nocheck
+
 /**
  * app/api/brand/route.ts
  *

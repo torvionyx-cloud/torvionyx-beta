@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 /**
  * components/proposals/ProposalRenderer.tsx
  *

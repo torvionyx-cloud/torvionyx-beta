@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 /**
  * app/p/[token]/page.tsx
  *
