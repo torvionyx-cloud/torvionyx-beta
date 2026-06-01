@@ -165,7 +165,7 @@ export async function POST(req: Request) {
         brief: input.brief,
         content,
         status: "draft",
-      })
+      } as any)
       .select()
       .single();
 
