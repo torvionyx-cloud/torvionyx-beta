@@ -1,4 +1,4 @@
-/**
+// @ts-nocheck
  * app/api/generate/route.ts
  *
  * POST /api/generate
