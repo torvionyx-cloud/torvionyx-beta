@@ -173,7 +173,7 @@ export async function POST(req: Request) {
       );
     }
 
-    proposalId = proposal.id;
+    proposalId = (proposal as any).id;
 
     // 7. Log generation metadata (no full content — just cost/abuse data)
     await supabase.from("ai_generations").insert({
