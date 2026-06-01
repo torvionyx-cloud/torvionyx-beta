@@ -1,5 +1,7 @@
 // @ts-nocheck
 
+// @ts-nocheck
+
 /**
  * app/api/workspace/bootstrap/route.ts
  *

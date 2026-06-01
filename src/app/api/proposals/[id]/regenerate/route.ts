@@ -2,6 +2,8 @@
 
 // @ts-nocheck
 
+// @ts-nocheck
+
 /**
  * app/api/proposals/[id]/regenerate/route.ts
  *

@@ -1,5 +1,7 @@
 // @ts-nocheck
 
+// @ts-nocheck
+
 /**
  * app/api/proposals/route.ts
  *
