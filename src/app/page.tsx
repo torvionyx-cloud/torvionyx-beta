@@ -244,7 +244,7 @@ export default function LandingPage() {
               transition={{ duration: 0.3 }}
             >
               
-              /<img
+              <img
   src="/dashboard-screenshot.png"
   alt="Torvionyx Dashboard"
   style={{ width: '100%', height: 'auto', display: 'block' }}
