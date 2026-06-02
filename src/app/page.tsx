@@ -243,11 +243,12 @@ export default function LandingPage() {
               whileHover={{ scale: 1.02 }}
               transition={{ duration: 0.3 }}
             >
-              <img
-                src="/dashboard-screenshot.png"
-                alt="Torvionyx Dashboard"
-                className="w-full h-auto"
-              />
+              
+              /<img
+  src="/dashboard-screenshot.png"
+  alt="Torvionyx Dashboard"
+  style={{ width: '100%', height: 'auto', display: 'block' }}
+/>
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 to-transparent opacity-20"></div>
             </motion.div>
           </FadeInSection>
