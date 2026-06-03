@@ -20,13 +20,15 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <head>
+          {/* Termly consent banner — must be first script */}
+          <script src="https://app.termly.io/resource-blocker/30b83852-5d87-4f38-8d18-e046db994443?autoBlock=on" />
           {/* Anti-flash: set dark class synchronously before paint */}
           <script
             dangerouslySetInnerHTML={{
               __html: `(function(){try{var t=localStorage.getItem('theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})()`,
             }}
           />
-          {/* Brand fonts for the proposal renderer — loaded lazily when a proposal is viewed */}
+          {/* Brand fonts */}
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           {/* eslint-disable-next-line @next/next/no-page-custom-font */}
           <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
