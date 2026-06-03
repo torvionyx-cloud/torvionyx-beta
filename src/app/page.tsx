@@ -224,7 +224,7 @@ export default function LandingPage() {
           <div className="flex items-center justify-center gap-6">
             <a href="/privacy-policy" className="hover:text-slate-300 transition-colors">Privacy Policy</a>
             <a href="/terms" className="hover:text-slate-300 transition-colors">Terms of Use</a>
-            <a href="#" className="termly-display-preferences hover:text-slate-300 transition-colors">Consent Preferences</a>
+           <a href="/consent-preferences" className="hover:text-slate-300 transition-colors">Consent Preferences</a>
           </div>
         </div>
       </footer>
