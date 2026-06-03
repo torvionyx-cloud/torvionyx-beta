@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 /**
  * components/proposals/ProposalRenderer.tsx
  *
@@ -34,6 +32,7 @@ interface ProposalRendererProps {
 
 export function ProposalRenderer({ content, brand }: ProposalRendererProps) {
   const primaryColor = brand?.primary_color ?? "#111111";
+  const secondaryColor = brand?.secondary_color ?? "#f9fafb";
   const fontFamily =
     FONT_FAMILY_MAP[brand?.font_choice ?? "inter"] ?? FONT_FAMILY_MAP.inter;
 
@@ -44,6 +43,7 @@ export function ProposalRenderer({ content, brand }: ProposalRendererProps) {
           key={idx}
           block={block}
           primaryColor={primaryColor}
+          secondaryColor={secondaryColor}
           brand={brand}
         />
       ))}
@@ -58,10 +58,12 @@ export function ProposalRenderer({ content, brand }: ProposalRendererProps) {
 function BlockRenderer({
   block,
   primaryColor,
+  secondaryColor,
   brand,
 }: {
   block: ProposalBlock;
   primaryColor: string;
+  secondaryColor: string;
   brand?: BrandSettings | null;
 }) {
   switch (block.type) {
@@ -72,17 +74,17 @@ function BlockRenderer({
     case "bullets":
       return <BulletsBlock block={block} primaryColor={primaryColor} />;
     case "scope_table":
-      return <ScopeTableBlock block={block} />;
+      return <ScopeTableBlock block={block} secondaryColor={secondaryColor} />;
     case "timeline":
       return <TimelineBlock block={block} primaryColor={primaryColor} />;
     case "pricing":
-      return <PricingBlock block={block} primaryColor={primaryColor} />;
+      return <PricingBlock block={block} primaryColor={primaryColor} secondaryColor={secondaryColor} />;
     case "cta":
-      return null; // CTA rendered separately in the live link as the accept button
+      return null;
     case "terms":
       return <TermsBlock block={block} />;
     case "divider":
-      return <hr className="border-neutral-200 my-10" />;
+      return <hr className="my-10" style={{ borderColor: secondaryColor }} />;
     default:
       return null;
   }
@@ -169,8 +171,10 @@ function BulletsBlock({
 
 function ScopeTableBlock({
   block,
+  secondaryColor,
 }: {
   block: Extract<ProposalBlock, { type: "scope_table" }>;
+  secondaryColor: string;
 }) {
   return (
     <section className="py-8 px-1 print:break-inside-avoid">
@@ -182,7 +186,7 @@ function ScopeTableBlock({
       <div className="overflow-x-auto rounded-xl border border-neutral-200 print:overflow-visible print:break-inside-avoid">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-neutral-200 bg-neutral-50">
+            <tr className="border-b border-neutral-200" style={{ backgroundColor: secondaryColor }}>
               <th className="px-4 py-3 text-left font-medium text-neutral-500 w-1/3">
                 Deliverable
               </th>
@@ -259,9 +263,11 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
 function PricingBlock({
   block,
   primaryColor,
+  secondaryColor,
 }: {
   block: Extract<ProposalBlock, { type: "pricing" }>;
   primaryColor: string;
+  secondaryColor: string;
 }) {
   const symbol = CURRENCY_SYMBOLS[block.currency] ?? block.currency;
   const total = block.lineItems.reduce((sum, item) => sum + item.qty * item.unitPrice, 0);
@@ -275,7 +281,7 @@ function PricingBlock({
       <div className="rounded-xl border border-neutral-200 overflow-hidden print:overflow-visible print:break-inside-avoid">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-neutral-200 bg-neutral-50">
+            <tr className="border-b border-neutral-200" style={{ backgroundColor: secondaryColor }}>
               <th className="px-4 py-3 text-left font-medium text-neutral-500">Item</th>
               <th className="px-4 py-3 text-right font-medium text-neutral-500 w-16">Qty</th>
               <th className="px-4 py-3 text-right font-medium text-neutral-500 w-32">
