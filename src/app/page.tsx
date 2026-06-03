@@ -121,13 +121,13 @@ export default function LandingPage() {
 
           <FadeInSection>
             <motion.div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
-              <a
+              
                 href="/sign-up"
                 className="px-8 py-4 bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-bold rounded-lg transition-colors text-center"
               >
                 Start Free — No credit card
               </a>
-              <a
+              
                 href="/sign-in"
                 className="px-8 py-4 border border-slate-700 hover:border-slate-600 text-white font-bold rounded-lg transition-colors text-center"
               >
@@ -243,12 +243,11 @@ export default function LandingPage() {
               whileHover={{ scale: 1.02 }}
               transition={{ duration: 0.3 }}
             >
-              
               <img
-  src="/dashboard-screenshot.png"
-  alt="Torvionyx Dashboard"
-  style={{ width: '100%', height: 'auto', display: 'block' }}
-/>
+                src="/dashboard-screenshot.png"
+                alt="Torvionyx Dashboard"
+                style={{ width: '100%', height: 'auto', display: 'block' }}
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 to-transparent opacity-20"></div>
             </motion.div>
           </FadeInSection>
@@ -368,13 +367,13 @@ export default function LandingPage() {
 
           <FadeInSection>
             <motion.div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
+              
                 href="/sign-up"
                 className="px-8 py-4 bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-bold rounded-lg transition-colors text-center"
               >
                 Sign Up Free
               </a>
-              <a
+              
                 href="/sign-in"
                 className="px-8 py-4 border border-slate-700 hover:border-slate-600 text-white font-bold rounded-lg transition-colors text-center"
               >
@@ -387,8 +386,13 @@ export default function LandingPage() {
 
       {/* Footer */}
       <footer className="border-t border-slate-800 py-8 px-4 sm:px-6 lg:px-8 bg-slate-950/50">
-        <div className="max-w-6xl mx-auto text-center text-slate-500 text-sm">
+        <div className="max-w-6xl mx-auto text-center text-slate-500 text-sm space-y-3">
           <p>© 2026 Torvionyx. Building tools for freelancers who want to focus on work, not paperwork.</p>
+          <div className="flex items-center justify-center gap-6">
+            <a href="/privacy-policy" className="hover:text-slate-300 transition-colors">Privacy Policy</a>
+            <a href="/terms" className="hover:text-slate-300 transition-colors">Terms of Use</a>
+            <a href="#" className="termly-display-preferences hover:text-slate-300 transition-colors">Consent Preferences</a>
+          </div>
         </div>
       </footer>
     </div>
