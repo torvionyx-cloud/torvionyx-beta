@@ -231,4 +231,3 @@ export default function LandingPage() {
     </div>
   );
 }
-EOF
