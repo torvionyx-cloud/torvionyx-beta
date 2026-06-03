@@ -223,6 +223,7 @@ export default function LandingPage() {
           <p>© 2026 Torvionyx. Building tools for freelancers who want to focus on work, not paperwork.</p>
           <div className="flex items-center justify-center gap-6">
             <a href="/privacy-policy" className="hover:text-slate-300 transition-colors">Privacy Policy</a>
+            <a href="/cookie-policy" className="hover:text-slate-300 transition-colors">Cookie Policy</a>
             <a href="/terms" className="hover:text-slate-300 transition-colors">Terms of Use</a>
            <a href="/consent-preferences" className="hover:text-slate-300 transition-colors">Consent Preferences</a>
           </div>
