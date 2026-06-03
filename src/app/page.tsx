@@ -1,4 +1,3 @@
-cat > "/Users/kaylanalbert/Desktop/Project X/pitchwright-phase1-scaffold/src/app/page.tsx" << 'EOF'
 'use client';
 
 import { motion } from 'framer-motion';
