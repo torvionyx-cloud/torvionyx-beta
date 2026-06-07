@@ -17,6 +17,14 @@ function ProposalsIcon() {
   );
 }
 
+function AnalyticsIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M5 9.2h3V19H5V9.2zM10.6 5h2.8v14h-2.8V5zm5.6 8H19v6h-2.8v-6z" />
+    </svg>
+  );
+}
+
 function BrandIcon() {
   return (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
@@ -60,6 +68,9 @@ export default async function DashboardLayout({
           <SidenavLink href="/dashboard" exact variant="topbar">
             Proposals
           </SidenavLink>
+          <SidenavLink href="/dashboard/analytics" exact variant="topbar">
+            Analytics
+          </SidenavLink>
           <SidenavLink href="/dashboard/brand" exact variant="topbar">
             Brand
           </SidenavLink>
@@ -81,6 +92,9 @@ export default async function DashboardLayout({
           <nav className="flex-1 px-3 py-5 space-y-1">
             <SidenavLink href="/dashboard" icon={<ProposalsIcon />} exact>
               Proposals
+            </SidenavLink>
+            <SidenavLink href="/dashboard/analytics" icon={<AnalyticsIcon />} exact>
+              Analytics
             </SidenavLink>
             <SidenavLink href="/dashboard/brand" icon={<BrandIcon />} exact>
               Brand

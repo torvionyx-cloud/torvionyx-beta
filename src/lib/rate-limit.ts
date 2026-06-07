@@ -59,6 +59,17 @@ function makeGenerationLimiters(): {
   };
 }
 
+function makeWorkspaceGenerationLimiter(): Ratelimit | null {
+  const r = getRedis();
+  if (!r) return null;
+  return new Ratelimit({
+    redis: r,
+    limiter: Ratelimit.slidingWindow(10, "1 h"),
+    prefix: "pitchwright:gen:workspace:hour",
+    analytics: false,
+  });
+}
+
 function makeGeneralLimiter(): Ratelimit | null {
   const r = getRedis();
   if (!r) return null;
@@ -142,6 +153,36 @@ export async function checkGenerationRateLimit(
     );
   }
 
+  return null;
+}
+
+/**
+ * Check the per-workspace AI generation rate limit (10 requests / hour).
+ * Returns a 429 response if exceeded, or null if OK.
+ */
+export async function checkWorkspaceGenerationRateLimit(
+  workspaceId: string
+): Promise<NextResponse | null> {
+  const limiter = makeWorkspaceGenerationLimiter();
+  if (!limiter) {
+    console.warn("[rate-limit] Upstash not configured — workspace generation rate limiting disabled");
+    return null;
+  }
+
+  const result = await limiter.limit(workspaceId);
+  if (!result.success) {
+    return NextResponse.json(
+      { error: "Generation limit reached for this workspace. Please try again later." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": "3600",
+          "X-RateLimit-Limit": "10",
+          "X-RateLimit-Remaining": "0",
+        },
+      }
+    );
+  }
   return null;
 }
 

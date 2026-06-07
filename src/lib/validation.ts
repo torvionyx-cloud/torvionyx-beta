@@ -157,6 +157,24 @@ export const proposalEventSchema = z.object({
 export type ProposalEventInput = z.infer<typeof proposalEventSchema>;
 
 // ---------------------------------------------------------------------------
+// Follow-up coach — ranked strategies generated from engagement signals
+// ---------------------------------------------------------------------------
+
+export const followUpStrategySchema = z.object({
+  rank: z.number().int().min(1).max(5),
+  title: z.string().min(1).max(120).trim(),
+  why: z.string().min(1).max(600).trim(),
+  suggested_copy: z.string().min(1).max(2000).trim(),
+});
+
+export const followUpStrategiesSchema = z.object({
+  strategies: z.array(followUpStrategySchema).min(3).max(5),
+});
+
+export type FollowUpStrategy = z.infer<typeof followUpStrategySchema>;
+export type FollowUpStrategies = z.infer<typeof followUpStrategiesSchema>;
+
+// ---------------------------------------------------------------------------
 // Validation helper — returns typed result or throws a structured error
 // ---------------------------------------------------------------------------
 

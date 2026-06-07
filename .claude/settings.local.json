@@ -4,7 +4,23 @@
       "Bash(npx tsc *)",
       "Bash(npm run *)",
       "Bash(echo \"PID: $!\")",
-      "Bash(chromium-cli screenshot *)"
+      "Bash(chromium-cli screenshot *)",
+      "Bash(git -C /Users/kaylanalbert/Desktop/torvionyx-beta log --oneline -3 -- src/app/api/proposals/generate/)",
+      "Bash(mkdir -p /tmp/tsc-out)",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp npx tsc --noEmit -p tsconfig.json)",
+      "Read(//tmp/tsc-out/**)",
+      "Bash(sed -n '174,230p' src/lib/prompt.ts)",
+      "Bash(sed -n '147,165p' src/types/database.ts)",
+      "Bash(CLAUDE_CODE_TMPDIR=/tmp npx tsc --noEmit -p tsconfig.json > /tmp/tsc-out/out2.txt 2>&1; grep -iE \"coach|engagement|closing-intelligence\" /tmp/tsc-out/out2.txt)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/dashboard/analytics --max-time 20)",
+      "Bash(curl -s http://localhost:3001/dashboard/analytics --max-time 20)",
+      "Bash(curl -sI http://localhost:3001/dashboard/analytics --max-time 20)",
+      "Bash(curl -sI http://localhost:3001/dashboard --max-time 20)",
+      "Bash(curl -sI http://localhost:3001/dashboard/brand --max-time 20)",
+      "Bash(pkill -f \"next dev\")"
+    ],
+    "additionalDirectories": [
+      "/tmp/tsc-out"
     ]
   }
 }

@@ -11,7 +11,12 @@ const isProtectedRoute = createRouteMatcher([
   "/api/analytics(.*)",
 ]);
 
+// Development/public routes that should bypass Clerk auth
+const isPublicRoute = createRouteMatcher(["/api/proposals/generate/dev"]);
+
 export default clerkMiddleware((auth, req) => {
+  if (isPublicRoute(req)) return;
+
   if (isProtectedRoute(req)) {
     auth().protect();
   }
