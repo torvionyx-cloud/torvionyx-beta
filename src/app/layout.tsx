@@ -16,8 +16,14 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <ClerkProvider>
+return (<ClerkProvider signInFallbackRedirectUrl="/dashboard">
+    <ClerkProvider signInFallbackRedirectUrl="/dashboard">
+      <html lang="en" suppressHydrationWarning>
+        {/* rest of code */}
+      </html>
+    </ClerkProvider>
+  );
+    
       <html lang="en" suppressHydrationWarning>
         <head>
           {/* Termly consent banner — must be first script */}
