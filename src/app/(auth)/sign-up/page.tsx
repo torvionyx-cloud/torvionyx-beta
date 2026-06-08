@@ -58,8 +58,8 @@ export default function SignUpPage() {
               colorSuccess: '#C9A84C',
               colorDanger: '#E53E3E',
               colorInputBackground: '#FFFFFF',
-              colorInputBorder: '#0F1F3D',
-              colorInputText: '#4A5568',
+             
+              
               fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
               fontSize: '0.9375rem',
             },
