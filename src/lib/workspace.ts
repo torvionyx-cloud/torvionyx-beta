@@ -51,7 +51,8 @@ export async function ensureWorkspaceExists(
         .single();
       if (race) return race.id;
     }
-    throw new Error("Failed to create workspace");
+    console.error("[ensureWorkspaceExists] Insert failed:", JSON.stringify(workspaceError));
+    throw new Error(`Failed to create workspace: ${workspaceError.message} (code: ${workspaceError.code})`);
   }
 
   if (!workspace) throw new Error("Failed to create workspace");
