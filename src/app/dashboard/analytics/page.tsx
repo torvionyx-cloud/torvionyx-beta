@@ -49,7 +49,7 @@ export default async function AnalyticsPage() {
 
   const { data } = await supabase
     .from("proposals")
-    .select("id, title, client_name, proposal_type, status, created_at, shared_at, accepted_at, updated_at")
+    .select("id, title, client_name, proposal_type, status, created_at, shared_at, accepted_at, updated_at, content")
     .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: false });
 
@@ -68,6 +68,28 @@ export default async function AnalyticsPage() {
   const avgTime = durations.length > 0
     ? Math.round(durations.reduce((s, d) => s + d, 0) / durations.length)
     : null;
+
+  const totalRevenue = accepted.reduce((total, p) => {
+    const blocks = (p.content as any)?.blocks ?? [];
+    const pricingBlock = blocks.find((b: any) => b.type === "pricing");
+    if (!pricingBlock?.lineItems) return total;
+    const proposalTotal = pricingBlock.lineItems.reduce(
+      (sum: number, item: any) => sum + (item.qty ?? 0) * (item.unitPrice ?? 0), 0
+    );
+    return total + proposalTotal;
+  }, 0);
+
+  const revenueDisplay = totalRevenue > 0
+    ? `£${totalRevenue.toLocaleString("en-GB")}`
+    : "£0";
+
+  const avgDealValue = accepted.length > 0 && totalRevenue > 0
+    ? Math.round(totalRevenue / accepted.length)
+    : null;
+
+  const avgDealDisplay = avgDealValue !== null
+    ? `£${avgDealValue.toLocaleString("en-GB")}`
+    : "—";
 
   const recent = proposals.slice(0, 15);
 
@@ -94,10 +116,10 @@ export default async function AnalyticsPage() {
       {/* ── KPIs ── */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16 }}>
         {[
-          { label: "Total revenue",    value: "£0",              delta: "No revenue tracked yet",       up: false },
+          { label: "Total revenue",    value: revenueDisplay,    delta: totalRevenue > 0 ? `From ${accepted.length} accepted` : "No revenue tracked yet", up: totalRevenue > 0 },
           { label: "Proposals sent",   value: sent.length,       delta: `${sent.length} total sent`,    up: sent.length > 0 },
           { label: "Accept rate",      value: `${acceptRate}%`,  delta: `${accepted.length} accepted`,  up: acceptRate > 0 },
-          { label: "Avg deal value",   value: "—",               delta: "Add pricing to proposals",     up: false },
+          { label: "Avg deal value",   value: avgDealDisplay,    delta: avgDealValue !== null ? "Per accepted proposal" : "Add pricing to proposals", up: avgDealValue !== null },
         ].map(({ label, value, delta, up }) => (
           <div key={label} className="transition-colors duration-300" style={{
             background: "linear-gradient(160deg,var(--tv-bg-panel),var(--tv-bg-panel))",

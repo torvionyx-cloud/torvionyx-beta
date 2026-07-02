@@ -52,7 +52,7 @@ export default async function DashboardPage() {
 
   const { data } = await supabase
     .from("proposals")
-    .select("id, title, client_name, status, proposal_type, share_token, created_at, updated_at, shared_at, accepted_at")
+    .select("id, title, client_name, status, proposal_type, share_token, created_at, updated_at, shared_at, accepted_at, content")
     .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: false });
 
@@ -62,6 +62,49 @@ export default async function DashboardPage() {
   const accepted = proposals.filter(p => p.status === "accepted")
 
   const acceptRate = sent.length > 0 ? Math.round((accepted.length / sent.length) * 100) : 0
+
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const revenueThisMonth = accepted
+    .filter(p => p.accepted_at && new Date(p.accepted_at) >= startOfMonth)
+    .reduce((total, p) => {
+      const blocks = (p.content as any)?.blocks ?? [];
+      const pricingBlock = blocks.find((b: any) => b.type === "pricing");
+      if (!pricingBlock?.lineItems) return total;
+      const proposalTotal = pricingBlock.lineItems.reduce(
+        (sum: number, item: any) => sum + (item.qty ?? 0) * (item.unitPrice ?? 0), 0
+      );
+      return total + proposalTotal;
+    }, 0);
+
+  const revenueDisplay = revenueThisMonth > 0
+    ? `£${revenueThisMonth.toLocaleString("en-GB")}`
+    : "£0";
+
+  const revenueDelta = revenueThisMonth > 0
+    ? `From ${accepted.filter(p => p.accepted_at && new Date(p.accepted_at) >= startOfMonth).length} accepted this month`
+    : "No accepted proposals this month";
+
+  const durationsHours = accepted
+    .filter(p => p.shared_at && p.accepted_at)
+    .map(p => (new Date(p.accepted_at!).getTime() - new Date(p.shared_at!).getTime()) / 3_600_000)
+    .filter(d => d >= 0);
+
+  const avgTimeHours = durationsHours.length > 0
+    ? Math.round(durationsHours.reduce((s, d) => s + d, 0) / durationsHours.length)
+    : null;
+
+  const avgTimeDisplay = avgTimeHours !== null
+    ? avgTimeHours < 24
+      ? `${avgTimeHours}h`
+      : `${Math.round(avgTimeHours / 24)}d`
+    : "—";
+
+  const avgTimeDelta = avgTimeHours !== null
+    ? `Based on ${durationsHours.length} accepted`
+    : "Not enough data yet";
+
   const recent = proposals.slice(0, 5)
 
   const activity = proposals.slice(0, 5).map(p => {
@@ -91,10 +134,10 @@ export default async function DashboardPage() {
       {/* ── Stats row ── */}
       <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16 }}>
         {[
-          { label: "Revenue this month",  value: "£0",           delta: "No revenue tracked yet", up: false },
+          { label: "Revenue this month", value: revenueDisplay, delta: revenueDelta, up: revenueThisMonth > 0 },
           { label: "Proposals sent",      value: sent.length,    delta: `${sent.length} total sent`, up: true },
           { label: "Accept rate",         value: `${acceptRate}%`, delta: `${accepted.length} accepted`, up: true },
-          { label: "Avg time to accept",  value: "—",            delta: "Not enough data yet", up: false },
+          { label: "Avg time to accept",  value: avgTimeDisplay, delta: avgTimeDelta, up: false },
         ].map(({ label, value, delta, up }) => (
           <div key={label} className="transition-colors duration-300" style={{
             background: "var(--tv-bg-panel)",
