@@ -8,6 +8,8 @@
  *
  * Limits (from PRD security requirements):
  * - AI generation: strictest — most expensive endpoint, primary abuse target
+ * - AI scoring: more generous than generation (cheaper, runs more often), but
+ *   on its own bucket so it never eats into the generation budget
  * - Auth endpoints: 5 requests / 15 min / IP (handled by Clerk, but we add our own)
  * - General API: moderate limits per endpoint
  *
@@ -57,6 +59,17 @@ function makeGenerationLimiters(): {
       analytics: false,
     }),
   };
+}
+
+function makeScoringLimiter(): Ratelimit | null {
+  const r = getRedis();
+  if (!r) return null;
+  return new Ratelimit({
+    redis: r,
+    limiter: Ratelimit.slidingWindow(20, "1 m"),
+    prefix: "pitchwright:score:minute",
+    analytics: false,
+  });
 }
 
 function makeWorkspaceGenerationLimiter(): Ratelimit | null {
@@ -153,6 +166,39 @@ export async function checkGenerationRateLimit(
     );
   }
 
+  return null;
+}
+
+/**
+ * Check the AI scoring rate limit (20 requests / minute / user).
+ * Scoring is an AI endpoint, but cheaper and more frequent than generation
+ * (a user may re-score after each rewrite), so it gets its own, more
+ * generous bucket that never consumes the generation budget.
+ * Returns a 429 response if exceeded, or null if OK.
+ */
+export async function checkScoringRateLimit(
+  userId: string
+): Promise<NextResponse | null> {
+  const limiter = makeScoringLimiter();
+  if (!limiter) {
+    console.warn("[rate-limit] Upstash not configured — scoring rate limiting disabled");
+    return null;
+  }
+
+  const result = await limiter.limit(userId);
+  if (!result.success) {
+    return NextResponse.json(
+      { error: "Too many requests. Please wait a moment before scoring again." },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": "60",
+          "X-RateLimit-Limit": "20",
+          "X-RateLimit-Remaining": "0",
+        },
+      }
+    );
+  }
   return null;
 }
 

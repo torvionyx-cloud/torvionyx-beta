@@ -7,7 +7,7 @@
  * Server-side only — never import in client components.
  */
 
-import type { BrandSettings, ProposalContent } from "@/types/database";
+import type { BrandSettings, ProposalContent, ProposalBlock } from "@/types/database";
 import type { GenerateProposalInput } from "@/lib/validation";
 
 // ---------------------------------------------------------------------------
@@ -333,4 +333,55 @@ export function buildFallbackContent(input: GenerateProposalInput): ProposalCont
       },
     ],
   };
+}
+
+// ---------------------------------------------------------------------------
+// Single-block rewrite message builder (reuses proposalTool + buildSystemPrompt
+// so Claude still returns blocks in the exact schema). Claude is told to
+// return the FULL proposal but change ONLY the target block — the rewrite
+// route then swaps just that one block back into the stored content, so any
+// other user edits survive.
+// ---------------------------------------------------------------------------
+
+export function buildBlockRewriteMessage(
+  input: GenerateProposalInput,
+  fullContent: { blocks: ProposalBlock[] },
+  blockIndex: number,
+  coachingNote: string | null
+): string {
+  const proposalTypeLabel = PROPOSAL_TYPE_LABELS[input.proposal_type] || input.proposal_type;
+  const currency = input.currency ?? "GBP";
+
+  const targetBlock = fullContent.blocks[blockIndex];
+  const targetType = targetBlock?.type ?? "unknown";
+
+  const indexedBlocks = fullContent.blocks
+    .map((b, i) => `[Block ${i}]${i === blockIndex ? " <-- REWRITE THIS ONE" : ""}\n${JSON.stringify(b)}`)
+    .join("\n\n");
+
+  return `You are improving ONE block of an existing ${proposalTypeLabel} for ${input.client_name}.
+
+ORIGINAL CLIENT BRIEF (for context — do not contradict it)
+<brief>
+${input.brief}
+</brief>
+
+Currency: ${currency}
+
+THE FULL PROPOSAL (as an indexed list of blocks)
+${indexedBlocks}
+
+YOUR TASK
+Rewrite ONLY block ${blockIndex} (type: "${targetType}"). Make it materially stronger and more likely to win the work.${
+    coachingNote
+      ? `\n\nThe specific weakness to fix: ${coachingNote}`
+      : ""
+  }
+
+RULES
+- Return the COMPLETE proposal via the generate_proposal tool, with the SAME blocks in the SAME order.
+- Change ONLY block ${blockIndex}. Every other block must be returned byte-for-byte identical to what you were given above — do not "improve" or reword them.
+- Keep block ${blockIndex}'s "type" the same ("${targetType}").
+- Keep the same currency and keep pricing totals consistent with any budget implied by the original.
+- UK English. Real, specific copy — no placeholders.`;
 }

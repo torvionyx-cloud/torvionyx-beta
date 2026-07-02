@@ -10,7 +10,7 @@ interface Props {
   children: React.ReactNode;
   icon?: React.ReactNode;
   exact?: boolean;
-  variant?: "sidenav" | "topbar";
+  variant?: "sidenav" | "topbar" | "navy";
 }
 
 export function SidenavLink({
@@ -35,6 +35,60 @@ export function SidenavLink({
             : "text-neutral-500 dark:text-gray-400 hover:text-neutral-900 dark:hover:text-[#F3F4F6] hover:bg-neutral-100 dark:hover:bg-[#374151]"
         }`}
       >
+        {children}
+      </Link>
+    );
+  }
+
+  if (variant === "navy") {
+    return (
+      <Link
+        href={href}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 11,
+          padding: "10px 12px",
+          borderRadius: 10,
+          fontSize: 13.5,
+          fontWeight: 500,
+          textDecoration: "none",
+          transition: "background .18s, color .18s",
+          position: "relative",
+          color: isActive ? "#DCAA33" : "rgba(250,242,232,.62)",
+          background: isActive ? "rgba(220,170,51,.13)" : "transparent",
+        }}
+        onMouseEnter={e => {
+          if (!isActive) {
+            e.currentTarget.style.background = "rgba(250,242,232,.06)";
+            e.currentTarget.style.color = "#FAF2E8";
+          }
+        }}
+        onMouseLeave={e => {
+          if (!isActive) {
+            e.currentTarget.style.background = "transparent";
+            e.currentTarget.style.color = "rgba(250,242,232,.62)";
+          }
+        }}
+      >
+        {/* Gold left bar when active */}
+        {isActive && (
+          <span style={{
+            position: "absolute",
+            left: -12,
+            top: "50%",
+            transform: "translateY(-50%)",
+            width: 3,
+            height: 22,
+            background: "#DCAA33",
+            borderRadius: "0 3px 3px 0",
+          }} />
+        )}
+        {icon && (
+          <span style={{ flexShrink: 0, opacity: isActive ? 1 : 0.6 }}>
+            {icon}
+          </span>
+        )}
         {children}
       </Link>
     );

@@ -7,19 +7,6 @@ import { getWorkspaceId } from "@/lib/workspace";
 import { createAdminClient } from "@/lib/supabase";
 import type { Proposal } from "@/types/database";
 
-// ─── Status config ────────────────────────────────────────────────────────────
-
-const STATUS: Record<string, { label: string; dot: string; text: string }> = {
-  draft:    { label: "Draft",    dot: "bg-neutral-400",  text: "text-neutral-500 dark:text-gray-400" },
-  shared:   { label: "Sent",     dot: "bg-[#0891B2]",    text: "text-[#0891B2]" },
-  viewed:   { label: "Viewed",   dot: "bg-purple-500",   text: "text-purple-600 dark:text-purple-400" },
-  accepted: { label: "Accepted", dot: "bg-green-500",    text: "text-green-600 dark:text-green-400" },
-  declined: { label: "Declined", dot: "bg-red-400",      text: "text-red-500 dark:text-red-400" },
-  expired:  { label: "Expired",  dot: "bg-neutral-300",  text: "text-neutral-400 dark:text-gray-500" },
-};
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
 function relativeTime(dateString: string): string {
   const ms = Date.now() - new Date(dateString).getTime();
   const mins = Math.floor(ms / 60000);
@@ -33,57 +20,28 @@ function relativeTime(dateString: string): string {
   return new Date(dateString).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
 
-function dateGroup(dateString: string): string {
-  const d = new Date(dateString);
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const item  = new Date(d.getFullYear(),   d.getMonth(),   d.getDate());
-  const diff  = Math.round((today.getTime() - item.getTime()) / 86400000);
-  if (diff === 0) return "Today";
-  if (diff === 1) return "Yesterday";
-  if (diff < 7)  return "This week";
-  if (diff < 30) return "This month";
-  return d.toLocaleDateString("en-GB", { month: "long", year: "numeric" });
+const STATUS_CHIP: Record<string, { label: string; bg: string; color: string }> = {
+  draft:    { label: "Draft",    bg: "rgba(250,242,232,.10)", color: "rgba(250,242,232,.5)" },
+  shared:   { label: "Sent",     bg: "rgba(61,185,201,.14)",  color: "#3DB9C9" },
+  viewed:   { label: "Viewed",   bg: "rgba(242,169,59,.14)",  color: "#F2A93B" },
+  accepted: { label: "Accepted", bg: "rgba(95,208,138,.16)",  color: "#5FD08A" },
+  declined: { label: "Declined", bg: "rgba(242,99,92,.14)",   color: "#F2635C" },
+  expired:  { label: "Expired",  bg: "rgba(250,242,232,.08)", color: "rgba(250,242,232,.35)" },
 }
 
-function groupProposals(list: Proposal[]): { label: string; items: Proposal[] }[] {
-  const order: string[] = [];
-  const map = new Map<string, Proposal[]>();
-  for (const p of list) {
-    const g = dateGroup(p.created_at);
-    if (!map.has(g)) { order.push(g); map.set(g, []); }
-    map.get(g)!.push(p);
-  }
-  return order.map((label) => ({ label, items: map.get(label)! }));
-}
-
-// ─── Stat card ────────────────────────────────────────────────────────────────
-
-function StatCard({
-  label,
-  value,
-  icon,
-  accent,
-}: {
-  label: string;
-  value: number;
-  icon: React.ReactNode;
-  accent: string;
-}) {
+function Chip({ status }: { status: string }) {
+  const s = STATUS_CHIP[status] ?? STATUS_CHIP.draft
   return (
-    <div className="rounded-xl border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#1F2937] px-5 py-4">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-sm text-neutral-500 dark:text-gray-400">{label}</span>
-        <div className={`rounded-lg p-1.5 ${accent}`}>{icon}</div>
-      </div>
-      <div className="text-3xl font-bold text-neutral-900 dark:text-[#F3F4F6] tabular-nums">
-        {value}
-      </div>
-    </div>
-  );
+    <span style={{
+      background: s.bg, color: s.color,
+      fontFamily: "monospace", fontSize: 10, fontWeight: 700,
+      letterSpacing: ".08em", textTransform: "uppercase",
+      padding: "3px 9px", borderRadius: 20, whiteSpace: "nowrap",
+    }}>
+      {s.label}
+    </span>
+  )
 }
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function DashboardPage() {
   const { userId } = await auth();
@@ -100,233 +58,175 @@ export default async function DashboardPage() {
 
   const proposals = (data ?? []) as Proposal[];
 
-  // Beta stats — simple counts only
-  const stats = {
-    total:    proposals.length,
-    sent:     proposals.filter((p) => ["shared","viewed","accepted","declined","expired"].includes(p.status)).length,
-    viewed:   proposals.filter((p) => ["viewed","accepted","declined"].includes(p.status)).length,
-    accepted: proposals.filter((p) => p.status === "accepted").length,
-  };
+  const sent     = proposals.filter(p => ["shared","viewed","accepted","declined","expired"].includes(p.status))
+  const accepted = proposals.filter(p => p.status === "accepted")
 
-  const groups = groupProposals(proposals);
+  const acceptRate = sent.length > 0 ? Math.round((accepted.length / sent.length) * 100) : 0
+  const recent = proposals.slice(0, 5)
 
-  // ─── Empty state ────────────────────────────────────────────────────────────
-  if (proposals.length === 0) {
-    return (
-      <div>
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-semibold text-neutral-900 dark:text-[#F3F4F6]">Your proposals</h1>
-            <p className="mt-1 text-sm text-neutral-500 dark:text-gray-400">Create, send, and track your proposals.</p>
-          </div>
-          <Link
-            href="/dashboard/new"
-            className="rounded-lg bg-[#0891B2] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#0e7490] transition lg:hidden"
-          >
-            + New proposal
-          </Link>
-        </div>
-        <div className="rounded-xl border-2 border-dashed border-neutral-200 dark:border-[#374151] p-16 text-center">
-          <div className="mx-auto mb-4 h-12 w-12 rounded-full bg-neutral-100 dark:bg-[#374151] flex items-center justify-center">
-            <svg className="text-neutral-400 dark:text-gray-500" width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M14 2H6C4.9 2 4 2.9 4 4v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11zm-3-8H9v2h6v-2zm-3-4H9v2h3V8zm3 8H9v2h6v-2z"/>
-            </svg>
-          </div>
-          <h2 className="text-lg font-medium text-neutral-900 dark:text-[#F3F4F6]">No proposals yet</h2>
-          <p className="mt-2 text-sm text-neutral-500 dark:text-gray-400 max-w-xs mx-auto">
-            Paste a brief and Torvionyx writes your first proposal in under a minute.
-          </p>
-          <Link
-            href="/dashboard/new"
-            className="mt-6 inline-flex items-center rounded-lg bg-[#0891B2] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#0e7490] transition"
-          >
-            Create your first proposal
-          </Link>
-        </div>
-      </div>
-    );
+  const activity = proposals.slice(0, 5).map(p => {
+    if (p.status === "accepted") return { type: "ok",   text: <><strong>{p.client_name}</strong> accepted your proposal</>, time: relativeTime(p.updated_at) }
+    if (p.status === "viewed")   return { type: "info", text: <><strong>{p.client_name}</strong> viewed your proposal</>,   time: relativeTime(p.updated_at) }
+    if (p.status === "shared")   return { type: "send", text: <><strong>{p.client_name}</strong> was sent a proposal</>,    time: relativeTime(p.updated_at) }
+    return { type: "warn", text: <><strong>{p.client_name}</strong> proposal is in draft</>, time: relativeTime(p.updated_at) }
+  })
+
+  const feedIconStyles: Record<string, {bg:string;color:string}> = {
+    ok:   { bg: "rgba(95,208,138,.14)",  color: "#5FD08A" },
+    info: { bg: "rgba(61,185,201,.14)",  color: "#3DB9C9" },
+    send: { bg: "rgba(61,185,201,.14)",  color: "#3DB9C9" },
+    warn: { bg: "rgba(242,169,59,.14)",  color: "#F2A93B" },
   }
 
-  // ─── Main dashboard ─────────────────────────────────────────────────────────
+  const feedIcons: Record<string, React.ReactNode> = {
+    ok:   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+    info: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
+    send: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>,
+    warn: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>,
+  }
+
   return (
-    <div>
-      {/* Page header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-neutral-900 dark:text-[#F3F4F6]">Your proposals</h1>
-          <p className="mt-0.5 text-sm text-neutral-500 dark:text-gray-400">Create, send, and track your proposals.</p>
-        </div>
-        {/* Mobile only — desktop has sidenav CTA */}
-        <Link
-          href="/dashboard/new"
-          className="lg:hidden rounded-lg bg-[#0891B2] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#0e7490] transition"
-        >
-          + New proposal
-        </Link>
-      </div>
+    <div style={{ display:"flex", flexDirection:"column", gap:24 }}>
 
       {/* ── Stats row ── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-        <StatCard
-          label="Created"
-          value={stats.total}
-          accent="bg-neutral-100 dark:bg-[#374151]"
-          icon={
-            <svg className="text-neutral-500 dark:text-gray-400" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M14 2H6C4.9 2 4 2.9 4 4v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/>
-            </svg>
-          }
-        />
-        <StatCard
-          label="Sent"
-          value={stats.sent}
-          accent="bg-blue-50 dark:bg-blue-950/40"
-          icon={
-            <svg className="text-[#0891B2]" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-            </svg>
-          }
-        />
-        <StatCard
-          label="Viewed"
-          value={stats.viewed}
-          accent="bg-purple-50 dark:bg-purple-950/40"
-          icon={
-            <svg className="text-purple-500" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-            </svg>
-          }
-        />
-        <StatCard
-          label="Accepted"
-          value={stats.accepted}
-          accent="bg-green-50 dark:bg-green-950/40"
-          icon={
-            <svg className="text-green-500" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-            </svg>
-          }
-        />
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:16 }}>
+        {[
+          { label: "Revenue this month",  value: "£0",           delta: "No revenue tracked yet", up: false },
+          { label: "Proposals sent",      value: sent.length,    delta: `${sent.length} total sent`, up: true },
+          { label: "Accept rate",         value: `${acceptRate}%`, delta: `${accepted.length} accepted`, up: true },
+          { label: "Avg time to accept",  value: "—",            delta: "Not enough data yet", up: false },
+        ].map(({ label, value, delta, up }) => (
+          <div key={label} className="transition-colors duration-300" style={{
+            background: "var(--tv-bg-panel)",
+            border: "1px solid var(--tv-border)",
+            borderRadius: 14,
+            padding: "18px 20px",
+            boxShadow: "var(--tv-shadow)",
+          }}>
+            <div style={{ fontFamily:"monospace", fontSize:10, letterSpacing:".16em", textTransform:"uppercase", color:"var(--tv-text-faint)", marginBottom:8 }}>
+              {label}
+            </div>
+            <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:600, fontSize:28, letterSpacing:"-.02em", color:"var(--tv-text)", marginBottom:6 }}>
+              {value}
+            </div>
+            <div style={{ fontFamily:"monospace", fontSize:11.5, color: up ? "#5FD08A" : "var(--tv-text-faint)" }}>
+              {up && sent.length > 0 ? "↑ " : ""}{delta}
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* ── Two-column: timeline list + right panel ── */}
-      <div className="flex gap-8 items-start">
+      {/* ── Two column: proposals + activity ── */}
+      <div style={{ display:"grid", gridTemplateColumns:"1.5fr 1fr", gap:20 }}>
 
-        {/* ─ Timeline proposal list ─ */}
-        <div className="flex-1 min-w-0 space-y-8">
-          {groups.map(({ label, items }) => (
-            <div key={label}>
-              {/* Date group header */}
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-xs font-semibold text-neutral-400 dark:text-gray-500 uppercase tracking-wider">
-                  {label}
-                </span>
-                <div className="flex-1 h-px bg-neutral-200 dark:bg-[#374151]" />
-              </div>
-
-              {/* Proposals in this group */}
-              <div className="relative pl-6 space-y-2">
-                {/* Vertical timeline line */}
-                {items.length > 1 && (
-                  <div
-                    className="absolute left-[7px] top-4 bottom-4 w-px bg-neutral-200 dark:bg-[#374151]"
-                    aria-hidden="true"
-                  />
-                )}
-
-                {items.map((proposal) => {
-                  const s = STATUS[proposal.status] ?? STATUS.draft;
-                  return (
-                    <div key={proposal.id} className="relative">
-                      {/* Timeline dot */}
-                      <span
-                        className={`absolute -left-6 top-1/2 -translate-y-1/2 h-3.5 w-3.5 rounded-full border-2 border-neutral-50 dark:border-[#111827] shrink-0 ${s.dot}`}
-                        aria-hidden="true"
-                      />
-                      <Link
-                        href={`/dashboard/${proposal.id}/edit`}
-                        className="flex items-center gap-4 rounded-xl border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#1F2937] px-4 py-3.5 hover:border-neutral-300 dark:hover:border-[#4B5563] hover:shadow-sm transition group"
-                      >
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-0.5">
-                            <h3 className="font-medium text-sm text-neutral-900 dark:text-[#F3F4F6] truncate group-hover:text-neutral-700 dark:group-hover:text-gray-200 transition">
-                              {proposal.title}
-                            </h3>
-                          </div>
-                          <div className="flex items-center gap-2.5 text-xs text-neutral-400 dark:text-gray-500">
-                            <span className="truncate">{proposal.client_name}</span>
-                            <span>·</span>
-                            <span className="capitalize shrink-0">{proposal.proposal_type.replace(/_/g, " ")}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3 shrink-0">
-                          <span className={`text-xs font-medium ${s.text}`}>{s.label}</span>
-                          <span className="text-xs text-neutral-300 dark:text-gray-600">
-                            {relativeTime(proposal.updated_at)}
-                          </span>
-                          <span className="text-neutral-300 dark:text-gray-600 group-hover:text-neutral-500 dark:group-hover:text-gray-400 transition text-sm">
-                            →
-                          </span>
-                        </div>
-                      </Link>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* ─ Right panel: beta stats ─ */}
-        <aside className="hidden xl:flex flex-col w-60 shrink-0 gap-3 sticky top-24">
-          <div className="rounded-xl border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#1F2937] p-4">
-            <h3 className="text-xs font-semibold text-neutral-400 dark:text-gray-500 uppercase tracking-wider mb-4">
-              Overview
-            </h3>
-            <ul className="space-y-3">
-              {[
-                { label: "Total proposals", value: stats.total,    dot: "bg-neutral-400" },
-                { label: "Sent",            value: stats.sent,     dot: "bg-[#0891B2]" },
-                { label: "Viewed",          value: stats.viewed,   dot: "bg-purple-500" },
-                { label: "Accepted",        value: stats.accepted, dot: "bg-green-500" },
-              ].map(({ label, value, dot }) => (
-                <li key={label} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className={`h-2 w-2 rounded-full shrink-0 ${dot}`} />
-                    <span className="text-sm text-neutral-600 dark:text-gray-400">{label}</span>
-                  </div>
-                  <span className="text-sm font-semibold text-neutral-900 dark:text-[#F3F4F6] tabular-nums">
-                    {value}
-                  </span>
-                </li>
-              ))}
-            </ul>
+        {/* Recent proposals panel */}
+        <div className="transition-colors duration-300" style={{
+          background: "var(--tv-bg-panel)",
+          border: "1px solid var(--tv-border)",
+          borderRadius: 14,
+          boxShadow: "var(--tv-shadow)",
+          display: "flex", flexDirection: "column",
+        }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"18px 20px 14px", borderBottom:"1px solid var(--tv-border-soft)" }}>
+            <span style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:600, fontSize:15, color:"var(--tv-text)" }}>Recent proposals</span>
+            <Link href="/dashboard/proposals" style={{ fontSize:12.5, color:"#DCAA33", fontWeight:500 }}>View all</Link>
           </div>
 
-          {/* Acceptance rate if anything was sent */}
-          {stats.sent > 0 && (
-            <div className="rounded-xl border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#1F2937] p-4">
-              <h3 className="text-xs font-semibold text-neutral-400 dark:text-gray-500 uppercase tracking-wider mb-3">
-                Close rate
-              </h3>
-              <div className="text-3xl font-bold text-neutral-900 dark:text-[#F3F4F6] tabular-nums">
-                {Math.round((stats.accepted / stats.sent) * 100)}
-                <span className="text-lg font-medium text-neutral-400 dark:text-gray-500">%</span>
-              </div>
-              <p className="text-xs text-neutral-400 dark:text-gray-500 mt-1">
-                {stats.accepted} accepted of {stats.sent} sent
-              </p>
-              {/* Progress bar */}
-              <div className="mt-3 h-1.5 rounded-full bg-neutral-100 dark:bg-[#374151] overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-[#0891B2]"
-                  style={{ width: `${Math.round((stats.accepted / stats.sent) * 100)}%` }}
-                />
-              </div>
+          {recent.length === 0 ? (
+            <div style={{ padding:"40px 20px", textAlign:"center", color:"var(--tv-text-faint)", fontSize:13 }}>
+              No proposals yet — create your first one
             </div>
+          ) : (
+            recent.map(p => (
+              <Link
+                key={p.id}
+                href={`/dashboard/${p.id}/edit`}
+                style={{
+                  display:"grid", gridTemplateColumns:"1fr auto auto",
+                  alignItems:"center", gap:12,
+                  padding:"13px 20px",
+                  borderBottom:"1px solid var(--tv-border-soft)",
+                  cursor:"pointer", textDecoration:"none",
+                }}
+                className="transition-colors hover:bg-[var(--tv-row-hover)]"
+              >
+                <div>
+                  <div style={{ fontWeight:500, fontSize:14, color:"var(--tv-text)" }}>{p.client_name}</div>
+                  <div style={{ fontSize:12, color:"var(--tv-text-faint)", marginTop:2 }}>
+                    {p.proposal_type.replace(/_/g," ")} · {p.shared_at ? `Sent ${relativeTime(p.shared_at)}` : "Draft"}
+                  </div>
+                </div>
+                <div style={{ fontFamily:"monospace", fontWeight:700, fontSize:13.5, color:"var(--tv-text)", textAlign:"right" }}>
+                  —
+                </div>
+                <Chip status={p.status} />
+              </Link>
+            ))
           )}
-        </aside>
 
+          {/* Quick actions */}
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, padding:16 }}>
+            {[
+              { label:"New proposal", desc:"Start from scratch or a saved template", href:"/dashboard/new",
+                icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg> },
+              { label:"Import proposal", desc:"Bring in a PDF or Google Doc", href:"#",
+                icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> },
+            ].map(({ label, desc, href, icon }) => (
+              <Link key={label} href={href} className="transition-all hover:-translate-y-0.5" style={{
+                background:"var(--tv-panel-accent)",
+                border:"1px solid var(--tv-border)",
+                borderRadius:12, padding:14,
+                display:"flex", flexDirection:"column", gap:8,
+                textDecoration:"none",
+              }}>
+                <div style={{ color:"#DCAA33" }}>{icon}</div>
+                <div style={{ fontSize:13, fontWeight:600, color:"var(--tv-text)" }}>{label}</div>
+                <div style={{ fontSize:11.5, color:"var(--tv-text-faint)", lineHeight:1.4 }}>{desc}</div>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Activity panel */}
+        <div className="transition-colors duration-300" style={{
+          background: "var(--tv-bg-panel)",
+          border: "1px solid var(--tv-border)",
+          borderRadius: 14,
+          boxShadow: "var(--tv-shadow)",
+          display: "flex", flexDirection: "column",
+        }}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"18px 20px 14px", borderBottom:"1px solid var(--tv-border-soft)" }}>
+            <span style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:600, fontSize:15, color:"var(--tv-text)" }}>Activity</span>
+            <span style={{ fontSize:12.5, color:"#DCAA33", fontWeight:500, cursor:"pointer" }}>All activity</span>
+          </div>
+
+          {activity.length === 0 ? (
+            <div style={{ padding:"40px 20px", textAlign:"center", color:"var(--tv-text-faint)", fontSize:13 }}>
+              Activity will appear here as proposals are sent and viewed
+            </div>
+          ) : (
+            activity.map((item, i) => (
+              <div key={i} style={{
+                display:"flex", alignItems:"flex-start", gap:12,
+                padding:"13px 20px",
+                borderBottom: i < activity.length - 1 ? "1px solid var(--tv-border-soft)" : "none",
+              }}>
+                <div style={{
+                  width:30, height:30, borderRadius:"50%",
+                  background: feedIconStyles[item.type]?.bg,
+                  color: feedIconStyles[item.type]?.color,
+                  display:"grid", placeItems:"center", flexShrink:0, marginTop:1,
+                }}>
+                  {feedIcons[item.type]}
+                </div>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:13, lineHeight:1.45, color:"var(--tv-text-dim)" }}>{item.text}</div>
+                  <div style={{ fontFamily:"monospace", fontSize:11, color:"var(--tv-text-faint)", marginTop:2 }}>{item.time}</div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

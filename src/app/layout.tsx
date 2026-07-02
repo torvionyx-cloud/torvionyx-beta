@@ -3,6 +3,7 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
+import { clerkAppearance } from "@/lib/clerkAppearance";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -38,7 +39,7 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <ClerkProvider signInFallbackRedirectUrl="/dashboard">
+        <ClerkProvider appearance={clerkAppearance} signInFallbackRedirectUrl="/dashboard">
           <ThemeProvider>{children}</ThemeProvider>
         </ClerkProvider>
       </body>

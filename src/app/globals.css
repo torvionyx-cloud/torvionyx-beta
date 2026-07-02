@@ -1,3 +1,41 @@
+/* ── Torvionyx design tokens ── */
+:root {
+  --tv-bg-page: #F5F0E8;
+  --tv-bg-sidebar: #0C1A2E;
+  --tv-sidebar-text: rgba(250,242,232,.62);
+  --tv-sidebar-text-faint: rgba(250,242,232,.38);
+  --tv-sidebar-border: rgba(250,242,232,.07);
+  --tv-sidebar-hover: rgba(250,242,232,.06);
+  --tv-bg-panel: rgba(255,255,255,.9);
+  --tv-bg-topbar: #F5F0E8;
+  --tv-border: rgba(19,37,67,.12);
+  --tv-border-soft: rgba(19,37,67,.08);
+  --tv-text: #132543;
+  --tv-text-dim: rgba(19,37,67,.62);
+  --tv-text-faint: rgba(19,37,67,.38);
+  --tv-shadow: 0 24px 50px -28px rgba(0,0,0,.12);
+  --tv-row-hover: rgba(19,37,67,.04);
+  --tv-panel-accent: rgba(19,37,67,.05);
+}
+
+.dark {
+  --tv-bg-page: #0A1322;
+  --tv-bg-sidebar: #0C1A2E;
+  --tv-sidebar-text: rgba(250,242,232,.62);
+  --tv-sidebar-text-faint: rgba(250,242,232,.38);
+  --tv-sidebar-border: rgba(250,242,232,.07);
+  --tv-sidebar-hover: rgba(250,242,232,.06);
+  --tv-bg-panel: rgba(27,49,87,.45);
+  --tv-bg-topbar: #0A1322;
+  --tv-border: rgba(250,242,232,.09);
+  --tv-border-soft: rgba(250,242,232,.07);
+  --tv-text: #FAF2E8;
+  --tv-text-dim: rgba(250,242,232,.62);
+  --tv-text-faint: rgba(250,242,232,.38);
+  --tv-shadow: 0 24px 50px -28px rgba(0,0,0,.7);
+  --tv-row-hover: rgba(250,242,232,.04);
+  --tv-panel-accent: rgba(250,242,232,.05);
+}
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

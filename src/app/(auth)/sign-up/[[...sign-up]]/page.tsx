@@ -2,12 +2,12 @@
 
 import { useLayoutEffect, useRef } from "react";
 import Link from "next/link";
-import { SignIn } from "@clerk/nextjs";
+import { SignUp } from "@clerk/nextjs";
 import gsap from "gsap";
 import { TorvionyxLogo } from "@/components/ui/TorvionyxLogo";
 import { SignUpShowcase } from "@/components/auth/SignUpShowcase";
 
-export default function SignInPage() {
+export default function SignUpPage() {
   const formPanelRef = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
@@ -54,18 +54,18 @@ export default function SignInPage() {
 
           <div data-form-reveal className="mb-8">
             <h1 className="text-3xl font-bold tracking-tight text-[#0F1F3D]">
-              Welcome back
+              Create your account
             </h1>
             <p className="mt-2 text-base text-[#4A5568]">
-              Sign in to your account and pick up where you left off.
+              Win more work and earn more. Start free in seconds.
             </p>
           </div>
 
           <div>
-            <SignIn
+            <SignUp
               routing="path"
-              path="/sign-in"
-              signUpUrl="/sign-up"
+              path="/sign-up"
+              signInUrl="/sign-in"
               appearance={{
                 elements: {
                   rootBox: "w-full max-w-full",
@@ -120,6 +120,21 @@ export default function SignInPage() {
               background: #fff !important;
             }
           `}</style>
+
+          <p data-form-reveal className="mt-8 text-center text-xs text-[#718096]">
+            By signing up you agree to our{" "}
+            <Link href="/terms" className="font-medium text-[#0F1F3D] hover:text-[#C9A84C]">
+              Terms
+            </Link>{" "}
+            and{" "}
+            <Link
+              href="/privacy-policy"
+              className="font-medium text-[#0F1F3D] hover:text-[#C9A84C]"
+            >
+              Privacy Policy
+            </Link>
+            .
+          </p>
         </div>
       </div>
     </div>

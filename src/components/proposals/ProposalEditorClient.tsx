@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { Proposal, ProposalContent, ProposalBlock, BrandSettings } from "@/types/database";
 import { TorvionyxLogo } from "@/components/ui/TorvionyxLogo";
+import { ProposalScorePanel } from "@/components/proposals/ProposalScorePanel";
 
 const STATUS_LABELS: Record<string, { label: string; className: string }> = {
   draft: { label: "Draft", className: "bg-neutral-100 text-neutral-600" },
@@ -40,6 +41,7 @@ export function ProposalEditorClient({ proposal, brand }: Props) {
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [rewritingBlock, setRewritingBlock] = useState<number | null>(null);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
   const [status, setStatus] = useState(proposal.status);
@@ -103,9 +105,7 @@ export function ProposalEditorClient({ proposal, brand }: Props) {
   }, [proposal.id, title, content]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleShare = useCallback(async () => {
-    // Save first if dirty
     if (isDirty) await handleSave();
-
     setIsSharing(true);
     try {
       const res = await fetch(`/api/proposals/${proposal.id}/share`, {
@@ -155,12 +155,32 @@ export function ProposalEditorClient({ proposal, brand }: Props) {
     }
   }, [proposal.id, router]);
 
+  const handleRewrite = useCallback(async (blockIndex: number, coachingNote: string | null) => {
+    setRewritingBlock(blockIndex);
+    try {
+      const res = await fetch(`/api/proposals/${proposal.id}/rewrite`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ block_index: blockIndex, coaching_note: coachingNote }),
+      });
+      const data = await res.json();
+      if (res.ok && data.content) {
+        setContent(data.content as ProposalContent);
+        setIsDirty(false);
+      }
+    } catch {
+      // rewrite failed silently — proposal unchanged
+    } finally {
+      setRewritingBlock(null);
+    }
+  }, [proposal.id]);
+
   const statusInfo = STATUS_LABELS[status] ?? STATUS_LABELS.draft;
   const primaryColor = brand?.primary_color ?? "#111111";
 
   return (
     <div className="-mt-10 -mx-6">
-      {/* Editor toolbar — sticks below the dashboard header on scroll */}
+      {/* Editor toolbar */}
       <div className="sticky top-0 z-30 border-b border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#1F2937]">
         <div className="px-6 py-3 flex items-center gap-3">
           <TorvionyxLogo size={18} className="shrink-0 opacity-70" />
@@ -235,6 +255,11 @@ export function ProposalEditorClient({ proposal, brand }: Props) {
 
         {/* Sidebar */}
         <aside className="space-y-4">
+          <ProposalScorePanel
+            proposalId={proposal.id}
+            onRewrite={(blockIndex, coachingNote) => handleRewrite(blockIndex, coachingNote ?? null)}
+            rewritingBlock={rewritingBlock}
+          />
           <div className="rounded-xl border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#1F2937] p-4 space-y-3">
             <h3 className="text-sm font-medium text-neutral-900 dark:text-[#F3F4F6]">Proposal details</h3>
             <dl className="space-y-2 text-sm">
@@ -336,7 +361,7 @@ function EditableBlock({ block, idx, primaryColor, onUpdate, onRemove }: Editabl
             value={block.title}
             onChange={(e) => onUpdate({ title: e.target.value })}
             placeholder="Proposal title"
-            className="w-full text-2xl font-bold text-neutral-900 border-0 p-0 focus:outline-none focus:ring-0 bg-transparent mb-2"
+            className="w-full text-2xl font-bold text-neutral-900 dark:text-[#F3F4F6] border-0 p-0 focus:outline-none focus:ring-0 bg-transparent mb-2"
           />
           <input
             type="text"
@@ -358,14 +383,14 @@ function EditableBlock({ block, idx, primaryColor, onUpdate, onRemove }: Editabl
             value={block.heading}
             onChange={(e) => onUpdate({ heading: e.target.value })}
             placeholder="Section heading"
-            className="w-full text-lg font-semibold text-neutral-900 border-0 p-0 focus:outline-none focus:ring-0 bg-transparent mb-3"
+            className="w-full text-lg font-semibold text-neutral-900 dark:text-[#F3F4F6] border-0 p-0 focus:outline-none focus:ring-0 bg-transparent mb-3"
           />
           <textarea
             value={block.body}
             onChange={(e) => onUpdate({ body: e.target.value })}
             rows={6}
             placeholder="Section content…"
-            className="w-full text-sm text-neutral-700 border border-neutral-200 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 resize-y transition"
+            className="w-full text-sm text-neutral-700 dark:text-[#F3F4F6] bg-white dark:bg-[#111827] border border-neutral-200 dark:border-[#374151] rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 resize-y transition"
           />
         </div>
       );
@@ -380,7 +405,7 @@ function EditableBlock({ block, idx, primaryColor, onUpdate, onRemove }: Editabl
             value={block.heading}
             onChange={(e) => onUpdate({ heading: e.target.value })}
             placeholder="Section heading"
-            className="w-full text-lg font-semibold text-neutral-900 border-0 p-0 focus:outline-none focus:ring-0 bg-transparent mb-3"
+            className="w-full text-lg font-semibold text-neutral-900 dark:text-[#F3F4F6] border-0 p-0 focus:outline-none focus:ring-0 bg-transparent mb-3"
           />
           <div className="space-y-2">
             {block.items.map((item, i) => (
@@ -397,7 +422,7 @@ function EditableBlock({ block, idx, primaryColor, onUpdate, onRemove }: Editabl
                     newItems[i] = e.target.value;
                     onUpdate({ items: newItems });
                   }}
-                  className="flex-1 text-sm text-neutral-700 border-0 p-0 focus:outline-none focus:ring-0 bg-transparent"
+                  className="flex-1 text-sm text-neutral-700 dark:text-[#F3F4F6] border-0 p-0 focus:outline-none focus:ring-0 bg-transparent"
                 />
                 <button
                   onClick={() => {
@@ -568,7 +593,7 @@ function EditableBlock({ block, idx, primaryColor, onUpdate, onRemove }: Editabl
                         li[i] = { ...li[i], unitPrice: parseFloat(e.target.value) || 0 };
                         onUpdate({ lineItems: li });
                       }}
-                      className="w-full text-sm text-neutral-900 border border-neutral-200 rounded pl-6 pr-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+                      className="w-full text-sm text-neutral-900 dark:text-[#F3F4F6] bg-white dark:bg-[#111827] border border-neutral-200 dark:border-[#374151] rounded pl-6 pr-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-neutral-400"
                     />
                   </div>
                   <button
@@ -594,7 +619,7 @@ function EditableBlock({ block, idx, primaryColor, onUpdate, onRemove }: Editabl
           </div>
           <div className="mt-4 pt-4 border-t border-neutral-100 flex justify-between items-center">
             <span className="text-sm text-neutral-500">Total</span>
-            <span className="text-lg font-semibold text-neutral-900">
+            <span className="text-lg font-semibold text-neutral-900 dark:text-[#F3F4F6]">
               {CURRENCY_SYMBOLS[block.currency] ?? block.currency}
               {block.lineItems
                 .reduce((s, i) => s + i.qty * i.unitPrice, 0)
@@ -617,7 +642,7 @@ function EditableBlock({ block, idx, primaryColor, onUpdate, onRemove }: Editabl
             value={block.label}
             onChange={(e) => onUpdate({ label: e.target.value })}
             placeholder="Button label"
-            className="w-full text-base font-medium text-neutral-900 border border-neutral-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neutral-900/10"
+            className="w-full text-base font-medium text-neutral-900 dark:text-[#F3F4F6] bg-white dark:bg-[#111827] border border-neutral-200 dark:border-[#374151] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neutral-900/10"
           />
         </div>
       );
@@ -632,7 +657,7 @@ function EditableBlock({ block, idx, primaryColor, onUpdate, onRemove }: Editabl
             onChange={(e) => onUpdate({ body: e.target.value })}
             rows={5}
             placeholder="Terms and conditions…"
-            className="w-full text-sm text-neutral-600 border border-neutral-200 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 resize-y transition"
+            className="w-full text-sm text-neutral-600 dark:text-[#F3F4F6] bg-white dark:bg-[#111827] border border-neutral-200 dark:border-[#374151] rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 resize-y transition"
           />
         </div>
       );

@@ -5,108 +5,40 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getWorkspaceId } from "@/lib/workspace";
 import { createAdminClient } from "@/lib/supabase";
-import type { Proposal, ProposalContent, PricingBlock } from "@/types/database";
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const CURRENCY_SYMBOLS: Record<string, string> = {
-  GBP: "£",
-  USD: "$",
-  EUR: "€",
-};
-
-const STATUS: Record<string, { label: string; dot: string; text: string }> = {
-  draft:    { label: "Draft",    dot: "bg-neutral-400",  text: "text-neutral-500 dark:text-gray-400" },
-  shared:   { label: "Sent",     dot: "bg-[#0891B2]",    text: "text-[#0891B2]" },
-  viewed:   { label: "Viewed",   dot: "bg-purple-500",   text: "text-purple-600 dark:text-purple-400" },
-  accepted: { label: "Accepted", dot: "bg-green-500",    text: "text-green-600 dark:text-green-400" },
-  declined: { label: "Declined", dot: "bg-red-400",      text: "text-red-500 dark:text-red-400" },
-  expired:  { label: "Expired",  dot: "bg-neutral-300",  text: "text-neutral-400 dark:text-gray-500" },
-};
+import type { Proposal } from "@/types/database";
 
 const SENT_STATUSES = ["shared", "viewed", "accepted", "declined", "expired"];
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function formatCurrency(amount: number, currency: string): string {
-  const symbol = CURRENCY_SYMBOLS[currency] ?? currency;
-  return `${symbol}${Math.round(amount).toLocaleString("en-GB")}`;
-}
-
-function proposalValue(content: ProposalContent | null): { currency: string; amount: number } | null {
-  if (!content?.blocks) return null;
-  const pricing = content.blocks.find((b) => b.type === "pricing") as PricingBlock | undefined;
-  if (!pricing) return null;
-  const amount = pricing.lineItems.reduce((sum, item) => sum + item.qty * item.unitPrice, 0);
-  return { currency: pricing.currency, amount };
-}
-
 function daysBetween(a: string, b: string): number {
-  const ms = new Date(b).getTime() - new Date(a).getTime();
-  return ms / 86_400_000;
+  return (new Date(b).getTime() - new Date(a).getTime()) / 3_600_000; // hours
 }
 
-function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+function formatDate(d: string): string {
+  return new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
 
-function monthKey(dateString: string): string {
-  const d = new Date(dateString);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+const STATUS_CHIP: Record<string, { label: string; bg: string; color: string }> = {
+  draft:    { label: "Draft",    bg: "rgba(250,242,232,.10)", color: "rgba(250,242,232,.5)" },
+  shared:   { label: "Sent",     bg: "rgba(61,185,201,.14)",  color: "#3DB9C9" },
+  viewed:   { label: "Viewed",   bg: "rgba(242,169,59,.14)",  color: "#F2A93B" },
+  accepted: { label: "Accepted", bg: "rgba(95,208,138,.16)",  color: "#5FD08A" },
+  declined: { label: "Declined", bg: "rgba(242,99,92,.14)",   color: "#F2635C" },
+  expired:  { label: "Expired",  bg: "rgba(250,242,232,.08)", color: "rgba(250,242,232,.35)" },
 }
 
-function monthLabel(key: string): string {
-  const [year, month] = key.split("-").map(Number);
-  return new Date(year, month - 1, 1).toLocaleDateString("en-GB", { month: "short" });
-}
-
-// Last `count` months as ascending "YYYY-MM" keys, ending with the current month.
-function recentMonthKeys(count: number): string[] {
-  const keys: string[] = [];
-  const now = new Date();
-  for (let i = count - 1; i >= 0; i--) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    keys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
-  }
-  return keys;
-}
-
-// ─── Small presentational pieces ──────────────────────────────────────────────
-
-function MetricCard({
-  label,
-  value,
-  sublabel,
-}: {
-  label: string;
-  value: React.ReactNode;
-  sublabel?: string;
-}) {
+function Chip({ status }: { status: string }) {
+  const s = STATUS_CHIP[status] ?? STATUS_CHIP.draft
   return (
-    <div className="rounded-xl border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#1F2937] px-5 py-4">
-      <span className="text-sm text-neutral-500 dark:text-gray-400">{label}</span>
-      <div className="mt-2 text-3xl font-bold text-neutral-900 dark:text-[#F3F4F6] tabular-nums">
-        {value}
-      </div>
-      {sublabel && (
-        <p className="mt-1 text-xs text-neutral-400 dark:text-gray-500">{sublabel}</p>
-      )}
-    </div>
-  );
+    <span style={{
+      background: s.bg, color: s.color,
+      fontFamily: "monospace", fontSize: 9.5, fontWeight: 700,
+      letterSpacing: ".08em", textTransform: "uppercase",
+      padding: "3px 8px", borderRadius: 20, whiteSpace: "nowrap",
+    }}>
+      {s.label}
+    </span>
+  )
 }
-
-function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="rounded-xl border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#1F2937] p-5">
-      <h3 className="text-xs font-semibold text-neutral-400 dark:text-gray-500 uppercase tracking-wider mb-4">
-        {title}
-      </h3>
-      {children}
-    </div>
-  );
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function AnalyticsPage() {
   const { userId } = await auth();
@@ -115,261 +47,207 @@ export default async function AnalyticsPage() {
   const workspaceId = await getWorkspaceId(userId);
   const supabase = createAdminClient();
 
-  const { data: proposalRows } = await supabase
+  const { data } = await supabase
     .from("proposals")
-    .select("id, title, client_name, proposal_type, status, content, share_token, created_at, shared_at, accepted_at")
+    .select("id, title, client_name, proposal_type, status, created_at, shared_at, accepted_at, updated_at")
     .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: false });
 
-  const proposals = (proposalRows ?? []) as Proposal[];
+  const proposals = (data ?? []) as Proposal[];
+  const sent      = proposals.filter(p => SENT_STATUSES.includes(p.status));
+  const viewed    = proposals.filter(p => ["viewed","accepted","declined"].includes(p.status));
+  const accepted  = proposals.filter(p => p.status === "accepted");
+  const declined  = proposals.filter(p => p.status === "declined");
 
-  // ── View counts per proposal (from proposal_events) ──
-  const viewCounts = new Map<string, number>();
-  if (proposals.length > 0) {
-    const { data: viewEvents } = await supabase
-      .from("proposal_events")
-      .select("proposal_id")
-      .eq("event_type", "viewed")
-      .in("proposal_id", proposals.map((p) => p.id));
+  const acceptRate = sent.length > 0 ? Math.round((accepted.length / sent.length) * 100) : 0;
 
-    for (const event of viewEvents ?? []) {
-      viewCounts.set(event.proposal_id, (viewCounts.get(event.proposal_id) ?? 0) + 1);
-    }
-  }
-
-  // ── Empty state ──
-  if (proposals.length === 0) {
-    return (
-      <div>
-        <PageHeader />
-        <div className="rounded-xl border-2 border-dashed border-neutral-200 dark:border-[#374151] p-16 text-center">
-          <h2 className="text-lg font-medium text-neutral-900 dark:text-[#F3F4F6]">No data yet</h2>
-          <p className="mt-2 text-sm text-neutral-500 dark:text-gray-400 max-w-xs mx-auto">
-            Once you've sent your first proposal, your engagement and pipeline metrics will show up here.
-          </p>
-          <Link
-            href="/dashboard/new"
-            className="mt-6 inline-flex items-center rounded-lg bg-[#0891B2] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#0e7490] transition"
-          >
-            Create your first proposal
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  // ── Summary metrics ──
-  const sent = proposals.filter((p) => SENT_STATUSES.includes(p.status) || p.shared_at);
-  const accepted = proposals.filter((p) => p.status === "accepted" && p.accepted_at);
-
-  const acceptRate = sent.length > 0 ? Math.round((accepted.length / sent.length) * 100) : null;
-
-  const acceptDurations = accepted
-    .filter((p) => p.shared_at)
-    .map((p) => daysBetween(p.shared_at as string, p.accepted_at as string))
-    .filter((d) => d >= 0);
-  const avgTimeToAccept =
-    acceptDurations.length > 0
-      ? Math.round((acceptDurations.reduce((s, d) => s + d, 0) / acceptDurations.length) * 10) / 10
-      : null;
-
-  // Pipeline value — sum estimated value of every sent (non-draft) proposal, grouped by currency
-  const pipelineByCurrency = new Map<string, number>();
-  for (const p of sent) {
-    const value = proposalValue(p.content as ProposalContent | null);
-    if (value && value.amount > 0) {
-      pipelineByCurrency.set(value.currency, (pipelineByCurrency.get(value.currency) ?? 0) + value.amount);
-    }
-  }
-  const pipelineEntries = Array.from(pipelineByCurrency.entries()).sort((a, b) => b[1] - a[1]);
-
-  // ── Acceptance trend — last 6 months: sent vs accepted ──
-  const months = recentMonthKeys(6);
-  const trend = months.map((key) => {
-    const sentInMonth = sent.filter((p) => p.shared_at && monthKey(p.shared_at) === key).length;
-    const acceptedInMonth = accepted.filter((p) => p.accepted_at && monthKey(p.accepted_at) === key).length;
-    return { key, label: monthLabel(key), sent: sentInMonth, accepted: acceptedInMonth };
-  });
-  const trendMax = Math.max(1, ...trend.map((t) => Math.max(t.sent, t.accepted)));
-
-  // ── View distribution buckets ──
-  const buckets = [
-    { label: "No views", test: (n: number) => n === 0 },
-    { label: "1–2 views", test: (n: number) => n >= 1 && n <= 2 },
-    { label: "3–5 views", test: (n: number) => n >= 3 && n <= 5 },
-    { label: "6+ views", test: (n: number) => n >= 6 },
-  ];
-  const distribution = buckets.map((bucket) => ({
-    label: bucket.label,
-    count: sent.filter((p) => bucket.test(viewCounts.get(p.id) ?? 0)).length,
-  }));
-  const distributionMax = Math.max(1, ...distribution.map((d) => d.count));
+  const durations = accepted
+    .filter(p => p.shared_at && p.accepted_at)
+    .map(p => daysBetween(p.shared_at!, p.accepted_at!))
+    .filter(d => d >= 0);
+  const avgTime = durations.length > 0
+    ? Math.round(durations.reduce((s, d) => s + d, 0) / durations.length)
+    : null;
 
   const recent = proposals.slice(0, 15);
 
-  return (
-    <div>
-      <PageHeader />
+  const panel = {
+    background: "var(--tv-bg-panel)",
+    border: "1px solid var(--tv-border)",
+    borderRadius: 14,
+    boxShadow: "var(--tv-shadow)",
+  } as const;
 
-      {/* ── Summary metrics ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        <MetricCard label="Proposals sent" value={sent.length} sublabel={`${proposals.length} total created`} />
-        <MetricCard
-          label="Accept rate"
-          value={acceptRate !== null ? <>{acceptRate}<span className="text-lg font-medium text-neutral-400 dark:text-gray-500">%</span></> : "—"}
-          sublabel={sent.length > 0 ? `${accepted.length} of ${sent.length} sent` : "No proposals sent yet"}
-        />
-        <MetricCard
-          label="Avg. time to accept"
-          value={avgTimeToAccept !== null ? <>{avgTimeToAccept}<span className="text-lg font-medium text-neutral-400 dark:text-gray-500"> days</span></> : "—"}
-          sublabel={acceptDurations.length > 0 ? `Across ${acceptDurations.length} accepted` : "No accepted proposals yet"}
-        />
-        <MetricCard
-          label="Pipeline value"
-          value={pipelineEntries.length > 0 ? formatCurrency(pipelineEntries[0][1], pipelineEntries[0][0]) : "—"}
-          sublabel={
-            pipelineEntries.length > 1
-              ? `+ ${pipelineEntries.slice(1).map(([c, a]) => formatCurrency(a, c)).join(", ")}`
-              : "Estimated from pricing"
-          }
-        />
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+
+      {/* ── Page title ── */}
+      <div>
+        <h1 style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 22, letterSpacing: "-.02em", color: "var(--tv-text)" }}>
+          Analytics
+        </h1>
+        <p style={{ fontSize: 13, color: "var(--tv-text-faint)", marginTop: 3 }}>
+          Proposal performance and revenue trends
+        </p>
       </div>
 
-      {/* ── Charts ── */}
-      <div className="grid lg:grid-cols-2 gap-3 mb-8">
-        <ChartCard title="Acceptance trend (last 6 months)">
-          {trend.every((t) => t.sent === 0) ? (
-            <p className="text-sm text-neutral-400 dark:text-gray-500">Not enough activity yet to show a trend.</p>
-          ) : (
-            <div className="space-y-3">
-              {trend.map((t) => (
-                <div key={t.key} className="flex items-center gap-3">
-                  <span className="w-8 shrink-0 text-xs text-neutral-400 dark:text-gray-500">{t.label}</span>
-                  <div className="flex-1 space-y-1">
-                    <div className="h-2 rounded-full bg-neutral-100 dark:bg-[#374151] overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-neutral-300 dark:bg-[#4B5563]"
-                        style={{ width: `${(t.sent / trendMax) * 100}%` }}
-                      />
-                    </div>
-                    <div className="h-2 rounded-full bg-neutral-100 dark:bg-[#374151] overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-green-500"
-                        style={{ width: `${(t.accepted / trendMax) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                  <span className="w-16 shrink-0 text-right text-xs text-neutral-400 dark:text-gray-500 tabular-nums">
-                    {t.accepted}/{t.sent}
-                  </span>
+      {/* ── KPIs ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16 }}>
+        {[
+          { label: "Total revenue",    value: "£0",              delta: "No revenue tracked yet",       up: false },
+          { label: "Proposals sent",   value: sent.length,       delta: `${sent.length} total sent`,    up: sent.length > 0 },
+          { label: "Accept rate",      value: `${acceptRate}%`,  delta: `${accepted.length} accepted`,  up: acceptRate > 0 },
+          { label: "Avg deal value",   value: "—",               delta: "Add pricing to proposals",     up: false },
+        ].map(({ label, value, delta, up }) => (
+          <div key={label} className="transition-colors duration-300" style={{
+            background: "linear-gradient(160deg,var(--tv-bg-panel),var(--tv-bg-panel))",
+            border: "1px solid var(--tv-border)",
+            borderRadius: 14, padding: "18px 20px",
+            boxShadow: "var(--tv-shadow)",
+          }}>
+            <div style={{ fontFamily:"monospace", fontSize:10, letterSpacing:".16em", textTransform:"uppercase", color:"var(--tv-text-faint)", marginBottom:8 }}>
+              {label}
+            </div>
+            <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:600, fontSize:30, letterSpacing:"-.02em", color:"var(--tv-text)", marginBottom:5 }}>
+              {value}
+            </div>
+            <div style={{ fontFamily:"monospace", fontSize:11.5, color: up ? "#5FD08A" : "var(--tv-text-faint)" }}>
+              {up ? "↑ " : ""}{delta}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Charts row ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 20 }}>
+
+        {/* Acceptance trend */}
+        <div className="transition-colors duration-300" style={panel}>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"18px 22px 14px", borderBottom:"1px solid var(--tv-border-soft)" }}>
+            <span style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:600, fontSize:14.5, color:"var(--tv-text)" }}>Acceptance trend</span>
+            <div style={{ display:"flex", alignItems:"center", gap:14 }}>
+              {[["#3DB9C9","Sent"],["#5FD08A","Accepted"]].map(([c,l]) => (
+                <div key={l} style={{ display:"flex", alignItems:"center", gap:6, fontSize:11.5, color:"var(--tv-text-faint)" }}>
+                  <div style={{ width:8, height:8, borderRadius:"50%", background:c }} />{l}
                 </div>
               ))}
-              <div className="flex items-center gap-4 pt-1 text-xs text-neutral-400 dark:text-gray-500">
-                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-neutral-300 dark:bg-[#4B5563]" /> Sent</span>
-                <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-green-500" /> Accepted</span>
-              </div>
             </div>
-          )}
-        </ChartCard>
-
-        <ChartCard title="View distribution">
-          <div className="space-y-3">
-            {distribution.map((d) => (
-              <div key={d.label} className="flex items-center gap-3">
-                <span className="w-20 shrink-0 text-xs text-neutral-500 dark:text-gray-400">{d.label}</span>
-                <div className="flex-1 h-2 rounded-full bg-neutral-100 dark:bg-[#374151] overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-[#0891B2]"
-                    style={{ width: `${(d.count / distributionMax) * 100}%` }}
-                  />
-                </div>
-                <span className="w-6 shrink-0 text-right text-xs text-neutral-400 dark:text-gray-500 tabular-nums">
-                  {d.count}
-                </span>
-              </div>
-            ))}
           </div>
-          <p className="mt-4 text-xs text-neutral-400 dark:text-gray-500">
-            How many times each sent proposal has been opened on its live link.
-          </p>
-        </ChartCard>
+          <div style={{ padding: "18px 22px" }}>
+            {sent.length === 0 ? (
+              <p style={{ fontSize:13, color:"var(--tv-text-faint)" }}>Send your first proposal to see trends here.</p>
+            ) : (
+              <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+                {[
+                  { label: "Sent",     count: sent.length,     color: "#3DB9C9", pct: 100 },
+                  { label: "Opened",   count: viewed.length,   color: "#F2A93B", pct: sent.length > 0 ? Math.round((viewed.length/sent.length)*100) : 0 },
+                  { label: "Accepted", count: accepted.length, color: "#5FD08A", pct: sent.length > 0 ? Math.round((accepted.length/sent.length)*100) : 0 },
+                  { label: "Declined", count: declined.length, color: "#F2635C", pct: sent.length > 0 ? Math.round((declined.length/sent.length)*100) : 0 },
+                ].map(({ label, count, color, pct }) => (
+                  <div key={label}>
+                    <div style={{ display:"flex", justifyContent:"space-between", marginBottom:5 }}>
+                      <span style={{ fontSize:13, fontWeight:500, color:"var(--tv-text)" }}>{label}</span>
+                      <span style={{ fontFamily:"monospace", fontSize:11.5, color:"var(--tv-text-faint)" }}>{count} ({pct}%)</span>
+                    </div>
+                    <div style={{ height:8, background:"rgba(250,242,232,.08)", borderRadius:20, overflow:"hidden" }}>
+                      <div style={{ height:"100%", borderRadius:20, background:color, width:`${pct}%`, transition:"width 1.2s" }} />
+                    </div>
+                  </div>
+                ))}
+                {avgTime !== null && (
+                  <div style={{ marginTop:18, paddingTop:18, borderTop:"1px solid var(--tv-border-soft)" }}>
+                    <div style={{ fontFamily:"monospace", fontSize:10, letterSpacing:".16em", textTransform:"uppercase", color:"var(--tv-text-faint)", marginBottom:10 }}>
+                      Time to accept
+                    </div>
+                    <div style={{ display:"flex", alignItems:"baseline", gap:8 }}>
+                      <span style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:600, fontSize:28, color:"var(--tv-text)" }}>{avgTime}h</span>
+                      <span style={{ fontSize:12.5, color:"var(--tv-text-faint)" }}>average</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Proposal funnel */}
+        <div className="transition-colors duration-300" style={panel}>
+          <div style={{ padding:"18px 22px 14px", borderBottom:"1px solid var(--tv-border-soft)" }}>
+            <span style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:600, fontSize:14.5, color:"var(--tv-text)" }}>Proposal funnel</span>
+          </div>
+          <div style={{ padding:22, display:"flex", flexDirection:"column", gap:10 }}>
+            {[
+              { label:"Created",  count: proposals.length, color:"var(--tv-text-faint)" },
+              { label:"Sent",     count: sent.length,      color:"#3DB9C9" },
+              { label:"Viewed",   count: viewed.length,    color:"#F2A93B" },
+              { label:"Accepted", count: accepted.length,  color:"#5FD08A" },
+            ].map(({ label, count, color }) => {
+              const pct = proposals.length > 0 ? Math.round((count / proposals.length) * 100) : 0;
+              return (
+                <div key={label} style={{ display:"flex", flexDirection:"column", gap:5 }}>
+                  <div style={{ display:"flex", justifyContent:"space-between", alignItems:"baseline" }}>
+                    <span style={{ fontSize:13, fontWeight:500, color:"var(--tv-text)" }}>{label}</span>
+                    <span style={{ fontFamily:"monospace", fontSize:11.5, color:"var(--tv-text-faint)" }}>{count} ({pct}%)</span>
+                  </div>
+                  <div style={{ height:8, background:"rgba(250,242,232,.08)", borderRadius:20, overflow:"hidden" }}>
+                    <div style={{ height:"100%", borderRadius:20, background:color, width:`${pct}%` }} />
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
       </div>
 
-      {/* ── Recent proposals table ── */}
-      <div className="rounded-xl border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#1F2937] overflow-hidden">
-        <div className="px-5 py-4 border-b border-neutral-200 dark:border-[#374151]">
-          <h3 className="text-sm font-semibold text-neutral-900 dark:text-[#F3F4F6]">Recent proposals</h3>
-          <p className="mt-0.5 text-xs text-neutral-400 dark:text-gray-500">
-            Click a proposal to open it and review its closing intelligence.
-          </p>
+      {/* ── Proposals table ── */}
+      <div className="transition-colors duration-300" style={panel}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"18px 20px 14px", borderBottom:"1px solid var(--tv-border-soft)" }}>
+          <span style={{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:600, fontSize:15, color:"var(--tv-text)" }}>All proposals</span>
+          <span style={{ fontFamily:"monospace", fontSize:10, letterSpacing:".12em", textTransform:"uppercase", color:"var(--tv-text-faint)" }}>
+            {proposals.length} total
+          </span>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
+        <div style={{ overflowX:"auto" }}>
+          <table style={{ width:"100%", borderCollapse:"collapse", minWidth:700 }}>
             <thead>
-              <tr className="text-left text-xs text-neutral-400 dark:text-gray-500 uppercase tracking-wider border-b border-neutral-100 dark:border-[#374151]">
-                <th className="px-5 py-3 font-medium">Client</th>
-                <th className="px-5 py-3 font-medium">Type</th>
-                <th className="px-5 py-3 font-medium">Status</th>
-                <th className="px-5 py-3 font-medium text-right">Views</th>
-                <th className="px-5 py-3 font-medium">Created</th>
+              <tr>
+                {["Client","Type","Sent","Status","Views"].map(h => (
+                  <th key={h} style={{
+                    fontFamily:"monospace", fontSize:10, letterSpacing:".14em", textTransform:"uppercase",
+                    color:"var(--tv-text-faint)", padding:"12px 16px", textAlign:"left",
+                    borderBottom:"1px solid var(--tv-border-soft)", fontWeight:500, whiteSpace:"nowrap",
+                  }}>{h}</th>
+                ))}
               </tr>
             </thead>
             <tbody>
-              {recent.map((proposal) => {
-                const s = STATUS[proposal.status] ?? STATUS.draft;
-                const views = viewCounts.get(proposal.id) ?? 0;
-                return (
-                  <tr key={proposal.id} className="border-b border-neutral-50 dark:border-[#374151]/60 last:border-0 group">
-                    <td className="p-0">
-                      <Link
-                        href={`/dashboard/${proposal.id}/edit`}
-                        className="flex flex-col px-5 py-3.5 hover:bg-neutral-50 dark:hover:bg-[#111827]/40 transition"
-                      >
-                        <span className="font-medium text-neutral-900 dark:text-[#F3F4F6] truncate group-hover:text-[#0891B2] transition">
-                          {proposal.client_name}
-                        </span>
-                        <span className="text-xs text-neutral-400 dark:text-gray-500 truncate">{proposal.title}</span>
-                      </Link>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <Link href={`/dashboard/${proposal.id}/edit`} className="block capitalize text-neutral-600 dark:text-gray-300">
-                        {proposal.proposal_type.replace(/_/g, " ")}
-                      </Link>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <Link href={`/dashboard/${proposal.id}/edit`} className="flex items-center gap-1.5">
-                        <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />
-                        <span className={`text-xs font-medium ${s.text}`}>{s.label}</span>
-                      </Link>
-                    </td>
-                    <td className="px-5 py-3.5 text-right">
-                      <Link href={`/dashboard/${proposal.id}/edit`} className="block tabular-nums text-neutral-600 dark:text-gray-300">
-                        {views}
-                      </Link>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <Link href={`/dashboard/${proposal.id}/edit`} className="block text-neutral-500 dark:text-gray-400">
-                        {formatDate(proposal.created_at)}
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              })}
+              {recent.map((p, i) => (
+                <tr key={p.id} style={{ borderBottom: i < recent.length - 1 ? "1px solid var(--tv-border-soft)" : "none" }}
+                  className="transition-colors hover:bg-[var(--tv-row-hover)]">
+                  <td style={{ padding:"11px 16px", fontWeight:500, fontSize:13, color:"var(--tv-text)" }}>
+                    <Link href={`/dashboard/${p.id}/edit`} style={{ textDecoration:"none", color:"inherit" }}>
+                      {p.client_name}
+                    </Link>
+                  </td>
+                  <td style={{ padding:"11px 16px", fontSize:12, color:"var(--tv-text-faint)" }}>
+                    {p.proposal_type.replace(/_/g," ")}
+                  </td>
+                  <td style={{ padding:"11px 16px", fontFamily:"monospace", fontSize:12, color:"var(--tv-text-faint)" }}>
+                    {p.shared_at ? formatDate(p.shared_at) : "—"}
+                  </td>
+                  <td style={{ padding:"11px 16px" }}>
+                    <Chip status={p.status} />
+                  </td>
+                  <td style={{ padding:"11px 16px", fontFamily:"monospace", fontSize:12, color:"var(--tv-text-faint)" }}>
+                    —
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
       </div>
-    </div>
-  );
-}
 
-function PageHeader() {
-  return (
-    <div className="mb-6">
-      <h1 className="text-2xl font-semibold text-neutral-900 dark:text-[#F3F4F6]">Analytics</h1>
-      <p className="mt-0.5 text-sm text-neutral-500 dark:text-gray-400">
-        How your proposals are performing — and where to focus your follow-ups.
-      </p>
     </div>
   );
 }

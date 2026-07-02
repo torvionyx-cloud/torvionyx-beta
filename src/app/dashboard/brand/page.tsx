@@ -24,9 +24,15 @@ export default async function BrandSettingsPage() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-neutral-900">Brand settings</h1>
-        <p className="mt-1 text-neutral-500">
+      <div style={{ marginBottom: 32 }}>
+        <h1 style={{
+          fontFamily: "'Space Grotesk',sans-serif",
+          fontWeight: 600, fontSize: 22,
+          color: "var(--tv-text)", letterSpacing: "-.02em"
+        }}>
+          Brand settings
+        </h1>
+        <p style={{ marginTop: 4, fontSize: 13, color: "var(--tv-text-faint)" }}>
           Customise how your proposals look and sound. Changes apply to all future proposals.
         </p>
       </div>
