@@ -3,7 +3,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { getWorkspaceId } from "@/lib/workspace";
-import { createAdminClient } from "@/lib/supabase";
+import { createServerClient } from "@/lib/supabase";
 import { BrandSettingsForm } from "@/components/brand/BrandSettingsForm";
 import type { BrandSettings } from "@/types/database";
 
@@ -12,7 +12,7 @@ export default async function BrandSettingsPage() {
   if (!userId) redirect("/sign-in");
 
   const workspaceId = await getWorkspaceId(userId);
-  const supabase = createAdminClient();
+  const supabase = createServerClient();
 
   const { data: brand } = await supabase
     .from("brand_settings")
@@ -39,4 +39,3 @@ export default async function BrandSettingsPage() {
       <BrandSettingsForm initialBrand={brand as BrandSettings} />
     </div>
   );
-}

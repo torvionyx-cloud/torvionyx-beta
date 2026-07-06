@@ -4,7 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getWorkspaceId } from "@/lib/workspace";
-import { createAdminClient } from "@/lib/supabase";
+import { createServerClient } from "@/lib/supabase";
 import type { Proposal } from "@/types/database";
 
 const SENT_STATUSES = ["shared", "viewed", "accepted", "declined", "expired"];
@@ -45,7 +45,7 @@ export default async function AnalyticsPage() {
   if (!userId) redirect("/sign-in");
 
   const workspaceId = await getWorkspaceId(userId);
-  const supabase = createAdminClient();
+  const supabase = createServerClient();
 
   const { data } = await supabase
     .from("proposals")
@@ -272,4 +272,3 @@ export default async function AnalyticsPage() {
 
     </div>
   );
-}

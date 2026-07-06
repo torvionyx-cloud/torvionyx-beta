@@ -10,7 +10,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { redirect, notFound } from "next/navigation";
 import { getWorkspaceId } from "@/lib/workspace";
-import { createAdminClient } from "@/lib/supabase";
+import { createServerClient } from "@/lib/supabase";
 import { ProposalEditorClient } from "@/components/proposals/ProposalEditorClient";
 
 interface PageProps {
@@ -22,7 +22,7 @@ export default async function EditProposalPage({ params }: PageProps) {
   if (!userId) redirect("/sign-in");
 
   const workspaceId = await getWorkspaceId(userId);
-  const supabase = createAdminClient();
+  const supabase = createServerClient();
 
   const [{ data: proposal }, { data: brand }] = await Promise.all([
     supabase
@@ -41,4 +41,3 @@ export default async function EditProposalPage({ params }: PageProps) {
   if (!proposal) notFound();
 
   return <ProposalEditorClient proposal={proposal} brand={brand} />;
-}

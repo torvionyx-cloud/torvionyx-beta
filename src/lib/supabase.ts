@@ -3,23 +3,27 @@
 /**
  * lib/supabase.ts
  *
- * Two Supabase client factories:
+ * Three Supabase client factories:
  *
  * 1. createServerClient() — for use in Server Components, API routes, and
- *    Server Actions. Injects the Clerk user ID into the Postgres session so
- *    RLS policies can read it via current_setting('app.clerk_user_id').
- *    Uses the service role key for writes that need to bypass RLS
- *    (e.g. inserting proposal_events from the public accept endpoint).
+ *    Server Actions where a user is signed in. Passes the caller's Clerk
+ *    session JWT to Supabase, which validates it against the registered
+ *    Clerk issuer and exposes the Clerk user ID to RLS via auth.jwt()->>'sub'.
+ *    Uses the anon key: Row-Level Security is the enforcement layer.
  *
- * 2. createBrowserClient() — for use in Client Components only.
- *    Uses the anon key. RLS is the security layer — never expose the
- *    service role key to the browser under any circumstances.
+ * 2. createAdminClient() — service-role client that BYPASSES RLS. Use ONLY
+ *    for genuinely session-less server work (public accept/view endpoints,
+ *    workspace bootstrap on first sign-in). Never for user-facing reads.
+ *
+ * 3. createBrowserClient() — for Client Components only. Anon key. RLS is
+ *    the security layer — the service role key is never exposed to the browser.
  *
  * SECURITY: The service role key lives in SUPABASE_SERVICE_ROLE_KEY (no
  * NEXT_PUBLIC_ prefix). It is never bundled into the frontend build.
  */
 
 import { createClient } from "@supabase/supabase-js";
+import { auth } from "@clerk/nextjs/server";
 import type { Database } from "@/types/database";
 
 // ---------------------------------------------------------------------------
@@ -40,23 +44,18 @@ const supabaseUrl = requireEnv("NEXT_PUBLIC_SUPABASE_URL");
 const supabaseAnonKey = requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY");
 
 // ---------------------------------------------------------------------------
-// Server client — used in API routes and Server Components
-// Injects the Clerk user ID so RLS policies can scope queries.
+// Server client — used in API routes and Server Components for signed-in users.
+// Passes the Clerk session JWT to Supabase so RLS policies can scope queries
+// via auth.jwt()->>'sub'. Uses the anon key; RLS enforces access control.
 // ---------------------------------------------------------------------------
-export function createServerClient(clerkUserId: string) {
-  // We use the anon key here — RLS policies enforce access control.
-  // The clerk_user_id is injected as a Postgres session variable.
-  const client = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+export function createServerClient() {
+  return createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: { persistSession: false },
-    global: {
-      headers: {
-        // Supabase supports setting Postgres config via headers
-        // The RLS policies read this via current_setting('app.clerk_user_id')
-        "x-clerk-user-id": clerkUserId,
-      },
+    async accessToken() {
+      // Clerk's current session token; null when there is no active session.
+      return (await auth()).getToken();
     },
   });
-  return client;
 }
 
 /**
@@ -64,10 +63,11 @@ export function createServerClient(clerkUserId: string) {
  * Use ONLY for:
  * - Writing acceptance records (public endpoint, no user session)
  * - Writing proposal events from the public live-link endpoint
+ * - Reading/rendering the public proposal page, scoped by share_token
  * - Workspace creation on first sign-in (before user is in the DB)
  *
  * NEVER return data from this client to the browser.
- * NEVER use this for user-facing reads.
+ * NEVER use this for authenticated user-facing reads — use createServerClient().
  */
 export function createAdminClient() {
   const serviceRoleKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
@@ -84,11 +84,4 @@ let browserClientInstance: ReturnType<typeof createClient<Database>> | null =
   null;
 
 export function createBrowserClient() {
-  if (browserClientInstance) return browserClientInstance;
-  browserClientInstance = createClient<Database>(
-    supabaseUrl,
-    supabaseAnonKey,
-    { auth: { persistSession: false } }
-  );
-  return browserClientInstance;
-}
+  if (browserClientI
