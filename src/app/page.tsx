@@ -133,7 +133,6 @@ export default function LandingPage() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap');
         :root{--navy-900:#0A1322;--navy-850:#0C1A2E;--navy-800:#0F1E36;--navy-700:#132543;--gold:#DCAA33;--gold-bright:#F2C84E;--cream:#FAF2E8;--cream-dim:rgba(250,242,232,.60);--cream-faint:rgba(250,242,232,.40);--accent:#DCAA33;--accent-soft:rgba(220,170,51,.14);--ok:#5FD08A;--display:'Space Grotesk',system-ui,sans-serif;--body:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',ui-monospace,monospace;--r:16px;--ease:cubic-bezier(.22,.61,.36,1)}
         *{box-sizing:border-box;margin:0;padding:0}
         .wrap{display:grid;grid-template-columns:1.18fr .82fr;min-height:100vh}
