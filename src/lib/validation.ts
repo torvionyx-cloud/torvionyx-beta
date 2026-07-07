@@ -88,22 +88,87 @@ export type TonePreference = typeof TONE_PREFERENCES[number];
 // Proposal update (from editor)
 // ---------------------------------------------------------------------------
 
-// Block schema — each block in the proposal content array
-const blockSchema = z.object({
-  type: z.enum([
-    "hero",
-    "text",
-    "bullets",
-    "scope_table",
-    "timeline",
-    "pricing",
-    "cta",
-    "terms",
-    "image",
-    "divider",
-  ]),
-  // Allow any additional fields — the renderer handles each type
-}).passthrough();
+// Per-block schemas — required fields enforced per type
+const heroBlockSchema = z.object({
+  type: z.literal("hero"),
+  title: z.string().min(1).max(300),
+  subtitle: z.string().max(500).optional(),
+  clientName: z.string().min(1).max(200),
+});
+
+const textBlockSchema = z.object({
+  type: z.literal("text"),
+  heading: z.string().min(1).max(300),
+  body: z.string().min(1).max(10000),
+});
+
+const bulletsBlockSchema = z.object({
+  type: z.literal("bullets"),
+  heading: z.string().min(1).max(300),
+  items: z.array(z.string().min(1).max(500)).min(1).max(20),
+});
+
+const scopeTableRowSchema = z.object({
+  item: z.string().min(1).max(300),
+  detail: z.string().max(500),
+  weeks: z.number().int().min(0).max(520).optional(),
+});
+const scopeTableBlockSchema = z.object({
+  type: z.literal("scope_table"),
+  heading: z.string().max(300).optional(),
+  rows: z.array(scopeTableRowSchema).min(1).max(50),
+});
+
+const timelineMilestoneSchema = z.object({
+  label: z.string().min(1).max(300),
+  when: z.string().min(1).max(200),
+});
+const timelineBlockSchema = z.object({
+  type: z.literal("timeline"),
+  heading: z.string().max(300).optional(),
+  milestones: z.array(timelineMilestoneSchema).min(1).max(30),
+});
+
+const pricingLineItemSchema = z.object({
+  name: z.string().min(1).max(300),
+  qty: z.number().int().min(1).max(10000),
+  unitPrice: z.number().min(0).max(10_000_000),
+  description: z.string().max(500).optional(),
+});
+const pricingBlockSchema = z.object({
+  type: z.literal("pricing"),
+  heading: z.string().max(300).optional(),
+  currency: z.enum(["GBP", "USD", "EUR"]),
+  lineItems: z.array(pricingLineItemSchema).min(1).max(50),
+  showTotals: z.boolean(),
+  vatNote: z.string().max(300).optional(),
+});
+
+const ctaBlockSchema = z.object({
+  type: z.literal("cta"),
+  label: z.string().min(1).max(100),
+});
+
+const termsBlockSchema = z.object({
+  type: z.literal("terms"),
+  body: z.string().min(1).max(10000),
+});
+
+const dividerBlockSchema = z.object({
+  type: z.literal("divider"),
+});
+
+const blockSchema = z.discriminatedUnion("type", [
+  heroBlockSchema,
+  textBlockSchema,
+  bulletsBlockSchema,
+  scopeTableBlockSchema,
+  timelineBlockSchema,
+  pricingBlockSchema,
+  ctaBlockSchema,
+  termsBlockSchema,
+  dividerBlockSchema,
+]);
 
 export const proposalContentSchema = z.object({
   version: z.literal(1),
