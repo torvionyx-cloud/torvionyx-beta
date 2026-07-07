@@ -1,5 +1,7 @@
 // @ts-nocheck
 
+export const dynamic = 'force-dynamic';
+
 /**
  * app/dashboard/[proposal_id]/edit/page.tsx
  *
@@ -41,3 +43,4 @@ export default async function EditProposalPage({ params }: PageProps) {
   if (!proposal) notFound();
 
   return <ProposalEditorClient proposal={proposal} brand={brand} />;
+}

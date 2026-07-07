@@ -1,5 +1,7 @@
 // @ts-nocheck
 
+export const dynamic = 'force-dynamic';
+
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { getWorkspaceId } from "@/lib/workspace";
@@ -39,3 +41,4 @@ export default async function BrandSettingsPage() {
       <BrandSettingsForm initialBrand={brand as BrandSettings} />
     </div>
   );
+}

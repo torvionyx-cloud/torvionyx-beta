@@ -1,5 +1,7 @@
 // @ts-nocheck
 
+export const dynamic = 'force-dynamic';
+
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
@@ -273,3 +275,4 @@ export default async function DashboardPage() {
       </div>
     </div>
   );
+}

@@ -84,4 +84,11 @@ let browserClientInstance: ReturnType<typeof createClient<Database>> | null =
   null;
 
 export function createBrowserClient() {
-  if (browserClientI
+  if (browserClientInstance) return browserClientInstance;
+  browserClientInstance = createClient<Database>(
+    supabaseUrl,
+    supabaseAnonKey,
+    { auth: { persistSession: false } }
+  );
+  return browserClientInstance;
+}
