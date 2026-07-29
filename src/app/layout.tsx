@@ -21,7 +21,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         {/* Termly consent banner — must be first script */}
+        {/* TEMP DISABLED for preview test (test/termly-disable-preview) — do not merge to main
         <script src="https://app.termly.io/resource-blocker/30b83852-5d87-4f38-8d18-e046db994443?autoBlock=on" />
+        */}
         {/* Anti-flash: set dark class synchronously before paint */}
         <script
           dangerouslySetInnerHTML={{
