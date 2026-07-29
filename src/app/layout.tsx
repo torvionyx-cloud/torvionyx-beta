@@ -3,6 +3,7 @@
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "@/components/ui/ThemeProvider";
+import { TermlyScript } from "@/components/TermlyScript";
 import { clerkAppearance } from "@/lib/clerkAppearance";
 import "./globals.css";
 
@@ -20,8 +21,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Termly consent banner — must be first script */}
-        <script src="https://app.termly.io/resource-blocker/30b83852-5d87-4f38-8d18-e046db994443?autoBlock=on" />
+        {/* Termly consent banner — exempts Clerk's auth domains via onLoad, see TermlyScript */}
+        <TermlyScript />
         {/* Anti-flash: set dark class synchronously before paint */}
         <script
           dangerouslySetInnerHTML={{
