@@ -1,0 +1,7 @@
+@media print {
+  section { break-inside: avoid; }
+  table { break-inside: avoid; }
+  h2 { break-after: avoid; }
+  li { break-inside: avoid; }
+  tr { break-inside: avoid; }
+}

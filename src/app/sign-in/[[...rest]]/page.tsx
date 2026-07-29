@@ -6,6 +6,7 @@ import { SignIn } from "@clerk/nextjs";
 import gsap from "gsap";
 import { TorvionyxLogo } from "@/components/ui/TorvionyxLogo";
 import { SignUpShowcase } from "@/components/auth/SignUpShowcase";
+import "./sign-in.css";
 
 export default function SignInPage() {
   const formPanelRef = useRef<HTMLDivElement>(null);
@@ -98,28 +99,6 @@ export default function SignInPage() {
               }}
             />
           </div>
-
-          <style>{`
-            .cl-rootBox,
-            .cl-cardBox,
-            .cl-card {
-              width: 100% !important;
-              max-width: 100% !important;
-            }
-            .cl-socialButtonsBlockButton,
-            .cl-socialButtonsBlockButton__google,
-            .cl-socialButtonsProviderIcon,
-            .cl-socialButtonsBlockButtonText,
-            .cl-socialButtons {
-              opacity: 1 !important;
-              color: #0F1F3D !important;
-              visibility: visible !important;
-            }
-            .cl-socialButtonsBlockButton {
-              border: 2px solid rgba(15,31,61,0.25) !important;
-              background: #fff !important;
-            }
-          `}</style>
         </div>
       </div>
     </div>

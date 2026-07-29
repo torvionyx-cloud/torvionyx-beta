@@ -4,6 +4,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import type { BrandSettings } from "@/types/database";
+import "./BrandSettingsForm.css";
 
 const FONT_OPTIONS = [
   { value: "space-grotesk",       label: "Space Grotesk",       preview: "'Space Grotesk', sans-serif" },
@@ -486,12 +487,6 @@ export function BrandSettingsForm({ initialBrand }: Props) {
             )}
           </div>
         </div>
-
-        <style>{`
-          @keyframes tvpulse{0%,100%{opacity:1}50%{opacity:.4}}
-          input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent,#DCAA33);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.3);cursor:pointer}
-          input[type=range]{-webkit-appearance:none}
-        `}</style>
       </div>
     </div>
   );

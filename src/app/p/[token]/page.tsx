@@ -23,6 +23,7 @@ import { createHash } from "crypto";
 import AcceptSection from "./AcceptSection";
 import PrintButton from "./PrintButton";
 import { headers } from "next/headers";
+import "./print.css";
 
 interface PageProps {
   params: { token: string };
@@ -59,16 +60,6 @@ export default async function PublicProposalPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-white">
-      <style>{`
-        @media print {
-          section { break-inside: avoid; }
-          table { break-inside: avoid; }
-          h2 { break-after: avoid; }
-          li { break-inside: avoid; }
-          tr { break-inside: avoid; }
-        }
-      `}</style>
-
       {/* Brand header */}
       <header className="border-b border-neutral-100 print:hidden">
         <div className="mx-auto max-w-3xl px-6 py-4 flex items-center justify-between">
