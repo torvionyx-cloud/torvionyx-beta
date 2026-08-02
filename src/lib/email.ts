@@ -9,6 +9,7 @@
  */
 
 import { Resend } from "resend";
+import { getAppUrl } from "@/lib/env";
 
 function getResendClient(): Resend | null {
   const apiKey = process.env.RESEND_API_KEY;
@@ -18,7 +19,7 @@ function getResendClient(): Resend | null {
 
 const FROM_EMAIL =
   process.env.RESEND_FROM_EMAIL ?? "Pitchwright <notifications@pitchwright.app>";
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+const APP_URL = getAppUrl();
 
 export interface AcceptanceNotificationParams {
   ownerEmail: string;

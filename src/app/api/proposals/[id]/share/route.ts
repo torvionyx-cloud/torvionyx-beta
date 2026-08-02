@@ -19,6 +19,7 @@ import { NextResponse } from "next/server";
 import { getWorkspaceId } from "@/lib/workspace";
 import { createAdminClient } from "@/lib/supabase";
 import { checkGeneralRateLimit } from "@/lib/rate-limit";
+import { getAppUrl } from "@/lib/env";
 
 export async function POST(
   _req: Request,
@@ -65,7 +66,7 @@ export async function POST(
       });
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+    const appUrl = getAppUrl();
     const shareUrl = `${appUrl}/p/${proposal.share_token}`;
 
     return NextResponse.json({ share_url: shareUrl, share_token: proposal.share_token });
