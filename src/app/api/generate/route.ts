@@ -128,7 +128,7 @@ export async function POST(req: Request) {
       // Validate the structured output
       const validation1 = proposalContentSchema.safeParse(attempt1Result.content);
       if (validation1.success) {
-        content = validation1.data as ProposalContent;
+        content = stripDashesFromGenerated(validation1.data as ProposalContent);
         generationSuccess = true;
       } else {
         // Repair-retry once
@@ -139,7 +139,7 @@ export async function POST(req: Request) {
           outputTokens += attempt2Result.usage.output_tokens;
           const validation2 = proposalContentSchema.safeParse(attempt2Result.content);
           if (validation2.success) {
-            content = validation2.data as ProposalContent;
+            content = stripDashesFromGenerated(validation2.data as ProposalContent);
             generationSuccess = true;
           } else {
             console.error("[generate] Retry also failed validation, using fallback");
@@ -253,4 +253,87 @@ function ensureCurrency(parsed: unknown, currency: string): ProposalContent {
   });
 
   return obj as unknown as ProposalContent;
+}
+
+// ---------------------------------------------------------------------------
+// Dash normalisation — belt-and-suspenders layer for the prompt instruction
+// above. Runs ONLY on AI-generated proposal copy (the block fields listed
+// per-case below). Deliberately excludes hero.clientName, which is echoed
+// from the user's own input rather than generated, and never touches
+// input.brief — the brief isn't part of `content` at all.
+// ---------------------------------------------------------------------------
+
+const EM_EN_DASH_SPACED = /\s+[—–]\s+/g; // " — " / " – " → sentence break
+const EM_EN_DASH_TIGHT = /([A-Za-z0-9])[—–]([A-Za-z0-9])/g; // "2020–2021", "Mon–Fri"
+const EM_EN_DASH_ANY = /[—–]/g; // fallback for anything left
+
+function replaceEmEnDashes(text: string): string {
+  if (!text) return text;
+  return text
+    .replace(EM_EN_DASH_SPACED, ", ")
+    .replace(EM_EN_DASH_TIGHT, "$1 to $2")
+    .replace(EM_EN_DASH_ANY, ", ")
+    .replace(/ {2,}/g, " ")
+    .replace(/,\s*,/g, ",")
+    .trim();
+}
+
+function stripDashesFromGenerated(content: ProposalContent): ProposalContent {
+  const blocks = content.blocks.map((block) => {
+    switch (block.type) {
+      case "hero":
+        return {
+          ...block,
+          title: replaceEmEnDashes(block.title),
+          subtitle: block.subtitle ? replaceEmEnDashes(block.subtitle) : block.subtitle,
+          // clientName intentionally untouched — user-supplied, not generated
+        };
+      case "text":
+        return { ...block, heading: replaceEmEnDashes(block.heading), body: replaceEmEnDashes(block.body) };
+      case "bullets":
+        return {
+          ...block,
+          heading: replaceEmEnDashes(block.heading),
+          items: block.items.map(replaceEmEnDashes),
+        };
+      case "scope_table":
+        return {
+          ...block,
+          heading: block.heading ? replaceEmEnDashes(block.heading) : block.heading,
+          rows: block.rows.map((row) => ({
+            ...row,
+            item: replaceEmEnDashes(row.item),
+            detail: replaceEmEnDashes(row.detail),
+          })),
+        };
+      case "timeline":
+        return {
+          ...block,
+          heading: block.heading ? replaceEmEnDashes(block.heading) : block.heading,
+          milestones: block.milestones.map((m) => ({
+            ...m,
+            label: replaceEmEnDashes(m.label),
+            when: replaceEmEnDashes(m.when),
+          })),
+        };
+      case "pricing":
+        return {
+          ...block,
+          heading: block.heading ? replaceEmEnDashes(block.heading) : block.heading,
+          vatNote: block.vatNote ? replaceEmEnDashes(block.vatNote) : block.vatNote,
+          lineItems: block.lineItems.map((li) => ({
+            ...li,
+            name: replaceEmEnDashes(li.name),
+            description: li.description ? replaceEmEnDashes(li.description) : li.description,
+          })),
+        };
+      case "cta":
+        return { ...block, label: replaceEmEnDashes(block.label) };
+      case "terms":
+        return { ...block, body: replaceEmEnDashes(block.body) };
+      default:
+        return block; // divider — no text fields
+    }
+  });
+  return { ...content, blocks };
 }
