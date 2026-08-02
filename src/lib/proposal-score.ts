@@ -139,7 +139,7 @@ function describeBlock(block: ProposalBlock): string {
     case "hero":
       return `HERO\n  Title: ${block.title ?? ""}\n  Subtitle: ${block.subtitle ?? ""}\n  Client: ${block.clientName ?? ""}`;
     case "text":
-      return `TEXT — ${block.heading ?? "(no heading)"}\n  ${truncate(block.body ?? "", 900)}`;
+      return `TEXT — ${block.heading ?? "(no heading)"}\n  ${block.body ?? ""}`;
     case "bullets":
       return `BULLETS — ${block.heading ?? "(no heading)"}\n${(block.items ?? [])
         .map((i) => `  - ${i}`)
@@ -159,16 +159,12 @@ function describeBlock(block: ProposalBlock): string {
     case "cta":
       return `CTA\n  Label: ${block.label ?? ""}`;
     case "terms":
-      return `TERMS\n  ${truncate(block.body ?? "", 600)}`;
+      return `TERMS\n  ${block.body ?? ""}`;
     case "divider":
       return `DIVIDER`;
     default:
       return `UNKNOWN BLOCK (${(block as any).type})`;
   }
-}
-
-function truncate(s: string, max: number): string {
-  return s.length > max ? `${s.slice(0, max)}…` : s;
 }
 
 // ---------------------------------------------------------------------------
