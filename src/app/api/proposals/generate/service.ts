@@ -11,6 +11,7 @@ import {
   buildUserMessage,
   proposalTool,
   buildFallbackContent,
+  applyVatDefault,
 } from "@/lib/prompt";
 import { proposalContentSchema, type GenerateProposalInput } from "@/lib/validation";
 import type { BrandSettings, Proposal, ProposalContent } from "@/types/database";
@@ -122,6 +123,8 @@ export async function generateProposalForWorkspace(
     content = buildFallbackContent(input);
     errorCode = "claude_call_failed";
   }
+
+  content = applyVatDefault(content, brandSettings as BrandSettings | null);
 
   const title = extractTitle(content, input.client_name);
   const { data: proposal, error: insertError } = await supabase

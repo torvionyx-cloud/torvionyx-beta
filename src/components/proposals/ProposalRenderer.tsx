@@ -78,7 +78,7 @@ function BlockRenderer({
     case "timeline":
       return <TimelineBlock block={block} primaryColor={primaryColor} />;
     case "pricing":
-      return <PricingBlock block={block} primaryColor={primaryColor} secondaryColor={secondaryColor} />;
+      return <PricingBlock block={block} primaryColor={primaryColor} secondaryColor={secondaryColor} brand={brand} />;
     case "cta":
       return null;
     case "terms":
@@ -264,13 +264,19 @@ function PricingBlock({
   block,
   primaryColor,
   secondaryColor,
+  brand,
 }: {
   block: Extract<ProposalBlock, { type: "pricing" }>;
   primaryColor: string;
   secondaryColor: string;
+  brand?: BrandSettings | null;
 }) {
   const symbol = CURRENCY_SYMBOLS[block.currency] ?? block.currency;
-  const total = block.lineItems.reduce((sum, item) => sum + item.qty * item.unitPrice, 0);
+  const subtotal = block.lineItems.reduce((sum, item) => sum + item.qty * item.unitPrice, 0);
+  const vatEnabled = !!block.vatEnabled;
+  const vatRate = typeof block.vatRate === "number" ? block.vatRate : 0;
+  const vatAmount = vatEnabled ? subtotal * (vatRate / 100) : 0;
+  const total = subtotal + vatAmount;
   const heading = block.heading ?? "Investment";
 
   return (
@@ -315,7 +321,47 @@ function PricingBlock({
               </tr>
             ))}
           </tbody>
-          {block.showTotals && (
+          {block.showTotals && vatEnabled && (
+            <tfoot>
+              <tr className="border-t border-neutral-100">
+                <td colSpan={3} className="px-4 py-2 text-sm text-neutral-500 text-right">
+                  Subtotal
+                </td>
+                <td className="px-4 py-2 text-right text-sm text-neutral-500">
+                  {symbol}
+                  {subtotal.toLocaleString()}
+                </td>
+              </tr>
+              <tr className="border-t border-neutral-100">
+                <td colSpan={3} className="px-4 py-2 text-sm text-neutral-500 text-right">
+                  VAT ({vatRate}%)
+                </td>
+                <td className="px-4 py-2 text-right text-sm text-neutral-500">
+                  {symbol}
+                  {vatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                </td>
+              </tr>
+              <tr
+                className="border-t-2 border-neutral-200"
+                style={{ backgroundColor: primaryColor + "0d" }}
+              >
+                <td
+                  colSpan={3}
+                  className="px-4 py-4 font-semibold text-neutral-900 text-right"
+                >
+                  Total (inc. VAT)
+                </td>
+                <td
+                  className="px-4 py-4 text-right text-lg font-bold"
+                  style={{ color: primaryColor }}
+                >
+                  {symbol}
+                  {total.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                </td>
+              </tr>
+            </tfoot>
+          )}
+          {block.showTotals && !vatEnabled && (
             <tfoot>
               <tr
                 className="border-t-2 border-neutral-200"
@@ -338,7 +384,12 @@ function PricingBlock({
             </tfoot>
           )}
         </table>
-        {block.vatNote && (
+        {vatEnabled && brand?.vat_number && (
+          <div className="px-4 py-2.5 text-xs text-neutral-400 border-t border-neutral-100">
+            VAT registration: {brand.vat_number}
+          </div>
+        )}
+        {!vatEnabled && block.vatNote && (
           <div className="px-4 py-2.5 text-xs text-neutral-400 border-t border-neutral-100">
             {block.vatNote}
           </div>

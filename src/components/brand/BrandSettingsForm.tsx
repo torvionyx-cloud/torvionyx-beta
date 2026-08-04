@@ -78,6 +78,7 @@ export function BrandSettingsForm({ initialBrand }: Props) {
     font_choice:     initialBrand.font_choice || "space-grotesk",
     about_text:      initialBrand.about_text,
     tone_of_voice:   initialBrand.tone_of_voice,
+    vat_number:      initialBrand.vat_number ?? "",
   });
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [errorMsg, setErrorMsg]   = useState<string | null>(null);
@@ -152,6 +153,7 @@ export function BrandSettingsForm({ initialBrand }: Props) {
           ...form,
           logo_url: form.logo_url.trim() || null,
           secondary_color: /^#[0-9A-Fa-f]{6}$/.test(form.secondary_color) ? form.secondary_color : null,
+          vat_number: form.vat_number.trim() || null,
         }),
       });
       const data = await res.json();
@@ -305,6 +307,20 @@ export function BrandSettingsForm({ initialBrand }: Props) {
             onFocus={e => { e.target.style.borderColor = accent; e.target.style.boxShadow = `0 0 0 4px ${accent}22`; }}
             onBlur={e => { e.target.style.borderColor = "var(--tv-border)"; e.target.style.boxShadow = "none"; }}
           />
+          <div style={{ marginTop: 18 }}>
+            <Label>VAT registration number</Label>
+            <input type="text" maxLength={20}
+              value={form.vat_number}
+              onChange={e => set("vat_number", e.target.value)}
+              placeholder="GB123456789"
+              style={inputStyle}
+              onFocus={e => { e.target.style.borderColor = accent; e.target.style.boxShadow = `0 0 0 4px ${accent}22`; }}
+              onBlur={e => { e.target.style.borderColor = "var(--tv-border)"; e.target.style.boxShadow = "none"; }}
+            />
+            <p style={{ marginTop: 6, fontSize: 12, color: "var(--tv-text-faint)" }}>
+              Optional — only if you're VAT-registered. Enables the VAT toggle on proposals and shows this number when VAT is applied.
+            </p>
+          </div>
         </Section>
         <Divider />
 

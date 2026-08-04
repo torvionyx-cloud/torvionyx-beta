@@ -30,8 +30,9 @@ import {
   buildUserMessage,
   proposalTool,
   buildFallbackContent,
+  applyVatDefault,
 } from "@/lib/prompt";
-import type { ProposalContent } from "@/types/database";
+import type { ProposalContent, BrandSettings } from "@/types/database";
 import type { GenerateProposalInput } from "@/lib/validation";
 
 const regenerateSchema = z.object({
@@ -157,6 +158,8 @@ export async function POST(
       content = buildFallbackContent(input);
       errorCode = "claude_call_failed";
     }
+
+    content = applyVatDefault(content, brandSettings as BrandSettings | null);
 
     // Update the proposal with new content
     const { data: updated, error: updateError } = await supabase

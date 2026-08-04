@@ -247,6 +247,7 @@ export function ProposalEditorClient({ proposal, brand }: Props) {
               block={block}
               idx={idx}
               primaryColor={primaryColor}
+              brand={brand}
               onUpdate={(updates) => updateBlock(idx, updates)}
               onRemove={() => removeBlock(idx)}
             />
@@ -331,11 +332,12 @@ interface EditableBlockProps {
   block: ProposalBlock;
   idx: number;
   primaryColor: string;
+  brand: BrandSettings | null;
   onUpdate: (updates: Record<string, unknown>) => void;
   onRemove: () => void;
 }
 
-function EditableBlock({ block, idx, primaryColor, onUpdate, onRemove }: EditableBlockProps) {
+function EditableBlock({ block, idx, primaryColor, brand, onUpdate, onRemove }: EditableBlockProps) {
   const baseClass = "group relative rounded-xl border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#1F2937] p-5";
 
   const BlockControls = () => (
@@ -617,18 +619,7 @@ function EditableBlock({ block, idx, primaryColor, onUpdate, onRemove }: Editabl
               + Add line item
             </button>
           </div>
-          <div className="mt-4 pt-4 border-t border-neutral-100 flex justify-between items-center">
-            <span className="text-sm text-neutral-500">Total</span>
-            <span className="text-lg font-semibold text-neutral-900 dark:text-[#F3F4F6]">
-              {CURRENCY_SYMBOLS[block.currency] ?? block.currency}
-              {block.lineItems
-                .reduce((s, i) => s + i.qty * i.unitPrice, 0)
-                .toLocaleString()}
-            </span>
-          </div>
-          {block.vatNote && (
-            <p className="text-xs text-neutral-400 mt-1">{block.vatNote}</p>
-          )}
+          <VatControls block={block} onUpdate={onUpdate} brand={brand} />
         </div>
       );
 
@@ -670,4 +661,106 @@ function EditableBlock({ block, idx, primaryColor, onUpdate, onRemove }: Editabl
         </div>
       );
   }
+}
+
+const VAT_RATE_PRESETS = [
+  { rate: 20, label: "20% Standard" },
+  { rate: 0, label: "0% Zero-rated" },
+];
+
+function VatControls({
+  block,
+  brand,
+  onUpdate,
+}: {
+  block: Extract<ProposalBlock, { type: "pricing" }>;
+  brand: BrandSettings | null;
+  onUpdate: (updates: Record<string, unknown>) => void;
+}) {
+  const sym = CURRENCY_SYMBOLS[block.currency] ?? block.currency;
+  const subtotal = block.lineItems.reduce((s, i) => s + i.qty * i.unitPrice, 0);
+  const vatEnabled = !!block.vatEnabled;
+  const vatRate = typeof block.vatRate === "number" ? block.vatRate : 20;
+  const vatAmount = subtotal * (vatRate / 100);
+  const total = subtotal + vatAmount;
+  const isPreset = VAT_RATE_PRESETS.some((p) => p.rate === vatRate);
+
+  return (
+    <div className="mt-4 pt-4 border-t border-neutral-100 dark:border-[#374151]">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-neutral-500">Charge VAT</span>
+        <button
+          type="button"
+          onClick={() => onUpdate({ vatEnabled: !vatEnabled, vatRate: block.vatRate ?? 20 })}
+          className="w-10 h-[22px] rounded-full relative shrink-0 transition-colors"
+          style={{ background: vatEnabled ? "#DCAA33" : "rgba(120,120,130,.3)" }}
+        >
+          <span
+            className="absolute top-[3px] w-4 h-4 rounded-full bg-white transition-transform"
+            style={{ transform: vatEnabled ? "translateX(21px)" : "translateX(3px)" }}
+          />
+        </button>
+      </div>
+
+      {vatEnabled && (
+        <div className="mt-3 flex items-center gap-2 flex-wrap">
+          {VAT_RATE_PRESETS.map((p) => (
+            <button
+              key={p.rate}
+              type="button"
+              onClick={() => onUpdate({ vatRate: p.rate })}
+              className={`text-xs px-2.5 py-1.5 rounded-md border transition ${
+                vatRate === p.rate
+                  ? "border-neutral-900 dark:border-[#0891B2] text-neutral-900 dark:text-[#F3F4F6] font-medium"
+                  : "border-neutral-200 dark:border-[#374151] text-neutral-500"
+              }`}
+            >
+              {p.label}
+            </button>
+          ))}
+          <div className="relative">
+            <input
+              type="number"
+              min={0}
+              max={100}
+              step={0.1}
+              value={!isPreset ? vatRate : ""}
+              onChange={(e) => onUpdate({ vatRate: parseFloat(e.target.value) || 0 })}
+              placeholder="Custom %"
+              className="w-24 text-xs text-neutral-900 dark:text-[#F3F4F6] border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#111827] rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+            />
+          </div>
+        </div>
+      )}
+
+      <div className="mt-4 space-y-1.5">
+        <div className="flex justify-between text-sm text-neutral-500">
+          <span>Subtotal</span>
+          <span>{sym}{subtotal.toLocaleString()}</span>
+        </div>
+        {vatEnabled && (
+          <div className="flex justify-between text-sm text-neutral-500">
+            <span>VAT ({vatRate}%)</span>
+            <span>{sym}{vatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+          </div>
+        )}
+        <div className="flex justify-between items-center pt-1.5">
+          <span className="text-sm text-neutral-500">Total</span>
+          <span className="text-lg font-semibold text-neutral-900 dark:text-[#F3F4F6]">
+            {sym}{total.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+          </span>
+        </div>
+      </div>
+
+      {vatEnabled && !brand?.vat_number && (
+        <p className="mt-2 text-xs text-amber-600">
+          Add your VAT number in <Link href="/dashboard/brand" className="underline">Branding</Link> to display it on this proposal.
+        </p>
+      )}
+
+      {!vatEnabled && block.vatNote && (
+        <p className="text-xs text-neutral-400 mt-2">{block.vatNote}</p>
+      )}
+    </div>
+  );
 }

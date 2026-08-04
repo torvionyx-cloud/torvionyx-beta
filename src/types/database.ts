@@ -86,6 +86,10 @@ export interface PricingBlock {
   lineItems: PricingLineItem[];
   showTotals: boolean;
   vatNote?: string;
+  /** Per-proposal VAT toggle. Defaults off; see applyVatDefault() in lib/prompt.ts. */
+  vatEnabled?: boolean;
+  /** VAT percentage, e.g. 20 (standard), 0 (zero-rated), or a custom figure. */
+  vatRate?: number;
 }
 
 export interface CtaBlock {
@@ -140,6 +144,7 @@ export interface BrandSettings {
   font_choice: string;
   about_text: string;
   tone_of_voice: string;
+  vat_number: string | null;
   created_at: string;
   updated_at: string;
 }
