@@ -43,6 +43,15 @@ export const brandSettingsSchema = z.object({
   font_choice: z.enum(ALLOWED_FONTS),
   about_text: z.string().max(2000).trim(),
   tone_of_voice: z.string().max(500).trim(),
+  // Optional — only VAT-registered workspaces set this. Loose format check
+  // since VAT number formats vary by country; not validated against HMRC.
+  vat_number: z
+    .string()
+    .trim()
+    .max(20)
+    .regex(/^[A-Za-z0-9 ]*$/, "VAT number can only contain letters, numbers and spaces")
+    .optional()
+    .nullable(),
 });
 
 export type BrandSettingsInput = z.infer<typeof brandSettingsSchema>;
@@ -142,6 +151,8 @@ const pricingBlockSchema = z.object({
   lineItems: z.array(pricingLineItemSchema).min(1).max(50),
   showTotals: z.boolean(),
   vatNote: z.string().max(300).optional(),
+  vatEnabled: z.boolean().optional(),
+  vatRate: z.number().min(0).max(100).optional(),
 });
 
 const ctaBlockSchema = z.object({

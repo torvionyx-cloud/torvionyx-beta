@@ -32,7 +32,7 @@ import {
   buildBlockRewriteMessage,
   proposalTool,
 } from "@/lib/prompt";
-import type { ProposalContent } from "@/types/database";
+import type { ProposalContent, PricingBlock } from "@/types/database";
 import type { GenerateProposalInput } from "@/lib/validation";
 
 const rewriteSchema = z.object({
@@ -224,8 +224,21 @@ export async function POST(
       );
     }
 
+    // The AI's tool schema doesn't include vatEnabled/vatRate — VAT is a
+    // user-controlled toggle, not something the model regenerates. Carry the
+    // existing values forward so rewriting the pricing block's copy doesn't
+    // silently reset the user's VAT setting.
+    const finalBlock: typeof newBlock =
+      newBlock.type === "pricing" && currentContent.blocks[block_index].type === "pricing"
+        ? {
+            ...newBlock,
+            vatEnabled: (currentContent.blocks[block_index] as PricingBlock).vatEnabled,
+            vatRate: (currentContent.blocks[block_index] as PricingBlock).vatRate,
+          }
+        : newBlock;
+
     const mergedBlocks = currentContent.blocks.map((b, i) =>
-      i === block_index ? newBlock : b
+      i === block_index ? finalBlock : b
     );
     const mergedContent: ProposalContent = { ...currentContent, blocks: mergedBlocks };
 
@@ -258,7 +271,7 @@ export async function POST(
     return NextResponse.json({
       content: updated?.content,
       block_index,
-      block: newBlock,
+      block: finalBlock,
     });
   } catch (error) {
     console.error("[rewrite] Unhandled error:", error);
