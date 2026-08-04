@@ -43,5 +43,28 @@ export const clerkAppearance = {
       textTransform: "none",
     },
     footerActionLink: { color: "#DCAA33" },
+
+    // UserButton popover floats over arbitrary dashboard content, so — unlike
+    // the sign-in/sign-up `card` above — it needs a fully opaque background
+    // rather than inheriting the translucent colorBackground.
+    userButtonPopoverCard: {
+      background: "#0C1A2E",
+      border: "1px solid rgba(250,242,232,.12)",
+      boxShadow: "0 12px 32px -8px rgba(0,0,0,.55)",
+    },
+    userButtonPopoverMain: { background: "#0C1A2E" },
+    userButtonPopoverActions: { background: "#0C1A2E" },
+    userButtonPopoverActionButton: {
+      color: "#FAF2E8",
+      "&:hover": { background: "rgba(250,242,232,.06)" },
+    },
+    userButtonPopoverActionButtonText: { color: "#FAF2E8" },
+    userButtonPopoverActionButtonIcon: { color: "rgba(250,242,232,.62)" },
+    userButtonPopoverFooter: {
+      background: "#0C1A2E",
+      borderTop: "1px solid rgba(250,242,232,.07)",
+    },
+    userPreviewMainIdentifier: { color: "#FAF2E8" },
+    userPreviewSecondaryIdentifier: { color: "rgba(250,242,232,.62)" },
   },
 };
