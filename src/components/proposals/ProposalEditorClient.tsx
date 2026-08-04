@@ -692,12 +692,12 @@ function VatControls({
         <button
           type="button"
           onClick={() => onUpdate({ vatEnabled: !vatEnabled, vatRate: block.vatRate ?? 20 })}
-          className="w-10 h-[22px] rounded-full relative shrink-0 transition-colors"
+          className="w-11 h-6 rounded-full inline-flex items-center shrink-0 transition-colors"
           style={{ background: vatEnabled ? "#DCAA33" : "rgba(120,120,130,.3)" }}
         >
           <span
-            className="absolute top-[3px] w-4 h-4 rounded-full bg-white transition-transform"
-            style={{ transform: vatEnabled ? "translateX(21px)" : "translateX(3px)" }}
+            className="w-4 h-4 rounded-full bg-white transition-transform"
+            style={{ transform: vatEnabled ? "translateX(24px)" : "translateX(4px)" }}
           />
         </button>
       </div>
