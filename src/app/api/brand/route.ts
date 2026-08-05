@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { getWorkspaceId } from "@/lib/workspace";
-import { createAdminClient } from "@/lib/supabase";
+import { createServerClient } from "@/lib/supabase";
 import { checkGeneralRateLimit } from "@/lib/rate-limit";
 import { brandSettingsSchema } from "@/lib/validation";
 
@@ -25,7 +25,7 @@ export async function GET() {
     if (rateLimitResponse) return rateLimitResponse;
 
     const workspaceId = await getWorkspaceId(userId);
-    const supabase = createAdminClient();
+    const supabase = createServerClient();
 
     const { data: brand, error } = await supabase
       .from("brand_settings")
@@ -67,7 +67,7 @@ export async function PUT(req: Request) {
     }
 
     const workspaceId = await getWorkspaceId(userId);
-    const supabase = createAdminClient();
+    const supabase = createServerClient();
 
     const { data: brand, error: updateError } = await supabase
       .from("brand_settings")
