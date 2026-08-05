@@ -29,33 +29,48 @@ export async function ensureWorkspaceExists(
 
   if (existing) return existing.id;
 
-  // Attempt insert — a concurrent request (layout vs page race in Next.js App
-  // Router) may have already inserted the row between our SELECT and INSERT.
-  // Postgres unique_violation (23505) is the expected conflict code.
+  // Atomic upsert — a concurrent request (layout vs page race in Next.js App
+  // Router) may insert this user's row between our SELECT above and here.
+  // ON CONFLICT DO NOTHING (ignoreDuplicates: true) lets Postgres resolve
+  // that race in a single statement instead of us branching on a Postgres
+  // error code after a plain INSERT.
+  //
+  // Note: when the upsert hits a real conflict, DO NOTHING means Postgres
+  // does not RETURNING the pre-existing row — RETURNING only ever reflects
+  // rows actually written by *this* statement. So on conflict, `workspace`
+  // below comes back null and we still need one fallback SELECT to fetch the
+  // row the other call created. That's expected, not a leftover bug.
   const { data: workspace, error: workspaceError } = await supabase
     .from("workspaces")
-    .insert({
-      clerk_user_id: clerkUserId,
-      name: displayName ?? "My Workspace",
-    })
+    .upsert(
+      { clerk_user_id: clerkUserId, name: displayName ?? "My Workspace" },
+      { onConflict: "clerk_user_id", ignoreDuplicates: true }
+    )
     .select("id")
     .single();
 
-  if (workspaceError) {
-    if (workspaceError.code === "23505") {
-      // Another concurrent call beat us — fetch the row it created.
-      const { data: race } = await supabase
-        .from("workspaces")
-        .select("id")
-        .eq("clerk_user_id", clerkUserId)
-        .single();
-      if (race) return race.id;
+  if (workspaceError || !workspace) {
+    if (workspaceError) {
+      console.error("[ensureWorkspaceExists] Upsert returned no row:", JSON.stringify(workspaceError));
     }
-    console.error("[ensureWorkspaceExists] Insert failed:", JSON.stringify(workspaceError));
+
+    // Another concurrent call beat us — fetch the row it created.
+    const { data: race, error: raceError } = await supabase
+      .from("workspaces")
+      .select("id")
+      .eq("clerk_user_id", clerkUserId)
+      .single();
+
+    if (race) return race.id;
+
+    // No error swallowed this time — if the recovery SELECT also failed
+    // (rather than the row genuinely not existing), we'll see why here
+    // instead of just "Failed to create workspace" with no context.
+    if (raceError) {
+      console.error("[ensureWorkspaceExists] Recovery select failed:", JSON.stringify(raceError));
+    }
     throw new Error("Failed to create workspace");
   }
-
-  if (!workspace) throw new Error("Failed to create workspace");
 
   // Create default brand settings for the new workspace
   await supabase.from("brand_settings").insert({
