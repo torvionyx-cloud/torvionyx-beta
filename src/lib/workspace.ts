@@ -4,25 +4,38 @@
  * lib/workspace.ts
  *
  * Workspace bootstrapping. Creation and lookup are deliberately split into
- * two functions with different jobs:
+ * three functions with different jobs:
  *
  * - createWorkspaceForNewUser() — called ONLY from the Clerk `user.created`
  *   webhook (app/api/webhooks/clerk/route.ts). Normally the sole writer, so
  *   it doesn't need to negotiate a race with anything else.
- * - getWorkspaceId() — called from the dashboard render path. Read-primary:
- *   the workspace should already exist by the time a user reaches the
- *   dashboard (the webhook ran moments earlier, at sign-up), so this mostly
- *   just reads. A short poll covers the residual case where the webhook
- *   hasn't landed yet.
+ * - getWorkspaceId() — the general-purpose lookup, used by every dashboard
+ *   sub-page and API route except dashboard/layout.tsx (16 call sites).
+ *   Read-primary with a short poll, throws WorkspaceNotReadyError if
+ *   exhausted — a real error at these call sites, since by the time any of
+ *   them run, dashboard/layout.tsx has already confirmed the workspace
+ *   exists (see checkWorkspaceReady below), so genuinely hitting this throw
+ *   here means something unexpected happened, not routine onboarding delay.
+ * - checkWorkspaceReady() — used ONLY by dashboard/layout.tsx. Single
+ *   attempt, never throws for "not found" (returns null instead) — the
+ *   layout uses this to decide whether to render the real dashboard or a
+ *   client-side provisioning gate that polls until the workspace appears.
+ *   See WorkspaceProvisioningGate.tsx and /api/workspace/ready.
  *
  * History: this used to be a single ensureWorkspaceExists() that created the
  * workspace on-demand from the dashboard layout AND page, which raced two
  * concurrent requests against each other on every first load (production
- * digests 1390409018, 4152770121, 2886361760). The webhook removes that
- * dual-writer race entirely.
+ * digests 1390409018, 4152770121, 2886361760). The webhook removed that
+ * dual-writer race. getWorkspaceId()'s server-side retry then still lost a
+ * real signup once (digest 579951725) because the SSR poll and the
+ * webhook's dispatch are two independently-triggered processes with no
+ * ordering guarantee — no server-side budget can be sized reliably against
+ * that. checkWorkspaceReady() + client-side polling (Option C) fixes this
+ * at the architecture level: the server render never blocks on workspace
+ * existence at all.
  *
- * Both functions use the admin client (service role, bypasses RLS): the
- * webhook has no user session at all, and getWorkspaceId() runs before RLS
+ * All three functions use the admin client (service role, bypasses RLS):
+ * the webhook has no user session at all, and the lookups run before RLS
  * has anything to scope against for a brand-new user. Safe because the
  * caller-supplied clerkUserId always comes from a validated source (the
  * Clerk webhook's verified signature, or auth()'s validated session) — never
@@ -164,4 +177,37 @@ export async function getWorkspaceId(clerkUserId: string): Promise<string> {
     `[getWorkspaceId] workspace not found after ${WORKSPACE_LOOKUP_RETRY_DELAYS_MS.length} attempts (${Date.now() - startedAt}ms) for clerkUserId=${clerkUserId}`
   );
   throw new WorkspaceNotReadyError();
+}
+
+/**
+ * Single-attempt, non-throwing check — used only by dashboard/layout.tsx to
+ * decide whether to render the dashboard or a client-side provisioning gate.
+ *
+ * Deliberately never throws for "not found": that's an expected, normal
+ * return value here (null), not an error. Even a genuine DB error is
+ * swallowed to null rather than thrown — the layout only has two states
+ * (dashboard / gate), there's no third "something's wrong with the DB" UI,
+ * and the gate's own poll + timeout (via /api/workspace/ready) already
+ * gives a bounded, user-visible failure path. Throwing here would just
+ * reintroduce the uncaught-server-exception failure mode this whole
+ * mechanism exists to remove. Full detail is still logged server-side.
+ */
+export async function checkWorkspaceReady(clerkUserId: string): Promise<string | null> {
+  const supabase = createAdminClient();
+
+  const { data, error } = await supabase
+    .from("workspaces")
+    .select("id")
+    .eq("clerk_user_id", clerkUserId)
+    .single();
+
+  if (data) return data.id;
+
+  // PGRST116 = "0 rows" from .single() — the expected not-provisioned-yet
+  // case, not an error worth logging.
+  if (error && error.code !== "PGRST116") {
+    console.error("[checkWorkspaceReady] Unexpected error:", JSON.stringify(error));
+  }
+
+  return null;
 }

@@ -9,6 +9,7 @@ const isProtectedRoute = createRouteMatcher([
   "/api/proposals(.*)",
   "/api/brand(.*)",
   "/api/analytics(.*)",
+  "/api/workspace(.*)",
 ]);
 
 // Development/public routes that should bypass Clerk auth
