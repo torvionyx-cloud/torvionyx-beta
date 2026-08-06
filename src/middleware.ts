@@ -9,10 +9,19 @@ const isProtectedRoute = createRouteMatcher([
   "/api/proposals(.*)",
   "/api/brand(.*)",
   "/api/analytics(.*)",
+  "/api/workspace(.*)",
 ]);
 
 // Development/public routes that should bypass Clerk auth
-const isPublicRoute = createRouteMatcher(["/api/proposals/generate/dev"]);
+const isPublicRoute = createRouteMatcher([
+  "/api/proposals/generate/dev",
+  // Clerk's own servers call this — no Clerk session to check. Trust comes
+  // from Svix signature verification inside the route itself, not from
+  // this middleware. Explicit rather than relying on isProtectedRoute not
+  // matching it, so a future broadening of that list can't silently break
+  // Clerk's ability to deliver events here.
+  "/api/webhooks/clerk(.*)",
+]);
 
 export default clerkMiddleware((auth, req) => {
   if (isPublicRoute(req)) return;

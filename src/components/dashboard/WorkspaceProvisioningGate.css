@@ -1,0 +1,9 @@
+@keyframes tv-gate-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.tv-gate-spinner {
+  animation: tv-gate-spin 0.9s linear infinite;
+}

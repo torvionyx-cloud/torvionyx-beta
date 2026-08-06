@@ -251,6 +251,20 @@ export type FollowUpStrategy = z.infer<typeof followUpStrategySchema>;
 export type FollowUpStrategies = z.infer<typeof followUpStrategiesSchema>;
 
 // ---------------------------------------------------------------------------
+// Clerk webhooks — only the fields we actually read from evt.data, not a
+// full Clerk user object schema. Field names are Clerk's webhook/REST
+// representation (snake_case) — distinct from the SDK's camelCase
+// currentUser() shape used elsewhere (see lib/workspace.ts).
+// ---------------------------------------------------------------------------
+
+export const clerkUserCreatedSchema = z.object({
+  id: z.string().min(1).max(100),
+  first_name: z.string().max(200).trim().nullable().optional(),
+  last_name: z.string().max(200).trim().nullable().optional(),
+  username: z.string().max(200).trim().nullable().optional(),
+});
+
+// ---------------------------------------------------------------------------
 // Validation helper — returns typed result or throws a structured error
 // ---------------------------------------------------------------------------
 

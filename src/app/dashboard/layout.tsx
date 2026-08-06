@@ -2,13 +2,14 @@
 
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { ensureWorkspaceExists } from "@/lib/workspace";
+import { checkWorkspaceReady } from "@/lib/workspace";
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { TorvionyxLogo } from "@/components/ui/TorvionyxLogo";
 import { SidenavLink } from "@/components/ui/SidenavLink";
 import { MobileNavDrawer } from "@/components/dashboard/MobileNavDrawer";
+import { WorkspaceProvisioningGate } from "@/components/dashboard/WorkspaceProvisioningGate";
 import { ProposalsIcon, AnalyticsIcon, BrandIcon, SettingsIcon } from "@/components/dashboard/NavIcons";
 
 export default async function DashboardLayout({
@@ -25,7 +26,17 @@ export default async function DashboardLayout({
     : undefined;
   const firstName = user?.firstName ?? "there";
   const email = user?.emailAddresses?.[0]?.emailAddress ?? "";
-  await ensureWorkspaceExists(userId!, displayName);
+
+  const workspaceId = await checkWorkspaceReady(userId!);
+  if (!workspaceId) {
+    // Webhook hasn't landed yet — render the entire screen as a client-side
+    // provisioning gate instead of the shell below, not just the <main>
+    // slot. The sidebar's nav links and "New proposal" button lead to pages
+    // that still call the throwing getWorkspaceId() — leaving them visible
+    // and clickable during provisioning risks exactly the crash this
+    // mechanism exists to prevent.
+    return <WorkspaceProvisioningGate firstName={firstName} />;
+  }
 
   const hour = new Date().getHours();
   const greeting =
