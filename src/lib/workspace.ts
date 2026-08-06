@@ -14,6 +14,10 @@
 
 import { createAdminClient } from "@/lib/supabase";
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function ensureWorkspaceExists(
   clerkUserId: string,
   displayName?: string
@@ -54,21 +58,37 @@ export async function ensureWorkspaceExists(
       console.error("[ensureWorkspaceExists] Upsert returned no row:", JSON.stringify(workspaceError));
     }
 
-    // Another concurrent call beat us — fetch the row it created.
-    const { data: race, error: raceError } = await supabase
-      .from("workspaces")
-      .select("id")
-      .eq("clerk_user_id", clerkUserId)
-      .single();
+    // Another concurrent call beat us — fetch the row it created. Its INSERT
+    // has to have already committed for our upsert to have seen a conflict
+    // at all, but "committed" and "visible to us in time" aren't the same
+    // thing across two independent serverless invocations: measured in
+    // production, the winning row can land up to ~1.9s after the loser
+    // observes the conflict (cold starts, network jitter). Retry the fetch
+    // instead of trying once and giving up — total budget ~1.9s, matching
+    // the measured gap with a little margin.
+    const RECOVERY_RETRY_DELAYS_MS = [0, 300, 600, 1000];
 
-    if (race) return race.id;
+    for (let attempt = 1; attempt <= RECOVERY_RETRY_DELAYS_MS.length; attempt++) {
+      const delay = RECOVERY_RETRY_DELAYS_MS[attempt - 1];
+      if (delay > 0) await sleep(delay);
 
-    // No error swallowed this time — if the recovery SELECT also failed
-    // (rather than the row genuinely not existing), we'll see why here
-    // instead of just "Failed to create workspace" with no context.
-    if (raceError) {
-      console.error("[ensureWorkspaceExists] Recovery select failed:", JSON.stringify(raceError));
+      const { data: race, error: raceError } = await supabase
+        .from("workspaces")
+        .select("id")
+        .eq("clerk_user_id", clerkUserId)
+        .single();
+
+      if (race) return race.id;
+
+      // No error swallowed this time — each failed attempt is logged, so if
+      // ~1.9s still isn't enough we'll see that immediately instead of
+      // guessing again.
+      console.error(
+        `[ensureWorkspaceExists] Recovery select attempt ${attempt}/${RECOVERY_RETRY_DELAYS_MS.length} failed:`,
+        JSON.stringify(raceError)
+      );
     }
+
     throw new Error("Failed to create workspace");
   }
 
