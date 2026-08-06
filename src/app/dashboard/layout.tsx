@@ -2,7 +2,7 @@
 
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import { ensureWorkspaceExists } from "@/lib/workspace";
+import { getWorkspaceId } from "@/lib/workspace";
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
@@ -25,7 +25,7 @@ export default async function DashboardLayout({
     : undefined;
   const firstName = user?.firstName ?? "there";
   const email = user?.emailAddresses?.[0]?.emailAddress ?? "";
-  await ensureWorkspaceExists(userId!, displayName);
+  await getWorkspaceId(userId!);
 
   const hour = new Date().getHours();
   const greeting =
