@@ -1,0 +1,26 @@
+/* ── Plan cards ── */
+.tv-plan-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.tv-plan-card:hover {
+  transform: translateY(-4px);
+}
+.tv-plan-card--popular {
+  position: relative;
+}
+.tv-plan-badge {
+  position: absolute;
+  top: -13px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tv-plan-card {
+    transition: none !important;
+  }
+  .tv-plan-card:hover {
+    transform: none !important;
+  }
+}

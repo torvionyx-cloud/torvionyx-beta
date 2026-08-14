@@ -1,0 +1,116 @@
+/* ── Anchor targets — offset for the sticky nav ── */
+.tv-anchor {
+  scroll-margin-top: 88px;
+}
+
+/* ── Hero lightning field ──
+   Bolt geometry is generated procedurally in page.tsx (midpoint
+   displacement); this file owns only the strike-then-fade animation. */
+.hero-lightning {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bolt-path {
+  fill: none;
+  stroke: #F2C84E;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.bolt-fork {
+  stroke: #DCAA33;
+  stroke-width: 1;
+  opacity: 0.85;
+}
+
+.bolt-group {
+  opacity: 0;
+  animation-name: tv-bolt-strike;
+  animation-timing-function: ease-out;
+  animation-iteration-count: infinite;
+}
+
+.bolt-static {
+  opacity: 0.1;
+  animation: none !important;
+}
+
+@keyframes tv-bolt-strike {
+  0%, 91% { opacity: 0; }
+  92% { opacity: 1; }
+  93.5% { opacity: 0.45; }
+  95% { opacity: 0.9; }
+  97% { opacity: 0.5; }
+  100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bolt-group {
+    animation: none !important;
+    opacity: 0.1 !important;
+  }
+}
+
+/* ── Hero content entrance (GSAP toggles opacity via inline styles;
+   this just defines the resting state so there's no flash of full
+   opacity before the script runs). ── */
+[data-hero-reveal] {
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-hero-reveal] {
+    opacity: 1 !important;
+  }
+}
+
+/* ── Style slideshow — horizontal scroll-snap row ── */
+.tv-slideshow {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  padding: 4px 4px 16px;
+  scrollbar-width: thin;
+}
+.tv-slideshow::-webkit-scrollbar {
+  height: 6px;
+}
+.tv-slideshow::-webkit-scrollbar-thumb {
+  background: var(--tv-border);
+  border-radius: 20px;
+}
+.tv-slide-card {
+  scroll-snap-align: start;
+  flex: 0 0 auto;
+  width: 220px;
+  transition: transform 0.2s ease;
+}
+.tv-slide-card:hover {
+  transform: translateY(-3px);
+}
+
+/* ── Stat card + tour tab hover ── */
+.tv-hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.tv-hover-lift:hover {
+  transform: translateY(-3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tv-slide-card,
+  .tv-hover-lift {
+    transition: none !important;
+  }
+  .tv-slide-card:hover,
+  .tv-hover-lift:hover {
+    transform: none !important;
+  }
+}
