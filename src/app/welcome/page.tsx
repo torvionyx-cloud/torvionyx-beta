@@ -65,37 +65,6 @@ const TEMPLATE_STACK = [
   { id: "developer", left: 460, top: 45, rotate: 12, z: 6 },
 ] as const;
 
-const TOUR_TABS = [
-  {
-    id: "new",
-    label: "New proposal",
-    heading: "Paste a brief. Get a first draft in under a minute.",
-    body: "Drop in your call notes or a rough scope — Torvionyx writes the whole thing: intro, deliverables, timeline, and pricing that matches what you quoted.",
-    bullets: ["Reads your brief like a person would", "Picks the right sections for the job", "Suggests pricing if you didn't give one"],
-  },
-  {
-    id: "proposals",
-    label: "Proposals",
-    heading: "Every proposal, one list, always up to date.",
-    body: "See what's a draft, what's been sent, what's been viewed, and what's been accepted — without digging through email threads.",
-    bullets: ["Status at a glance", "Sorted by what needs attention", "One click back into the editor"],
-  },
-  {
-    id: "analytics",
-    label: "Analytics",
-    heading: "Revenue and acceptance trends, not vanity metrics.",
-    body: "Accept rate, average deal size, and time-to-accept — the numbers that tell you if your pricing and pitch are actually working.",
-    bullets: ["Acceptance funnel", "Revenue by month", "Average time to close"],
-  },
-  {
-    id: "branding",
-    label: "Branding",
-    heading: "Set it once. Every proposal matches.",
-    body: "Your logo, colours, font, and tone of voice — baked into every proposal Torvionyx writes, automatically.",
-    bullets: ["Logo and colour", "Tone of voice for the AI", "7 presentation styles"],
-  },
-] as const;
-
 const WHY_WINS = [
   { title: "Send in minutes", desc: "Stop losing momentum while a great call goes cold in your drafts folder." },
   { title: "Always on-brand", desc: "Every proposal looks like it came from a real studio — because it did: yours." },
@@ -301,7 +270,6 @@ function DustTrail() {
 
 export default function WelcomePage() {
   const heroRef = useRef<HTMLDivElement>(null);
-  const [activeTab, setActiveTab] = useState<(typeof TOUR_TABS)[number]["id"]>("new");
 
   useLayoutEffect(() => {
     const root = heroRef.current;
@@ -332,7 +300,6 @@ export default function WelcomePage() {
     return () => ctx.revert();
   }, []);
 
-  const tab = TOUR_TABS.find((t) => t.id === activeTab) ?? TOUR_TABS[0];
 
   return (
     <ThemeProvider>
@@ -676,74 +643,280 @@ export default function WelcomePage() {
           </div>
         </section>
 
-        {/* ── Product tour ── */}
-        <section className="mx-auto max-w-5xl px-6 py-20" style={{ background: "#0F1F3D" }}>
-          <div className="text-center mb-8">
-            <h2
-              style={{
-                fontFamily: "'Space Grotesk',sans-serif",
-                fontWeight: 600,
-                fontSize: "clamp(1.6rem, 3vw, 2.1rem)",
-                letterSpacing: "-.02em",
-                color: "#FAF2E8",
-              }}
-            >
-              A quick look around
-            </h2>
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-2 mb-8">
-            {TOUR_TABS.map((t) => {
-              const isActive = t.id === activeTab;
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => setActiveTab(t.id)}
-                  className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                  style={{
-                    border: `1px solid ${isActive ? "#DCAA33" : "rgba(250,242,232,.09)"}`,
-                    background: isActive ? "rgba(220,170,51,.12)" : "transparent",
-                    color: isActive ? "#DCAA33" : "rgba(250,242,232,.62)",
-                  }}
-                >
-                  {t.label}
-                </button>
-              );
-            })}
-          </div>
-
-          <div
-            className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center rounded-2xl p-8 sm:p-10"
-            style={{ border: "1px solid rgba(250,242,232,.09)", background: "rgba(27,49,87,.45)" }}
-          >
-            <div>
-              <h3
+        {/* ── Four screens. The whole business. ── */}
+        <section style={{ background: "#FAF2E8" }}>
+          <div className="mx-auto px-6" style={{ maxWidth: 1120, paddingTop: 80, paddingBottom: 80 }}>
+            <div className="text-center mb-12">
+              <h2
                 style={{
                   fontFamily: "'Space Grotesk',sans-serif",
-                  fontWeight: 600,
-                  fontSize: 22,
-                  letterSpacing: "-.015em",
-                  color: "#FAF2E8",
+                  fontWeight: 700,
+                  fontSize: "clamp(32px, 4.8vw, 52px)",
+                  letterSpacing: "-.02em",
+                  color: "#0F1F3D",
                 }}
               >
-                {tab.heading}
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed" style={{ color: "rgba(250,242,232,.55)" }}>
-                {tab.body}
-              </p>
-              <ul className="mt-5 space-y-2.5">
-                {tab.bullets.map((b) => (
-                  <li key={b} className="flex items-start gap-2.5">
-                    <span className="mt-1 h-1.5 w-1.5 rounded-full shrink-0" style={{ background: "#DCAA33" }} />
-                    <span className="text-sm" style={{ color: "rgba(250,242,232,.75)" }}>
-                      {b}
-                    </span>
-                  </li>
-                ))}
-              </ul>
+                Four screens. The whole business.
+              </h2>
+              <p style={{ marginTop: 10, fontSize: 18, color: "#DCAA33" }}>The pages you'll actually live in.</p>
             </div>
-            <TourMock tabId={tab.id} />
+
+            {/* Screen 01 — New proposal */}
+            <div style={{ background: "#F5F0E8", borderRadius: 16, padding: 28, marginBottom: 24, border: "1px solid rgba(19,37,67,.08)" }}>
+              <div
+                style={{ fontFamily: "'JetBrains Mono',ui-monospace,monospace", fontSize: 11, textTransform: "uppercase", letterSpacing: ".18em", color: "#DCAA33" }}
+              >
+                SCREEN 01
+              </div>
+              <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 24, color: "#0F1F3D", marginTop: 4 }}>
+                New proposal
+              </div>
+              <p style={{ marginTop: 6, fontSize: 14, color: "#0F1F3D", opacity: 0.7 }}>
+                Drop in the brief. We'll draft scope, pricing and terms.
+              </p>
+
+              <div style={{ background: "#FFFFFF", borderRadius: 12, padding: 20, border: "1px solid rgba(19,37,67,.1)", marginTop: 18 }}>
+                <div style={{ fontSize: 13, lineHeight: 1.6, color: "#3a3a3a" }}>
+                  <p>Client: Marlowe & Finch (independent bookshop, Bristol).</p>
+                  <p style={{ marginTop: 8 }}>
+                    Wants a Shopify storefront rebuild + local delivery booking. Budget hinted around £6–8k. Wants
+                    it live before December.
+                  </p>
+                  <p style={{ marginTop: 8 }}>Two rounds of design review. They'll supply photography.</p>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" style={{ marginTop: 16 }}>
+                  <div>
+                    <div style={{ fontFamily: "'JetBrains Mono',ui-monospace,monospace", fontSize: 9, textTransform: "uppercase", letterSpacing: ".14em", color: "#8a8a8a" }}>
+                      SCOPE
+                    </div>
+                    <div style={{ fontSize: 13, color: "#0F1F3D", marginTop: 4 }}>6 sections · 4 deliverables · 2 review rounds</div>
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: "'JetBrains Mono',ui-monospace,monospace", fontSize: 9, textTransform: "uppercase", letterSpacing: ".14em", color: "#8a8a8a" }}>
+                      RECOMMENDED PRICE
+                    </div>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: "#0F1F3D", marginTop: 4 }}>£7,400 + VAT</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Screen 02 — Proposals */}
+            <div style={{ background: "#F5F0E8", borderRadius: 16, padding: 28, marginBottom: 24, border: "1px solid rgba(19,37,67,.08)" }}>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div
+                    style={{ fontFamily: "'JetBrains Mono',ui-monospace,monospace", fontSize: 11, textTransform: "uppercase", letterSpacing: ".18em", color: "#DCAA33" }}
+                  >
+                    SCREEN 02
+                  </div>
+                  <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 24, color: "#0F1F3D", marginTop: 4 }}>
+                    Proposals
+                  </div>
+                  <p style={{ marginTop: 6, fontSize: 14, color: "#0F1F3D", opacity: 0.7 }}>Every pitch, and exactly where it stands.</p>
+                </div>
+                <div
+                  className="shrink-0"
+                  style={{ fontFamily: "'JetBrains Mono',ui-monospace,monospace", fontSize: 11, color: "#DCAA33", whiteSpace: "nowrap" }}
+                >
+                  12 OPEN · £31,900
+                </div>
+              </div>
+
+              <div style={{ background: "#FFFFFF", borderRadius: 12, padding: 20, border: "1px solid rgba(19,37,67,.1)", marginTop: 18 }}>
+                <div
+                  className="grid items-center"
+                  style={{
+                    gridTemplateColumns: "1fr auto auto auto",
+                    gap: 16,
+                    fontFamily: "'JetBrains Mono',ui-monospace,monospace",
+                    fontSize: 10,
+                    textTransform: "uppercase",
+                    letterSpacing: ".1em",
+                    color: "#8a8a8a",
+                    paddingBottom: 8,
+                  }}
+                >
+                  <span>Client</span>
+                  <span>Value</span>
+                  <span>Sent</span>
+                  <span>Status</span>
+                </div>
+                {[
+                  { client: "Marlowe & Finch", value: "£7,400", sent: "23 April", status: "ACCEPTED", bg: "#dcfce7", fg: "#16a34a" },
+                  { client: "Hartwell Studios", value: "£12,000", sent: "21 April", status: "VIEWED", bg: "#dbeafe", fg: "#2563eb" },
+                  { client: "Northgate Coffee", value: "£3,200", sent: "19 April", status: "SENT", bg: "rgba(220,170,51,.15)", fg: "#DCAA33" },
+                  { client: "Vale & Co Legal", value: "£9,300", sent: "—", status: "DRAFT", bg: "#f3f4f6", fg: "#6b7280" },
+                ].map((row, i, arr) => (
+                  <div
+                    key={row.client}
+                    className="grid items-center"
+                    style={{
+                      gridTemplateColumns: "1fr auto auto auto",
+                      gap: 16,
+                      padding: "12px 0",
+                      borderBottom: i < arr.length - 1 ? "1px solid rgba(19,37,67,.06)" : "none",
+                    }}
+                  >
+                    <span style={{ fontSize: 13.5, color: "#0F1F3D" }}>{row.client}</span>
+                    <span style={{ fontSize: 13.5, color: "#0F1F3D" }}>{row.value}</span>
+                    <span style={{ fontSize: 13.5, color: "#8a8a8a" }}>{row.sent}</span>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        padding: "3px 10px",
+                        borderRadius: 999,
+                        background: row.bg,
+                        color: row.fg,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {row.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Screen 03 — Analytics */}
+            <div style={{ background: "#F5F0E8", borderRadius: 16, padding: 28, marginBottom: 24, border: "1px solid rgba(19,37,67,.08)" }}>
+              <div
+                style={{ fontFamily: "'JetBrains Mono',ui-monospace,monospace", fontSize: 11, textTransform: "uppercase", letterSpacing: ".18em", color: "#DCAA33" }}
+              >
+                SCREEN 03
+              </div>
+              <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 24, color: "#0F1F3D", marginTop: 4 }}>
+                Analytics
+              </div>
+              <p style={{ marginTop: 6, fontSize: 14, color: "#0F1F3D", opacity: 0.7 }}>Revenue you can see coming.</p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3" style={{ marginTop: 18 }}>
+                {[
+                  { label: "WIN RATE", value: "41%", trend: "↑ +6 pts this quarter", trendColor: "#16a34a" },
+                  { label: "AVG. PROPOSAL VALUE", value: "£6,850", trend: "↑ +£420", trendColor: "#16a34a" },
+                  { label: "TIME TO SEND", value: "1m 52s", trend: "from 3h 10m", trendColor: "#8a8a8a" },
+                ].map((box) => (
+                  <div key={box.label} style={{ background: "#FFFFFF", borderRadius: 10, padding: 16, border: "1px solid rgba(19,37,67,.08)" }}>
+                    <div style={{ fontFamily: "'JetBrains Mono',ui-monospace,monospace", fontSize: 9, textTransform: "uppercase", letterSpacing: ".14em", color: "#8a8a8a" }}>
+                      {box.label}
+                    </div>
+                    <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 28, color: "#0F1F3D", marginTop: 4 }}>
+                      {box.value}
+                    </div>
+                    <div style={{ fontSize: 11, color: box.trendColor, marginTop: 4 }}>{box.trend}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ background: "#FAF2E8", borderRadius: 10, padding: 16, border: "1px solid rgba(19,37,67,.08)", marginTop: 12 }}>
+                <div
+                  style={{
+                    fontFamily: "'JetBrains Mono',ui-monospace,monospace",
+                    fontSize: 9,
+                    textTransform: "uppercase",
+                    letterSpacing: ".14em",
+                    color: "#8a8a8a",
+                    marginBottom: 12,
+                  }}
+                >
+                  ACCEPTED VALUE · LAST 6 MONTHS
+                </div>
+                <svg viewBox="0 0 600 90" width="100%" height="90" preserveAspectRatio="none" aria-hidden="true">
+                  <polyline points="0,80 100,72 200,60 300,50 400,35 500,20 600,10" stroke="#DCAA33" strokeWidth="2" fill="none" />
+                </svg>
+              </div>
+            </div>
+
+            {/* Screen 04 — Branding */}
+            <div style={{ background: "#F5F0E8", borderRadius: 16, padding: 28, marginBottom: 0, border: "1px solid rgba(19,37,67,.08)" }}>
+              <div
+                style={{ fontFamily: "'JetBrains Mono',ui-monospace,monospace", fontSize: 11, textTransform: "uppercase", letterSpacing: ".18em", color: "#DCAA33" }}
+              >
+                SCREEN 04
+              </div>
+              <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 600, fontSize: 24, color: "#0F1F3D", marginTop: 4 }}>
+                Branding
+              </div>
+              <p style={{ marginTop: 6, fontSize: 14, color: "#0F1F3D", opacity: 0.7 }}>
+                Set it once. Every proposal goes out looking like you.
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" style={{ marginTop: 18 }}>
+                <div style={{ background: "#FFFFFF", borderRadius: 12, padding: 20, border: "1px solid rgba(19,37,67,.08)" }}>
+                  <div style={{ fontFamily: "'JetBrains Mono',ui-monospace,monospace", fontSize: 9, textTransform: "uppercase", letterSpacing: ".14em", color: "#8a8a8a" }}>
+                    ACCENT COLOUR
+                  </div>
+                  <div style={{ marginTop: 12 }}>
+                    {[
+                      { color: "#DCAA33", selected: true },
+                      { color: "#3DB9C9", selected: false },
+                      { color: "#5FD08A", selected: false },
+                      { color: "#0F1F3D", selected: false },
+                    ].map((swatch, i) => (
+                      <span
+                        key={i}
+                        style={{
+                          display: "inline-block",
+                          width: 36,
+                          height: 36,
+                          borderRadius: "50%",
+                          background: swatch.color,
+                          marginRight: 8,
+                          boxShadow: swatch.selected ? "0 0 0 2px #FFFFFF, 0 0 0 4px #DCAA33" : "none",
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div style={{ background: "#FFFFFF", borderRadius: 12, padding: 20, border: "1px solid rgba(19,37,67,.08)" }}>
+                  <div style={{ fontFamily: "'JetBrains Mono',ui-monospace,monospace", fontSize: 9, textTransform: "uppercase", letterSpacing: ".14em", color: "#8a8a8a" }}>
+                    PROPOSAL TYPEFACE
+                  </div>
+                  <div style={{ fontFamily: "'Playfair Display',serif", fontWeight: 700, fontSize: 26, color: "#0F1F3D", marginTop: 8 }}>
+                    Playfair Display
+                  </div>
+                  <div style={{ fontSize: 12, color: "#8a8a8a", marginTop: 4 }}>6 options · applied to client-facing pages</div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  fontFamily: "'JetBrains Mono',ui-monospace,monospace",
+                  fontSize: 10,
+                  textTransform: "uppercase",
+                  letterSpacing: ".18em",
+                  color: "#DCAA33",
+                  marginTop: 20,
+                  marginBottom: 12,
+                }}
+              >
+                CLIENT SEES
+              </div>
+              <div
+                style={{
+                  background: "#FFFFFF",
+                  borderRadius: 12,
+                  padding: 20,
+                  border: "1px solid rgba(19,37,67,.08)",
+                  boxShadow: "0 8px 24px -12px rgba(19,37,67,.15)",
+                }}
+              >
+                <div style={{ fontFamily: "'Playfair Display',serif", fontWeight: 700, fontSize: 20, color: "#0F1F3D" }}>
+                  Website rebuild — Marlowe & Finch
+                </div>
+                <div style={{ width: 48, height: 2, background: "#DCAA33", margin: "6px 0 10px" }} />
+                <p style={{ fontSize: 13, color: "#6b7280" }}>
+                  Prepared by your studio · Valid for 14 days · Accept online with one click.
+                </p>
+                <div
+                  className="inline-block"
+                  style={{ background: "#DCAA33", color: "#0A1322", fontWeight: 700, fontSize: 13, padding: "10px 20px", borderRadius: 8, marginTop: 16 }}
+                >
+                  Accept proposal
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -879,91 +1052,6 @@ export default function WelcomePage() {
         <MarketingFooter />
       </div>
     </ThemeProvider>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Product tour mock panels — abstract CSS-only illustrations, not screenshots
-// ---------------------------------------------------------------------------
-
-function TourMock({ tabId }: { tabId: string }) {
-  const panelStyle = {
-    border: "1px solid rgba(250,242,232,.09)",
-    background: "#0A1322",
-    borderRadius: 14,
-    padding: 18,
-  } as const;
-
-  if (tabId === "proposals") {
-    return (
-      <div style={panelStyle}>
-        {["Acme Co.", "Northwind Studio", "Halcyon & Co."].map((name, i) => (
-          <div
-            key={name}
-            className="flex items-center justify-between py-2.5"
-            style={{ borderBottom: i < 2 ? "1px solid rgba(250,242,232,.07)" : "none" }}
-          >
-            <span className="text-sm font-medium" style={{ color: "#FAF2E8" }}>{name}</span>
-            <span
-              className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
-              style={{
-                color: i === 0 ? "#5FD08A" : i === 1 ? "#F2A93B" : "#3DB9C9",
-                background: i === 0 ? "rgba(95,208,138,.14)" : i === 1 ? "rgba(242,169,59,.14)" : "rgba(61,185,201,.14)",
-              }}
-            >
-              {i === 0 ? "Accepted" : i === 1 ? "Viewed" : "Sent"}
-            </span>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (tabId === "analytics") {
-    const bars = [40, 65, 50, 80, 60, 95];
-    return (
-      <div style={panelStyle}>
-        <div className="flex items-end gap-2" style={{ height: 100 }}>
-          {bars.map((h, i) => (
-            <div key={i} style={{ flex: 1, height: `${h}%`, borderRadius: 4, background: "#DCAA33", opacity: 0.4 + i * 0.1 }} />
-          ))}
-        </div>
-        <div className="mt-4 flex justify-between text-xs" style={{ color: "rgba(250,242,232,.5)" }}>
-          <span>Accept rate</span>
-          <span style={{ color: "#DCAA33", fontWeight: 700 }}>73%</span>
-        </div>
-      </div>
-    );
-  }
-
-  if (tabId === "branding") {
-    return (
-      <div style={panelStyle}>
-        <div className="flex gap-2.5 mb-4">
-          {["#DCAA33", "#3DB9C9", "#7C6BE8", "#52C285"].map((c) => (
-            <div key={c} style={{ width: 30, height: 30, borderRadius: 8, background: c }} />
-          ))}
-        </div>
-        <div style={{ width: "60%", height: 6, borderRadius: 3, background: "rgba(250,242,232,.09)" }} />
-        <div style={{ width: "40%", height: 6, borderRadius: 3, background: "rgba(250,242,232,.09)", marginTop: 8 }} />
-      </div>
-    );
-  }
-
-  // "new" — default
-  return (
-    <div style={panelStyle}>
-      <div style={{ width: "80%", height: 8, borderRadius: 4, background: "rgba(250,242,232,.09)" }} />
-      <div style={{ width: "95%", height: 42, borderRadius: 8, background: "rgba(250,242,232,.05)", marginTop: 12 }} />
-      <div className="flex justify-end mt-4">
-        <div
-          className="px-4 py-2 rounded-lg text-xs font-semibold"
-          style={{ background: "linear-gradient(135deg,#F2C84E,#DCAA33)", color: "#0A1322" }}
-        >
-          Generate →
-        </div>
-      </div>
-    </div>
   );
 }
 
