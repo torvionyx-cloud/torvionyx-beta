@@ -364,13 +364,13 @@ export default function WelcomePage() {
               >
                 Start free →
               </Link>
-              <Link
-                href="/sign-in"
+              <a
+                href="#four-screens"
                 className="rounded-xl px-7 py-3.5 text-sm font-semibold transition-colors"
                 style={{ border: "1.5px solid var(--tv-border)", color: "var(--tv-text)" }}
               >
                 See the app →
-              </Link>
+              </a>
             </div>
 
             <div
@@ -505,7 +505,7 @@ export default function WelcomePage() {
                     <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 44, lineHeight: 1, color: s.statColor }}>
                       {s.value}
                     </div>
-                    <div className="mt-2" style={{ fontSize: 14, fontWeight: 500, color: "var(--tv-text)" }}>
+                    <div className="mt-2" style={{ fontSize: 14, fontWeight: 500, color: "#0F1F3D" }}>
                       {s.label}
                     </div>
                     <p className="mt-1.5 text-xs leading-relaxed" style={{ color: "rgba(10,10,10,.6)" }}>
@@ -661,7 +661,7 @@ export default function WelcomePage() {
         </section>
 
         {/* ── Four screens. The whole business. ── */}
-        <section style={{ background: "#FAF2E8" }}>
+        <section id="four-screens" className="tv-anchor" style={{ background: "#FAF2E8" }}>
           <div className="mx-auto px-6" style={{ maxWidth: 1120, paddingTop: 80, paddingBottom: 80 }}>
             <div className="text-center mb-12">
               <h2
