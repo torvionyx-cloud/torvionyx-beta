@@ -1,6 +1,18 @@
-'use client';
+"use client";
 
-export default function DashboardError() {
+import { useEffect } from "react";
+
+export default function DashboardError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => {
+    console.error("[dashboard] Unhandled render error:", error);
+  }, [error]);
+
   return (
     <div style={{
       display: "flex",
@@ -21,6 +33,23 @@ export default function DashboardError() {
       <p style={{ margin: 0 }}>
         Try refreshing the page. If the problem persists, contact support.
       </p>
+      <button
+        onClick={reset}
+        style={{
+          marginTop: 8,
+          background: "#DCAA33",
+          color: "#0A1322",
+          fontFamily: "'Space Grotesk', sans-serif",
+          fontWeight: 600,
+          fontSize: 13,
+          border: "none",
+          borderRadius: 10,
+          padding: "9px 20px",
+          cursor: "pointer",
+        }}
+      >
+        Try again
+      </button>
     </div>
   );
 }

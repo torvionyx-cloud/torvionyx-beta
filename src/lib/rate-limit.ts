@@ -110,6 +110,11 @@ function makePublicLimiter(): Ratelimit | null {
 // ---------------------------------------------------------------------------
 export function getRateLimitKey(req: Request, userId?: string): string {
   if (userId) return userId;
+  // x-real-ip is set by Vercel's own proxy and can't be spoofed by the
+  // client the way an arbitrary x-forwarded-for entry can — prefer it when
+  // present, fall back to x-forwarded-for otherwise.
+  const realIp = req.headers.get("x-real-ip");
+  if (realIp) return realIp.trim();
   const forwarded = req.headers.get("x-forwarded-for");
   const ip = forwarded ? forwarded.split(",")[0].trim() : "unknown";
   return ip;
@@ -128,8 +133,18 @@ export async function checkGenerationRateLimit(
 ): Promise<NextResponse | null> {
   const limiters = makeGenerationLimiters();
   if (!limiters) {
-    // Upstash not configured — warn once and allow through
-    console.warn("[rate-limit] Upstash not configured — generation rate limiting disabled");
+    // Upstash not configured. In production, the most expensive/abuse-prone
+    // endpoint in the app must never run unlimited — fail closed rather than
+    // silently allowing every request through. In dev, allow through so
+    // local work isn't blocked on having Upstash configured.
+    if (process.env.NODE_ENV === "production") {
+      console.error("[rate-limit] Upstash not configured in production — failing closed on generation endpoint");
+      return NextResponse.json(
+        { error: "Service temporarily unavailable" },
+        { status: 503 }
+      );
+    }
+    console.warn("[rate-limit] Upstash not configured — generation rate limiting disabled (dev mode)");
     return null;
   }
 
@@ -181,7 +196,17 @@ export async function checkScoringRateLimit(
 ): Promise<NextResponse | null> {
   const limiter = makeScoringLimiter();
   if (!limiter) {
-    console.warn("[rate-limit] Upstash not configured — scoring rate limiting disabled");
+    // Same fail-closed reasoning as checkGenerationRateLimit — scoring is
+    // still an AI-call endpoint, so production must not run it unlimited
+    // just because Upstash isn't configured.
+    if (process.env.NODE_ENV === "production") {
+      console.error("[rate-limit] Upstash not configured in production — failing closed on scoring endpoint");
+      return NextResponse.json(
+        { error: "Service temporarily unavailable" },
+        { status: 503 }
+      );
+    }
+    console.warn("[rate-limit] Upstash not configured — scoring rate limiting disabled (dev mode)");
     return null;
   }
 
