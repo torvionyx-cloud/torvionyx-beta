@@ -463,11 +463,23 @@ export default function WelcomePage() {
               2 to 3 hour comparison reflects commonly reported freelance proposal times.
             </p>
           </div>
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: 48,
+              background: "linear-gradient(to bottom, transparent, #FAF2E8)",
+              zIndex: 2,
+              pointerEvents: "none",
+            }}
+          />
         </section>
 
         {/* ── Research stats ── */}
         <section style={{ background: "#FAF2E8" }}>
-          <div aria-hidden="true" style={{ height: 48, background: "linear-gradient(#0A1322,#FAF2E8)" }} />
           <div className="mx-auto max-w-6xl px-6" style={{ paddingTop: 90, paddingBottom: 80 }}>
             <div className="text-center mb-10">
               <h2
@@ -525,6 +537,7 @@ export default function WelcomePage() {
               Figures reflect general industry research and freelancer surveys on proposal and pitch performance.
             </p>
           </div>
+          <div aria-hidden="true" style={{ height: 48, background: "linear-gradient(to bottom, transparent, #0F1F3D)" }} />
         </section>
 
         {/* ── Template previews — intro ── */}
@@ -569,7 +582,7 @@ export default function WelcomePage() {
               </div>
             </div>
           </div>
-          <div aria-hidden="true" style={{ height: 60, background: "linear-gradient(to bottom, transparent, #FAF2E8)" }} />
+          <div aria-hidden="true" style={{ height: 48, background: "linear-gradient(to bottom, transparent, #FAF2E8)" }} />
         </section>
 
         {/* ── Template previews — full renders ── */}
@@ -603,44 +616,48 @@ export default function WelcomePage() {
               Same brief. Six different proposals.
             </p>
           </div>
+          <div aria-hidden="true" style={{ height: 48, background: "linear-gradient(to bottom, transparent, var(--tv-bg-page))" }} />
         </section>
 
         {/* ── The proposal trap ── */}
-        <section className="mx-auto max-w-3xl px-6 py-20">
-          <div
-            className="rounded-2xl p-8 sm:p-10"
-            style={{ border: "1px solid var(--tv-border)", background: "var(--tv-bg-panel)" }}
-          >
-            <h2
-              style={{
-                fontFamily: "'Space Grotesk',sans-serif",
-                fontWeight: 600,
-                fontSize: "clamp(1.5rem, 2.8vw, 1.9rem)",
-                letterSpacing: "-.02em",
-                color: "var(--tv-text)",
-              }}
+        <section>
+          <div className="mx-auto max-w-3xl px-6 py-20">
+            <div
+              className="rounded-2xl p-8 sm:p-10"
+              style={{ border: "1px solid var(--tv-border)", background: "var(--tv-bg-panel)" }}
             >
-              The proposal trap
-            </h2>
-            <p className="mt-3 text-base" style={{ color: "var(--tv-text-dim)" }}>
-              You've just had a great call. Now you face 2–4 hours of writing.
-            </p>
-            <ul className="mt-6 space-y-3">
-              {TRAP_POINTS.map((p) => (
-                <li key={p} className="flex items-start gap-3">
-                  <span className="mt-1 shrink-0" style={{ color: "#F2635C", fontSize: 13 }}>
-                    ✕
-                  </span>
-                  <span className="text-sm leading-relaxed" style={{ color: "var(--tv-text-faint)" }}>
-                    {p}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-7 font-medium" style={{ color: "#DCAA33" }}>
-              Torvionyx does the writing. You do the closing.
-            </p>
+              <h2
+                style={{
+                  fontFamily: "'Space Grotesk',sans-serif",
+                  fontWeight: 600,
+                  fontSize: "clamp(1.5rem, 2.8vw, 1.9rem)",
+                  letterSpacing: "-.02em",
+                  color: "var(--tv-text)",
+                }}
+              >
+                The proposal trap
+              </h2>
+              <p className="mt-3 text-base" style={{ color: "var(--tv-text-dim)" }}>
+                You've just had a great call. Now you face 2–4 hours of writing.
+              </p>
+              <ul className="mt-6 space-y-3">
+                {TRAP_POINTS.map((p) => (
+                  <li key={p} className="flex items-start gap-3">
+                    <span className="mt-1 shrink-0" style={{ color: "#F2635C", fontSize: 13 }}>
+                      ✕
+                    </span>
+                    <span className="text-sm leading-relaxed" style={{ color: "var(--tv-text-faint)" }}>
+                      {p}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-7 font-medium" style={{ color: "#DCAA33" }}>
+                Torvionyx does the writing. You do the closing.
+              </p>
+            </div>
           </div>
+          <div aria-hidden="true" style={{ height: 48, background: "linear-gradient(to bottom, transparent, #FAF2E8)" }} />
         </section>
 
         {/* ── Four screens. The whole business. ── */}
@@ -918,45 +935,49 @@ export default function WelcomePage() {
               </div>
             </div>
           </div>
+          <div aria-hidden="true" style={{ height: 48, background: "linear-gradient(to bottom, transparent, var(--tv-bg-page))" }} />
         </section>
 
         {/* ── After you hit send ── */}
-        <section className="mx-auto max-w-5xl px-6 py-20">
-          <div className="text-center mb-10">
-            <h2
-              style={{
-                fontFamily: "'Space Grotesk',sans-serif",
-                fontWeight: 600,
-                fontSize: "clamp(1.6rem, 3vw, 2.1rem)",
-                letterSpacing: "-.02em",
-                color: "var(--tv-text)",
-              }}
-            >
-              After you hit send
-            </h2>
-            <p className="mt-3 mx-auto" style={{ maxWidth: 480, fontSize: 15, color: "var(--tv-text-faint)" }}>
-              Sending is only half the job. Torvionyx keeps working after the proposal leaves your outbox.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {AFTER_SEND_STATS.map((s) => (
-              <div
-                key={s.label}
-                className="tv-hover-lift rounded-2xl p-6 text-center"
-                style={{ border: "1px solid var(--tv-border)", background: "var(--tv-bg-panel)" }}
+        <section>
+          <div className="mx-auto max-w-5xl px-6 py-20">
+            <div className="text-center mb-10">
+              <h2
+                style={{
+                  fontFamily: "'Space Grotesk',sans-serif",
+                  fontWeight: 600,
+                  fontSize: "clamp(1.6rem, 3vw, 2.1rem)",
+                  letterSpacing: "-.02em",
+                  color: "var(--tv-text)",
+                }}
               >
-                <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 22, color: "#DCAA33" }}>
-                  {s.value}
+                After you hit send
+              </h2>
+              <p className="mt-3 mx-auto" style={{ maxWidth: 480, fontSize: 15, color: "var(--tv-text-faint)" }}>
+                Sending is only half the job. Torvionyx keeps working after the proposal leaves your outbox.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {AFTER_SEND_STATS.map((s) => (
+                <div
+                  key={s.label}
+                  className="tv-hover-lift rounded-2xl p-6 text-center"
+                  style={{ border: "1px solid var(--tv-border)", background: "var(--tv-bg-panel)" }}
+                >
+                  <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 22, color: "#DCAA33" }}>
+                    {s.value}
+                  </div>
+                  <div className="mt-1 font-semibold text-sm" style={{ color: "var(--tv-text)" }}>
+                    {s.label}
+                  </div>
+                  <p className="mt-1.5 text-xs leading-relaxed" style={{ color: "var(--tv-text-faint)" }}>
+                    {s.desc}
+                  </p>
                 </div>
-                <div className="mt-1 font-semibold text-sm" style={{ color: "var(--tv-text)" }}>
-                  {s.label}
-                </div>
-                <p className="mt-1.5 text-xs leading-relaxed" style={{ color: "var(--tv-text-faint)" }}>
-                  {s.desc}
-                </p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
+          <div aria-hidden="true" style={{ height: 48, background: "linear-gradient(to bottom, transparent, #FAF2E8)" }} />
         </section>
 
         {/* ── Why freelancers win ── */}
@@ -1000,6 +1021,7 @@ export default function WelcomePage() {
               ))}
             </div>
           </div>
+          <div aria-hidden="true" style={{ height: 48, background: "linear-gradient(to bottom, transparent, var(--tv-bg-page))" }} />
         </section>
 
         {/* ── FAQ ── */}
