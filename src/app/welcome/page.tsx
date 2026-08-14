@@ -26,12 +26,12 @@ import "./welcome.css";
 // ---------------------------------------------------------------------------
 
 const RESEARCH_STATS = [
-  { value: "23%", label: "Higher close rate", desc: "for well-branded, professional proposals vs. plain text" },
-  { value: "41%", label: "More likely to be hired", desc: "when a proposal directly addresses the client's stated problem" },
-  { value: "75%+", label: "Rejection rate", desc: "for generic, templated proposals with no personalisation" },
-  { value: "204 hrs", label: "Lost per year", desc: "the average freelancer spends writing proposals annually" },
-  { value: "1 in 3", label: "Freelancers", desc: "can't tell if a client has even opened their proposal" },
-  { value: "84%", label: "Use AI tools", desc: "already use AI somewhere in their freelance workflow" },
+  { value: "23%", label: "Higher close rate", desc: "when a proposal lands within 24 hours vs 5+ days later.", callout: "Torvionyx makes \"within the hour\" realistic.", source: "Source: Proposify proposal data" },
+  { value: "41%", label: "More likely to be hired", desc: "when the proposal is tailored to the client, not generic.", callout: "Grounded in your brand voice and brief, every time.", source: "Source: freelance proposal industry analysis" },
+  { value: "75%+", label: "Rejection rate", desc: "for generic, copy and paste proposals.", callout: "Personalised output is the default, not the effort.", source: "Source: freelance proposal industry analysis" },
+  { value: "204 hrs", label: "Lost per year", desc: "per freelancer, to admin and paperwork, even with AI in the mix.", callout: "Reclaim the proposal slice of that.", source: "Source: Smallpdf Freelancer survey, 2026 (n=397)" },
+  { value: "1 in 3", label: "Freelancers", desc: "have no way to know if a client even opened the proposal they sent.", callout: "Live link + view and accept notifications, built in.", source: "Source: Smallpdf Freelancer survey, 2026" },
+  { value: "84%", label: "Of freelancers", desc: "now use AI tools regularly, up from 41% in 2023.", callout: "You're not early. You're right on time.", source: "Source: Freelancer Kompass, 2026" },
 ];
 
 const AFTER_SEND_STATS = [
@@ -274,7 +274,7 @@ export default function WelcomePage() {
                 color: "var(--tv-text)",
               }}
             >
-              Turn a rough brief into a proposal that <span style={{ color: "#DCAA33" }}>closes</span>.
+              Win the work while the call is <span style={{ color: "#DCAA33" }}>still warm.</span>
             </h1>
 
             <p
@@ -387,7 +387,7 @@ export default function WelcomePage() {
         </section>
 
         {/* ── Research stats ── */}
-        <section className="mx-auto max-w-6xl px-6 py-20">
+        <section className="mx-auto max-w-6xl px-6 py-20" style={{ background: "#FAF2E8" }}>
           <div className="text-center mb-10">
             <h2
               style={{
@@ -395,7 +395,7 @@ export default function WelcomePage() {
                 fontWeight: 600,
                 fontSize: "clamp(1.6rem, 3vw, 2.1rem)",
                 letterSpacing: "-.02em",
-                color: "var(--tv-text)",
+                color: "#0A0A0A",
               }}
             >
               The numbers behind the pitch
@@ -406,21 +406,28 @@ export default function WelcomePage() {
               <div
                 key={s.label}
                 className="tv-hover-lift rounded-2xl p-6"
-                style={{ border: "1px solid var(--tv-border)", background: "var(--tv-bg-panel)" }}
+                style={{ border: "1px solid rgba(10,10,10,.12)", background: "#FFFFFF" }}
               >
                 <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 30, color: "#DCAA33" }}>
                   {s.value}
                 </div>
-                <div className="mt-1.5 font-semibold text-sm" style={{ color: "var(--tv-text)" }}>
+                <div className="mt-1.5 font-semibold text-sm" style={{ color: "#0A0A0A" }}>
                   {s.label}
                 </div>
-                <p className="mt-1.5 text-xs leading-relaxed" style={{ color: "var(--tv-text-faint)" }}>
+                <p className="mt-1.5 text-xs leading-relaxed" style={{ color: "rgba(10,10,10,.6)" }}>
                   {s.desc}
                 </p>
+                <p style={{ color: "#DCAA33", fontStyle: "italic", fontSize: 12, marginTop: 8 }}>
+                  {s.callout}
+                </p>
+                <div style={{ color: "var(--tv-text-faint)", fontSize: 10.5, marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}>
+                  <span aria-hidden="true">↗</span>
+                  {s.source}
+                </div>
               </div>
             ))}
           </div>
-          <p className="mt-6 text-center text-xs" style={{ color: "var(--tv-text-faint)" }}>
+          <p className="mt-6 text-center text-xs" style={{ color: "rgba(10,10,10,.5)" }}>
             Figures reflect general industry research and freelancer surveys on proposal and pitch performance.
           </p>
         </section>
@@ -472,6 +479,7 @@ export default function WelcomePage() {
                     <div className="p-3.5 space-y-2">
                       <div style={{ width: "70%", height: 5, borderRadius: 3, background: theme.textMuted, opacity: 0.5 }} />
                       <div style={{ width: "45%", height: 5, borderRadius: 3, background: theme.textMuted, opacity: 0.5 }} />
+                      <StylePreviewCopy id={s.id} />
                       <div className="flex items-center justify-between pt-1.5">
                         <div style={{ width: 30, height: 8, borderRadius: 2, background: theme.textFaint, opacity: 0.5 }} />
                         <div style={{ width: 34, height: 14, borderRadius: 4, background: theme.accent }} />
@@ -529,7 +537,7 @@ export default function WelcomePage() {
         </section>
 
         {/* ── Product tour ── */}
-        <section className="mx-auto max-w-5xl px-6 py-20">
+        <section className="mx-auto max-w-5xl px-6 py-20" style={{ background: "#0F1F3D" }}>
           <div className="text-center mb-8">
             <h2
               style={{
@@ -537,7 +545,7 @@ export default function WelcomePage() {
                 fontWeight: 600,
                 fontSize: "clamp(1.6rem, 3vw, 2.1rem)",
                 letterSpacing: "-.02em",
-                color: "var(--tv-text)",
+                color: "#FAF2E8",
               }}
             >
               A quick look around
@@ -554,9 +562,9 @@ export default function WelcomePage() {
                   onClick={() => setActiveTab(t.id)}
                   className="px-4 py-2 rounded-lg text-sm font-medium transition-colors"
                   style={{
-                    border: `1px solid ${isActive ? "#DCAA33" : "var(--tv-border)"}`,
+                    border: `1px solid ${isActive ? "#DCAA33" : "rgba(250,242,232,.09)"}`,
                     background: isActive ? "rgba(220,170,51,.12)" : "transparent",
-                    color: isActive ? "#DCAA33" : "var(--tv-text-dim)",
+                    color: isActive ? "#DCAA33" : "rgba(250,242,232,.62)",
                   }}
                 >
                   {t.label}
@@ -567,7 +575,7 @@ export default function WelcomePage() {
 
           <div
             className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center rounded-2xl p-8 sm:p-10"
-            style={{ border: "1px solid var(--tv-border)", background: "var(--tv-bg-panel)" }}
+            style={{ border: "1px solid rgba(250,242,232,.09)", background: "rgba(27,49,87,.45)" }}
           >
             <div>
               <h3
@@ -576,19 +584,19 @@ export default function WelcomePage() {
                   fontWeight: 600,
                   fontSize: 22,
                   letterSpacing: "-.015em",
-                  color: "var(--tv-text)",
+                  color: "#FAF2E8",
                 }}
               >
                 {tab.heading}
               </h3>
-              <p className="mt-3 text-sm leading-relaxed" style={{ color: "var(--tv-text-faint)" }}>
+              <p className="mt-3 text-sm leading-relaxed" style={{ color: "rgba(250,242,232,.55)" }}>
                 {tab.body}
               </p>
               <ul className="mt-5 space-y-2.5">
                 {tab.bullets.map((b) => (
                   <li key={b} className="flex items-start gap-2.5">
                     <span className="mt-1 h-1.5 w-1.5 rounded-full shrink-0" style={{ background: "#DCAA33" }} />
-                    <span className="text-sm" style={{ color: "var(--tv-text-dim)" }}>
+                    <span className="text-sm" style={{ color: "rgba(250,242,232,.75)" }}>
                       {b}
                     </span>
                   </li>
@@ -639,7 +647,7 @@ export default function WelcomePage() {
         </section>
 
         {/* ── Why freelancers win ── */}
-        <section id="why" className="tv-anchor mx-auto max-w-5xl px-6 py-20">
+        <section id="why" className="tv-anchor mx-auto max-w-5xl px-6 py-20" style={{ background: "#FAF2E8" }}>
           <div className="text-center mb-10">
             <h2
               style={{
@@ -647,7 +655,7 @@ export default function WelcomePage() {
                 fontWeight: 600,
                 fontSize: "clamp(1.6rem, 3vw, 2.1rem)",
                 letterSpacing: "-.02em",
-                color: "var(--tv-text)",
+                color: "#0A0A0A",
               }}
             >
               Why freelancers win with Torvionyx
@@ -658,20 +666,20 @@ export default function WelcomePage() {
               <div
                 key={w.title}
                 className="rounded-2xl p-6"
-                style={{ border: "1px solid var(--tv-border)", background: "var(--tv-bg-panel)" }}
+                style={{ border: "1px solid rgba(10,10,10,.12)", background: "#FFFFFF" }}
               >
                 <div
                   style={{
                     fontFamily: "'Space Grotesk',sans-serif",
                     fontWeight: 600,
                     fontSize: 17,
-                    color: "var(--tv-text)",
+                    color: "#0A0A0A",
                     marginBottom: 6,
                   }}
                 >
                   {w.title}
                 </div>
-                <p className="text-sm leading-relaxed" style={{ color: "var(--tv-text-faint)" }}>
+                <p className="text-sm leading-relaxed" style={{ color: "rgba(10,10,10,.6)" }}>
                   {w.desc}
                 </p>
               </div>
@@ -740,8 +748,8 @@ export default function WelcomePage() {
 
 function TourMock({ tabId }: { tabId: string }) {
   const panelStyle = {
-    border: "1px solid var(--tv-border)",
-    background: "var(--tv-bg-page)",
+    border: "1px solid rgba(250,242,232,.09)",
+    background: "#0A1322",
     borderRadius: 14,
     padding: 18,
   } as const;
@@ -753,9 +761,9 @@ function TourMock({ tabId }: { tabId: string }) {
           <div
             key={name}
             className="flex items-center justify-between py-2.5"
-            style={{ borderBottom: i < 2 ? "1px solid var(--tv-border-soft)" : "none" }}
+            style={{ borderBottom: i < 2 ? "1px solid rgba(250,242,232,.07)" : "none" }}
           >
-            <span className="text-sm font-medium" style={{ color: "var(--tv-text)" }}>{name}</span>
+            <span className="text-sm font-medium" style={{ color: "#FAF2E8" }}>{name}</span>
             <span
               className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
               style={{
@@ -780,7 +788,7 @@ function TourMock({ tabId }: { tabId: string }) {
             <div key={i} style={{ flex: 1, height: `${h}%`, borderRadius: 4, background: "#DCAA33", opacity: 0.4 + i * 0.1 }} />
           ))}
         </div>
-        <div className="mt-4 flex justify-between text-xs" style={{ color: "var(--tv-text-faint)" }}>
+        <div className="mt-4 flex justify-between text-xs" style={{ color: "rgba(250,242,232,.5)" }}>
           <span>Accept rate</span>
           <span style={{ color: "#DCAA33", fontWeight: 700 }}>73%</span>
         </div>
@@ -796,8 +804,8 @@ function TourMock({ tabId }: { tabId: string }) {
             <div key={c} style={{ width: 30, height: 30, borderRadius: 8, background: c }} />
           ))}
         </div>
-        <div style={{ width: "60%", height: 6, borderRadius: 3, background: "var(--tv-border)" }} />
-        <div style={{ width: "40%", height: 6, borderRadius: 3, background: "var(--tv-border)", marginTop: 8 }} />
+        <div style={{ width: "60%", height: 6, borderRadius: 3, background: "rgba(250,242,232,.09)" }} />
+        <div style={{ width: "40%", height: 6, borderRadius: 3, background: "rgba(250,242,232,.09)", marginTop: 8 }} />
       </div>
     );
   }
@@ -805,8 +813,8 @@ function TourMock({ tabId }: { tabId: string }) {
   // "new" — default
   return (
     <div style={panelStyle}>
-      <div style={{ width: "80%", height: 8, borderRadius: 4, background: "var(--tv-border)" }} />
-      <div style={{ width: "95%", height: 42, borderRadius: 8, background: "var(--tv-panel-accent)", marginTop: 12 }} />
+      <div style={{ width: "80%", height: 8, borderRadius: 4, background: "rgba(250,242,232,.09)" }} />
+      <div style={{ width: "95%", height: 42, borderRadius: 8, background: "rgba(250,242,232,.05)", marginTop: 12 }} />
       <div className="flex justify-end mt-4">
         <div
           className="px-4 py-2 rounded-lg text-xs font-semibold"
@@ -817,4 +825,82 @@ function TourMock({ tabId }: { tabId: string }) {
       </div>
     </div>
   );
+}
+
+// ---------------------------------------------------------------------------
+// Style slideshow card copy — per-template prop text, abstracted the same
+// way as TourMock above (CSS-only, not screenshots)
+// ---------------------------------------------------------------------------
+
+function StylePreviewCopy({ id }: { id: Exclude<ProposalTemplateId, "custom"> }) {
+  switch (id) {
+    case "monochrome":
+      return (
+        <>
+          <div style={{ fontSize: 7, fontWeight: 700, color: "#0A0A0A", fontFamily: "'Space Grotesk',sans-serif", marginTop: 6 }}>
+            Brand identity & Shopify website
+          </div>
+          <div style={{ fontSize: 5.5, color: "rgba(10,10,10,.45)", fontFamily: "monospace", marginTop: 3 }}>
+            Prepared for Northlane Coffee Co.
+          </div>
+        </>
+      );
+    case "warm_studio":
+      return (
+        <>
+          <div style={{ fontSize: 7, fontStyle: "italic", color: "#B5502C", fontFamily: "'Playfair Display',serif", marginTop: 6 }}>
+            A proposal, made with care
+          </div>
+          <div style={{ fontSize: 9, fontWeight: 700, color: "#2C1810", fontFamily: "'Playfair Display',serif", marginTop: 2 }}>
+            Brand identity & Shopify website
+          </div>
+        </>
+      );
+    case "midnight":
+      return (
+        <>
+          <div style={{ fontSize: 5.5, fontFamily: "monospace", letterSpacing: ".1em", color: "rgba(220,170,51,.6)", marginTop: 6 }}>
+            PRIVATE PROPOSAL · 2026
+          </div>
+          <div style={{ fontSize: 8, fontWeight: 700, color: "#FAF2E8", fontFamily: "'Space Grotesk',sans-serif", marginTop: 3 }}>
+            Brand identity &
+          </div>
+        </>
+      );
+    case "corporate":
+      return (
+        <>
+          <div style={{ fontSize: 5, fontFamily: "monospace", letterSpacing: ".08em", color: "rgba(255,255,255,.4)", marginTop: 6 }}>
+            PROJECT PROPOSAL
+          </div>
+          <div style={{ fontSize: 7, fontWeight: 700, color: "#FFFFFF", fontFamily: "'Space Grotesk',sans-serif", marginTop: 3 }}>
+            Brand identity &
+          </div>
+        </>
+      );
+    case "gradient":
+      return (
+        <>
+          <div style={{ fontSize: 5.5, fontFamily: "monospace", letterSpacing: ".1em", color: "rgba(255,255,255,.7)", marginTop: 6 }}>
+            LET'S BUILD SOMETHING
+          </div>
+          <div style={{ fontSize: 9, fontWeight: 700, color: "#FFFFFF", fontFamily: "'Space Grotesk',sans-serif", marginTop: 3 }}>
+            Brand identity &
+          </div>
+        </>
+      );
+    case "developer":
+      return (
+        <>
+          <div style={{ fontSize: 6, fontFamily: "monospace", color: "#16A34A", marginTop: 6 }}>
+            ## the_opportunity
+          </div>
+          <div style={{ fontSize: 5.5, fontFamily: "monospace", color: "rgba(10,10,10,.5)", marginTop: 3 }}>
+            Northlane has outgrown
+          </div>
+        </>
+      );
+    default:
+      return null;
+  }
 }

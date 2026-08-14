@@ -17,7 +17,10 @@
       "Bash(curl -sI http://localhost:3001/dashboard/analytics --max-time 20)",
       "Bash(curl -sI http://localhost:3001/dashboard --max-time 20)",
       "Bash(curl -sI http://localhost:3001/dashboard/brand --max-time 20)",
-      "Bash(pkill -f \"next dev\")"
+      "Bash(pkill -f \"next dev\")",
+      "Bash(git add *)",
+      "Bash(git commit -m 'fix: restore welcome page content, stat cards, template previews *)",
+      "Bash(git push *)"
     ],
     "additionalDirectories": [
       "/tmp/tsc-out"
