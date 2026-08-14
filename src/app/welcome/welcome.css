@@ -90,25 +90,26 @@
   }
 }
 
-/* ── Template previews — horizontal overlapping "book pages" stack ── */
+/* ── Template previews — upright horizontal stack, spread by left% ── */
 .tv-template-stack {
   position: relative;
-  height: 520px;
-  margin: 48px auto 0;
-  max-width: 900px;
+  width: 100%;
+  max-width: none;
+  height: 600px;
 }
 .tv-template-card-wrap {
   position: absolute;
-  width: 340px;
-  height: 280px;
+  top: 0;
+  width: 280px;
+  height: 560px;
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 20px 60px -20px rgba(10,19,34,.35), 0 4px 16px -8px rgba(10,19,34,.2);
-  transform-origin: bottom center;
   transition: transform .3s ease, box-shadow .3s ease;
   cursor: default;
 }
 .tv-template-card-wrap:hover {
+  transform: translateY(-12px);
   box-shadow: 0 32px 80px -24px rgba(10,19,34,.5);
   z-index: 10 !important;
 }
@@ -126,7 +127,8 @@
   .tv-template-card-wrap {
     transition: none !important;
   }
-  .tv-hover-lift:hover {
+  .tv-hover-lift:hover,
+  .tv-template-card-wrap:hover {
     transform: none !important;
   }
 }

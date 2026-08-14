@@ -27,7 +27,8 @@
       "Bash(echo \"EXIT CODE: $?\")",
       "Bash(git commit -m 'fix: why-freelancers section full-bleed background, seamless card styling *)",
       "Bash(git commit -m 'fix: seamless section transitions across entire welcome page *)",
-      "Bash(git commit -m 'fix: stat card label visibility, see the app anchor fix *)"
+      "Bash(git commit -m 'fix: stat card label visibility, see the app anchor fix *)",
+      "Bash(git commit -m 'fix: template stack full-width horizontal layout, no rotation, taller cards *)"
     ],
     "additionalDirectories": [
       "/tmp/tsc-out"

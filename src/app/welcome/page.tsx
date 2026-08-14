@@ -54,15 +54,16 @@ const FEATURE_PILLS = [
   "Interactive live link + PDF export",
 ];
 
-// Horizontal "book pages" stack — left/top/rotate/z-index fan the six
-// templates out in order, front card (developer) sitting on top at the right.
+// Horizontal upright stack — left% spreads the six templates evenly across
+// the section width regardless of viewport; z-index rises left to right so
+// the rightmost card (developer) sits on top.
 const TEMPLATE_STACK = [
-  { id: "monochrome", left: 0, top: 30, rotate: -8, z: 1 },
-  { id: "warm_studio", left: 100, top: 15, rotate: -4, z: 2 },
-  { id: "midnight", left: 200, top: 5, rotate: 0, z: 3 },
-  { id: "corporate", left: 300, top: 15, rotate: 4, z: 4 },
-  { id: "gradient", left: 380, top: 30, rotate: 8, z: 5 },
-  { id: "developer", left: 460, top: 45, rotate: 12, z: 6 },
+  { id: "monochrome", left: "0%", z: 1 },
+  { id: "warm_studio", left: "14%", z: 2 },
+  { id: "midnight", left: "28%", z: 3 },
+  { id: "corporate", left: "42%", z: 4 },
+  { id: "gradient", left: "56%", z: 5 },
+  { id: "developer", left: "70%", z: 6 },
 ] as const;
 
 const WHY_WINS = [
@@ -587,16 +588,12 @@ export default function WelcomePage() {
 
         {/* ── Template previews — full renders ── */}
         <section style={{ background: "#FAF2E8" }}>
-          <div className="mx-auto max-w-6xl px-6" style={{ paddingTop: 20, paddingBottom: 90 }}>
+          <div style={{ minHeight: 680, padding: "48px 5%" }}>
             <div className="tv-template-stack">
               {TEMPLATE_STACK.map((t) => {
                 const Template = TEMPLATE_MAP[t.id];
                 return (
-                  <div
-                    key={t.id}
-                    className="tv-template-card-wrap"
-                    style={{ left: t.left, top: t.top, transform: `rotate(${t.rotate}deg)`, zIndex: t.z }}
-                  >
+                  <div key={t.id} className="tv-template-card-wrap" style={{ left: t.left, zIndex: t.z }}>
                     <Template />
                   </div>
                 );
@@ -1081,7 +1078,7 @@ export default function WelcomePage() {
 
 // ---------------------------------------------------------------------------
 // Template previews — six full proposal renders (clipped to their top
-// 280px inside .tv-template-card-wrap for the overlapping stack)
+// 560px inside .tv-template-card-wrap for the horizontal stack)
 // ---------------------------------------------------------------------------
 
 function MonochromeTemplate() {
