@@ -223,7 +223,17 @@ export default function WelcomePage() {
         gsap.fromTo(
           "[data-hero-reveal]",
           { opacity: 0, y: 18 },
-          { opacity: 1, y: 0, duration: 0.8, stagger: 0.12, ease: "power3.out", delay: 0.1, clearProps: "opacity,transform" }
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            stagger: 0.12,
+            ease: "power3.out",
+            delay: 0.1,
+            onComplete: () => {
+              document.querySelectorAll("[data-hero-reveal]").forEach((el) => el.classList.add("is-revealed"));
+            },
+          }
         );
       });
       mm.add("(prefers-reduced-motion: reduce)", () => {

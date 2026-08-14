@@ -64,6 +64,9 @@
 [data-hero-reveal] {
   opacity: 0;
 }
+[data-hero-reveal].is-revealed {
+  opacity: 1 !important;
+}
 @media (prefers-reduced-motion: reduce) {
   [data-hero-reveal] {
     opacity: 1 !important;

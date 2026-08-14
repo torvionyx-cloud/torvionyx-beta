@@ -20,7 +20,8 @@
       "Bash(pkill -f \"next dev\")",
       "Bash(git add *)",
       "Bash(git commit -m 'fix: restore welcome page content, stat cards, template previews *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(git commit -m 'fix: hero content no longer disappears after GSAP animation completes *)"
     ],
     "additionalDirectories": [
       "/tmp/tsc-out"
