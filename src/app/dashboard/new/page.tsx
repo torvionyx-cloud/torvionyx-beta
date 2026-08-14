@@ -10,10 +10,12 @@
  * Calls POST /api/generate; redirects to the editor on success.
  */
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { TorvionyxLogo } from "@/components/ui/TorvionyxLogo";
+import { getTheme, PROPOSAL_TEMPLATES, type ProposalTemplateId } from "@/lib/themes";
+import type { BrandSettings } from "@/types/database";
 
 const PROPOSAL_TYPES = [
   {
@@ -57,6 +59,16 @@ const TONES = [
 
 const MAX_BRIEF = 4000;
 
+const TEMPLATE_META: Record<ProposalTemplateId, { name: string; desc: string }> = {
+  custom: { name: "Custom", desc: "Uses your brand colours and font" },
+  monochrome: { name: "Monochrome", desc: "Bold black and white, maximum contrast" },
+  warm_studio: { name: "Warm Studio", desc: "Cream and terracotta, warm and human" },
+  midnight: { name: "Midnight", desc: "Navy and gold, premium and confident" },
+  corporate: { name: "Corporate", desc: "Clean blue and slate, buttoned-up" },
+  gradient: { name: "Gradient", desc: "Purple-to-coral gradient, bold and modern" },
+  developer: { name: "Developer", desc: "Green accent on light grey, technical and precise" },
+};
+
 const PROGRESS_MESSAGES = [
   "Torvionyx is reading your brief…",
   "Structuring the proposal…",
@@ -76,11 +88,36 @@ export default function NewProposalPage() {
     budget_hint: "",
     currency: "GBP" as "GBP" | "USD" | "EUR",
     tone_preference: "balanced" as "concise" | "balanced" | "detailed",
+    template: "custom" as ProposalTemplateId,
   });
 
   const [error, setError] = useState<string | null>(null);
   const [progressIdx, setProgressIdx] = useState(0);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [brand, setBrand] = useState<BrandSettings | null>(null);
+
+  // Default the template selection to the workspace's default_template once
+  // brand settings load, unless the user has already picked something.
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/brand")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data?.brand) return;
+        setBrand(data.brand as BrandSettings);
+        const fallback = (data.brand as BrandSettings).default_template;
+        if (fallback && (PROPOSAL_TEMPLATES as readonly string[]).includes(fallback)) {
+          setForm((f) => (f.template === "custom" ? { ...f, template: fallback } : f));
+        }
+      })
+      .catch(() => {
+        // Brand settings failing to load just means the template selector
+        // falls back to 'custom' with the default palette — not fatal.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const briefLength = form.brief.length;
   const isValid = form.client_name.trim().length > 0 && briefLength >= 20 && briefLength <= MAX_BRIEF;
@@ -99,7 +136,7 @@ export default function NewProposalPage() {
     }, 8000);
 
     try {
-      const res = await fetch("/api/generate", {
+      const res = await fetch("/api/proposals/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -110,6 +147,7 @@ export default function NewProposalPage() {
           budget_hint: form.budget_hint.trim() || undefined,
           currency: form.currency,
           tone_preference: form.tone_preference,
+          template: form.template,
         }),
       });
 
@@ -248,6 +286,49 @@ export default function NewProposalPage() {
                   {briefLength.toLocaleString()} / {MAX_BRIEF.toLocaleString()}
                 </span>
               </div>
+            </div>
+          </div>
+
+          {/* Template */}
+          <div className="rounded-xl border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#1F2937] p-6 space-y-3">
+            <div>
+              <h2 className="font-medium text-neutral-900 dark:text-[#F3F4F6]">Style</h2>
+              <p className="text-sm text-neutral-500 dark:text-gray-400 mt-0.5">
+                Choose how this proposal looks. You can change it later in the editor.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {PROPOSAL_TEMPLATES.map((id) => {
+                const meta = TEMPLATE_META[id];
+                const theme = getTheme(id, id === "custom" ? brand : null);
+                const isSelected = form.template === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setForm({ ...form, template: id })}
+                    className={`rounded-lg border px-4 py-3 text-left transition ${
+                      isSelected
+                        ? "border-[#DCAA33]"
+                        : "border-neutral-200 dark:border-[#374151] hover:border-neutral-400"
+                    }`}
+                    style={isSelected ? { backgroundColor: "rgba(220,170,51,0.08)" } : undefined}
+                  >
+                    <div className="flex items-center gap-1.5 mb-2">
+                      <span
+                        className="h-4 w-4 rounded-full border border-black/10"
+                        style={{ background: theme.heroBg }}
+                      />
+                      <span
+                        className="h-4 w-4 rounded-full border border-black/10"
+                        style={{ background: theme.accent }}
+                      />
+                    </div>
+                    <div className="text-sm font-medium text-neutral-800 dark:text-[#F3F4F6]">{meta.name}</div>
+                    <div className="text-xs mt-0.5 leading-snug text-neutral-400 dark:text-gray-500">{meta.desc}</div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

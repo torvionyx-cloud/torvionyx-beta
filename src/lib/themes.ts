@@ -47,6 +47,8 @@ export interface ProposalTheme {
   tableHeaderBg: string;
   /** Bullets, timeline, pricing totals — the theme's single "brand" colour outside the hero. */
   accent: string;
+  /** Text colour for content sitting on top of `accent` (e.g. the accept button) — not always white; midnight's gold accent needs dark text for contrast. */
+  accentText: string;
   /** Headings, primary content (item names, amounts, milestone labels). */
   textPrimary: string;
   /** Body copy. */
@@ -96,6 +98,7 @@ function buildCustomTheme(
     cardBorderSoft: NEUTRAL_100,
     tableHeaderBg: secondary,
     accent: primary,
+    accentText: "#FFFFFF",
     textPrimary: NEUTRAL_900,
     textSecondary: NEUTRAL_600,
     textMuted: NEUTRAL_500,
@@ -116,6 +119,7 @@ const FIXED_THEMES: Record<Exclude<ProposalTemplateId, "custom">, ProposalTheme>
     cardBorderSoft: "#E5E5E5",
     tableHeaderBg: "#F5F5F5",
     accent: "#000000",
+    accentText: "#FFFFFF",
     textPrimary: "#000000",
     textSecondary: "#1F1F1F",
     textMuted: "#595959",
@@ -133,6 +137,7 @@ const FIXED_THEMES: Record<Exclude<ProposalTemplateId, "custom">, ProposalTheme>
     cardBorderSoft: "#EDE1CC",
     tableHeaderBg: "#EFE1CB",
     accent: "#B5502C",
+    accentText: "#FFFFFF",
     textPrimary: "#3A2317",
     textSecondary: "#54392A",
     textMuted: "#6B4A36",
@@ -150,6 +155,9 @@ const FIXED_THEMES: Record<Exclude<ProposalTemplateId, "custom">, ProposalTheme>
     cardBorderSoft: "rgba(250,242,232,.08)",
     tableHeaderBg: "rgba(250,242,232,.06)",
     accent: "#DCAA33",
+    // Matches the app's own gold-button convention (dashboard "New proposal"
+    // etc.) — gold is too light for white text to sit on comfortably.
+    accentText: "#0A1322",
     textPrimary: "#FAF2E8",
     textSecondary: "rgba(250,242,232,.72)",
     textMuted: "rgba(250,242,232,.55)",
@@ -167,6 +175,7 @@ const FIXED_THEMES: Record<Exclude<ProposalTemplateId, "custom">, ProposalTheme>
     cardBorderSoft: "#EEF2F6",
     tableHeaderBg: "#F1F5F9",
     accent: "#1E40AF",
+    accentText: "#FFFFFF",
     textPrimary: "#0F172A",
     textSecondary: "#334155",
     textMuted: "#64748B",
@@ -184,6 +193,7 @@ const FIXED_THEMES: Record<Exclude<ProposalTemplateId, "custom">, ProposalTheme>
     cardBorderSoft: "#F5F5F8",
     tableHeaderBg: "#F7F5FC",
     accent: "#7C3AED",
+    accentText: "#FFFFFF",
     textPrimary: "#18181B",
     textSecondary: "#3F3F46",
     textMuted: "#71717A",
@@ -201,6 +211,7 @@ const FIXED_THEMES: Record<Exclude<ProposalTemplateId, "custom">, ProposalTheme>
     cardBorderSoft: "#E9ECEF",
     tableHeaderBg: "#F1F3F5",
     accent: "#16A34A",
+    accentText: "#FFFFFF",
     textPrimary: "#212529",
     textSecondary: "#343A40",
     textMuted: "#495057",

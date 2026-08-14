@@ -147,6 +147,8 @@ export interface BrandSettings {
   vat_number: string | null;
   created_at: string;
   updated_at: string;
+  /** Workspace-level default for new proposals — see lib/themes.ts's ProposalTemplateId. */
+  default_template: string;
 }
 
 export interface Proposal {

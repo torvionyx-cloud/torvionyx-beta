@@ -18,6 +18,7 @@ export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase";
 import { ProposalRenderer } from "@/components/proposals/ProposalRenderer";
+import { getTheme } from "@/lib/themes";
 import type { Proposal, BrandSettings } from "@/types/database";
 import { hashIp } from "@/lib/hash";
 import AcceptSection from "./AcceptSection";
@@ -56,12 +57,15 @@ export default async function PublicProposalPage({ params }: PageProps) {
   // Log a view event and update status if shared → viewed
   await logViewEvent(proposal, supabase);
 
-  const primaryColor = brand?.primary_color ?? "#111111";
+  const theme = getTheme(proposal.template ?? "custom", brand as BrandSettings | null);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div style={{ backgroundColor: theme.pageBg, minHeight: "100vh" }}>
       {/* Brand header */}
-      <header className="border-b border-neutral-100 print:hidden">
+      <header
+        className="border-b print:hidden"
+        style={{ backgroundColor: theme.pageBg, color: theme.textPrimary, borderColor: theme.cardBorderSoft }}
+      >
         <div className="mx-auto max-w-3xl px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {brand?.logo_url ? (
@@ -72,13 +76,13 @@ export default async function PublicProposalPage({ params }: PageProps) {
                 className="h-7 w-auto"
               />
             ) : (
-              <span className="font-semibold text-neutral-900 text-sm">
+              <span className="font-semibold text-sm" style={{ color: theme.textPrimary }}>
                 {brand?.company_name || ""}
               </span>
             )}
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-xs text-neutral-400">Proposal</span>
+            <span className="text-xs" style={{ color: theme.textFaint }}>Proposal</span>
             <PrintButton />
           </div>
         </div>
@@ -86,24 +90,28 @@ export default async function PublicProposalPage({ params }: PageProps) {
 
       {/* Proposal content */}
       <main className="mx-auto max-w-3xl px-6 py-10">
-        <ProposalRenderer content={proposal.content} brand={brand} />
+        <ProposalRenderer content={proposal.content} brand={brand} template={proposal.template ?? "custom"} />
 
         {/* Accept section — interactive, hidden when printing */}
         <div className="print:hidden">
           <AcceptSection
             proposal={proposal as unknown as Proposal}
             brand={brand as unknown as BrandSettings | null}
-            primaryColor={primaryColor}
+            primaryColor={theme.accent}
+            accentTextColor={theme.accentText}
           />
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-neutral-100 mt-16 print:hidden">
+      <footer
+        className="border-t mt-16 print:hidden"
+        style={{ backgroundColor: theme.pageBg, color: theme.textSecondary, borderColor: theme.cardBorderSoft }}
+      >
         <div className="mx-auto max-w-3xl px-6 py-6 text-center">
-          <p className="text-xs text-neutral-300">
+          <p className="text-xs" style={{ color: theme.textFaint }}>
             Created with{" "}
-            <span className="font-medium" style={{ color: primaryColor }}>
+            <span className="font-medium" style={{ color: theme.accent }}>
               Torvionyx
             </span>
           </p>

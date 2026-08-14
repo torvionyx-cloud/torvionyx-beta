@@ -19,11 +19,13 @@ interface Props {
   proposal: Proposal;
   brand: BrandSettings | null;
   primaryColor: string;
+  /** Text colour for the accept button — not always white (e.g. gold accents need dark text). Defaults to white to match prior behaviour. */
+  accentTextColor?: string;
 }
 
 type AcceptState = "idle" | "open" | "submitting" | "accepted" | "error";
 
-export default function AcceptSection({ proposal, brand, primaryColor }: Props) {
+export default function AcceptSection({ proposal, brand, primaryColor, accentTextColor = "#FFFFFF" }: Props) {
   const [state, setState] = useState<AcceptState>(
     proposal.status === "accepted" ? "accepted" : "idle"
   );
@@ -130,8 +132,8 @@ export default function AcceptSection({ proposal, brand, primaryColor }: Props) 
             <button
               type="submit"
               disabled={state === "submitting" || !name.trim() || !email.trim()}
-              className="w-full rounded-lg py-3 text-sm font-semibold text-white transition disabled:opacity-60"
-              style={{ backgroundColor: primaryColor }}
+              className="w-full rounded-lg py-3 text-sm font-semibold transition disabled:opacity-60"
+              style={{ backgroundColor: primaryColor, color: accentTextColor }}
             >
               {state === "submitting" ? "Recording acceptance…" : "Confirm acceptance"}
             </button>
@@ -150,8 +152,8 @@ export default function AcceptSection({ proposal, brand, primaryColor }: Props) 
     <div className="mt-12 flex flex-col items-center gap-4">
       <button
         onClick={() => setState("open")}
-        className="rounded-xl px-10 py-4 text-base font-semibold text-white shadow-lg shadow-black/10 transition hover:opacity-90 active:scale-[0.98]"
-        style={{ backgroundColor: primaryColor }}
+        className="rounded-xl px-10 py-4 text-base font-semibold shadow-lg shadow-black/10 transition hover:opacity-90 active:scale-[0.98]"
+        style={{ backgroundColor: primaryColor, color: accentTextColor }}
       >
         {ctaLabel}
       </button>
