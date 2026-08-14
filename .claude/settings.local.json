@@ -22,7 +22,8 @@
       "Bash(git commit -m 'fix: restore welcome page content, stat cards, template previews *)",
       "Bash(git push *)",
       "Bash(git commit -m 'fix: hero content no longer disappears after GSAP animation completes *)",
-      "Bash(git commit -m 'feat: match Claude Design exactly — full proposal template previews, redesigned hero *)"
+      "Bash(git commit -m 'feat: match Claude Design exactly — full proposal template previews, redesigned hero *)",
+      "Bash(git commit -m 'fix: seamless section backgrounds, horizontal overlapping template stack *)"
     ],
     "additionalDirectories": [
       "/tmp/tsc-out"

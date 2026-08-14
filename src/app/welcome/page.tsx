@@ -54,49 +54,15 @@ const FEATURE_PILLS = [
   "Interactive live link + PDF export",
 ];
 
-const PROPOSAL_TEMPLATE_PREVIEWS = [
-  {
-    id: "monochrome",
-    number: "01",
-    name: "Monochrome Editorial",
-    description: "Clean, confident, black on white — built for founders who want the work to do the talking.",
-    tags: ["Minimal", "Editorial", "High contrast"],
-  },
-  {
-    id: "warm_studio",
-    number: "02",
-    name: "Warm Studio",
-    description: "Handwritten warmth for creative studios — personal without losing polish.",
-    tags: ["Serif", "Warm", "Personal"],
-  },
-  {
-    id: "midnight",
-    number: "03",
-    name: "Midnight Premium",
-    description: "Dark, editorial, and expensive-feeling — for proposals that need to feel exclusive.",
-    tags: ["Dark", "Luxury", "Serif"],
-  },
-  {
-    id: "corporate",
-    number: "04",
-    name: "Corporate Confident",
-    description: "Structured and credible — built for enterprise-facing freelance work.",
-    tags: ["Structured", "Blue", "Sidebar"],
-  },
-  {
-    id: "gradient",
-    number: "05",
-    name: "Gradient Creative",
-    description: "Bold colour for bold creative pitches — built to stand out in an inbox.",
-    tags: ["Bold", "Gradient", "Playful"],
-  },
-  {
-    id: "developer",
-    number: "06",
-    name: "Developer Technical",
-    description: "Monospace and precise — for technical scopes that read like documentation.",
-    tags: ["Monospace", "Technical", "Green"],
-  },
+// Horizontal "book pages" stack — left/top/rotate/z-index fan the six
+// templates out in order, front card (developer) sitting on top at the right.
+const TEMPLATE_STACK = [
+  { id: "monochrome", left: 0, top: 30, rotate: -8, z: 1 },
+  { id: "warm_studio", left: 100, top: 15, rotate: -4, z: 2 },
+  { id: "midnight", left: 200, top: 5, rotate: 0, z: 3 },
+  { id: "corporate", left: 300, top: 15, rotate: 4, z: 4 },
+  { id: "gradient", left: 380, top: 30, rotate: 8, z: 5 },
+  { id: "developer", left: 460, top: 45, rotate: 12, z: 6 },
 ] as const;
 
 const TOUR_TABS = [
@@ -533,119 +499,143 @@ export default function WelcomePage() {
         </section>
 
         {/* ── Research stats ── */}
-        <section className="mx-auto max-w-6xl px-6 py-20" style={{ background: "#FAF2E8" }}>
-          <div className="text-center mb-10">
-            <h2
-              style={{
-                fontFamily: "'Space Grotesk',sans-serif",
-                fontWeight: 600,
-                fontSize: "clamp(1.6rem, 3vw, 2.1rem)",
-                letterSpacing: "-.02em",
-                color: "#0A0A0A",
-              }}
-            >
-              The numbers behind the pitch
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {RESEARCH_STATS.map((s) => (
-              <div
-                key={s.label}
-                className="tv-hover-lift"
-                style={{ background: "var(--tv-bg-panel)", border: "1px solid var(--tv-border)", borderRadius: "var(--radius-xl)", padding: 5 }}
+        <section style={{ background: "#FAF2E8" }}>
+          <div aria-hidden="true" style={{ height: 48, background: "linear-gradient(#0A1322,#FAF2E8)" }} />
+          <div className="mx-auto max-w-6xl px-6" style={{ paddingTop: 90, paddingBottom: 80 }}>
+            <div className="text-center mb-10">
+              <h2
+                style={{
+                  fontFamily: "'Space Grotesk',sans-serif",
+                  fontWeight: 600,
+                  fontSize: "clamp(1.6rem, 3vw, 2.1rem)",
+                  letterSpacing: "-.02em",
+                  color: "#0A0A0A",
+                }}
               >
-                <div style={{ background: "#FFFFFF", borderRadius: "var(--radius-lg)", padding: "24px 22px 20px", height: "100%" }}>
-                  <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 44, lineHeight: 1, color: s.statColor }}>
-                    {s.value}
-                  </div>
-                  <div className="mt-2" style={{ fontSize: 14, fontWeight: 500, color: "var(--tv-text)" }}>
-                    {s.label}
-                  </div>
-                  <p className="mt-1.5 text-xs leading-relaxed" style={{ color: "rgba(10,10,10,.6)" }}>
-                    {s.desc}
-                  </p>
-                  <p style={{ color: "#DCAA33", fontWeight: 600, fontSize: 12, marginTop: 8 }}>
-                    {s.callout}
-                  </p>
-                  <div
-                    style={{
-                      borderTop: "1px solid var(--tv-border-soft)",
-                      marginTop: 12,
-                      paddingTop: 10,
-                      color: "var(--tv-text-faint)",
-                      fontSize: 10.5,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 4,
-                    }}
-                  >
-                    <span aria-hidden="true">↗</span>
-                    {s.source}
+                The numbers behind the pitch
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {RESEARCH_STATS.map((s) => (
+                <div
+                  key={s.label}
+                  className="tv-hover-lift"
+                  style={{ background: "var(--tv-bg-panel)", border: "1px solid var(--tv-border)", borderRadius: "var(--radius-xl)", padding: 5 }}
+                >
+                  <div style={{ background: "var(--tv-surface-panel, #FAFAF8)", borderRadius: "var(--radius-lg)", padding: "24px 22px 20px", height: "100%" }}>
+                    <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 44, lineHeight: 1, color: s.statColor }}>
+                      {s.value}
+                    </div>
+                    <div className="mt-2" style={{ fontSize: 14, fontWeight: 500, color: "var(--tv-text)" }}>
+                      {s.label}
+                    </div>
+                    <p className="mt-1.5 text-xs leading-relaxed" style={{ color: "rgba(10,10,10,.6)" }}>
+                      {s.desc}
+                    </p>
+                    <p style={{ color: "#DCAA33", fontWeight: 600, fontSize: 12, marginTop: 8 }}>
+                      {s.callout}
+                    </p>
+                    <div
+                      style={{
+                        borderTop: "1px solid var(--tv-border-soft)",
+                        marginTop: 12,
+                        paddingTop: 10,
+                        color: "var(--tv-text-faint)",
+                        fontSize: 10.5,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4,
+                      }}
+                    >
+                      <span aria-hidden="true">↗</span>
+                      {s.source}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+            <p className="mt-6 text-center text-xs" style={{ color: "rgba(10,10,10,.5)" }}>
+              Figures reflect general industry research and freelancer surveys on proposal and pitch performance.
+            </p>
           </div>
-          <p className="mt-6 text-center text-xs" style={{ color: "rgba(10,10,10,.5)" }}>
-            Figures reflect general industry research and freelancer surveys on proposal and pitch performance.
-          </p>
         </section>
 
         {/* ── Template previews — intro ── */}
-        <section id="product" className="tv-anchor mx-auto max-w-6xl px-6 py-20" style={{ background: "#0F1F3D" }}>
-          <div className="text-center">
-            <span
-              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-6"
-              style={{ border: "1px solid rgba(220,170,51,.35)", background: "rgba(220,170,51,.1)", color: "#DCAA33", fontSize: 12, fontWeight: 600 }}
-            >
-              ◆ One brief. Any style.
-            </span>
-            <h2
-              className="mx-auto"
-              style={{
-                fontFamily: "'Space Grotesk',sans-serif",
-                fontWeight: 700,
-                fontSize: "clamp(30px, 4.6vw, 50px)",
-                letterSpacing: "-.03em",
-                lineHeight: 1.08,
-                color: "#FAF2E8",
-                maxWidth: 760,
-              }}
-            >
-              Not templates in different colours. Completely different proposals.
-            </h2>
-            <p className="mt-5 mx-auto" style={{ maxWidth: 620, fontSize: 15.5, lineHeight: 1.65, color: "rgba(250,242,232,.62)" }}>
-              Write your brief once. Torvionyx fills a finished, on brand proposal (the words, the structure, the
-              pricing), then lets you wear whichever style fits the client. Below is the same proposal, rendered six
-              ways. Nothing here is placeholder lorem: it's real content, restyled.
-            </p>
-            <div className="flex flex-wrap justify-center gap-2 mt-8">
-              {FEATURE_PILLS.map((p) => (
-                <span
-                  key={p}
-                  className="px-3.5 py-1.5 rounded-full text-xs font-medium"
-                  style={{ border: "1px solid rgba(250,242,232,.15)", color: "rgba(250,242,232,.75)" }}
-                >
-                  {p}
-                </span>
-              ))}
+        <section id="product" className="tv-anchor" style={{ background: "#0F1F3D" }}>
+          <div className="mx-auto max-w-6xl px-6" style={{ paddingTop: 80, paddingBottom: 24 }}>
+            <div className="text-center">
+              <span
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-6"
+                style={{ border: "1px solid rgba(220,170,51,.35)", background: "rgba(220,170,51,.1)", color: "#DCAA33", fontSize: 12, fontWeight: 600 }}
+              >
+                ◆ One brief. Any style.
+              </span>
+              <h2
+                className="mx-auto"
+                style={{
+                  fontFamily: "'Space Grotesk',sans-serif",
+                  fontWeight: 700,
+                  fontSize: "clamp(30px, 4.6vw, 50px)",
+                  letterSpacing: "-.03em",
+                  lineHeight: 1.08,
+                  color: "#FAF2E8",
+                  maxWidth: 760,
+                }}
+              >
+                Not templates in different colours. Completely different proposals.
+              </h2>
+              <p className="mt-5 mx-auto" style={{ maxWidth: 620, fontSize: 15.5, lineHeight: 1.65, color: "rgba(250,242,232,.62)" }}>
+                Write your brief once. Torvionyx fills a finished, on brand proposal (the words, the structure, the
+                pricing), then lets you wear whichever style fits the client. Below is the same proposal, rendered
+                six ways. Nothing here is placeholder lorem: it's real content, restyled.
+              </p>
+              <div className="flex flex-wrap justify-center gap-2 mt-8">
+                {FEATURE_PILLS.map((p) => (
+                  <span
+                    key={p}
+                    className="px-3.5 py-1.5 rounded-full text-xs font-medium"
+                    style={{ border: "1px solid rgba(250,242,232,.15)", color: "rgba(250,242,232,.75)" }}
+                  >
+                    {p}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
+          <div aria-hidden="true" style={{ height: 60, background: "linear-gradient(to bottom, transparent, #FAF2E8)" }} />
         </section>
 
         {/* ── Template previews — full renders ── */}
-        <section className="mx-auto max-w-6xl px-6" style={{ background: "#FAF2E8", paddingTop: 60, paddingBottom: 80 }}>
-          {PROPOSAL_TEMPLATE_PREVIEWS.map((t, i) => {
-            const Template = TEMPLATE_MAP[t.id];
-            return (
-              <div key={t.id} style={{ marginTop: i === 0 ? 0 : 56 }}>
-                <TemplateHeader number={t.number} name={t.name} description={t.description} tags={t.tags} />
-                <div style={{ borderRadius: 20, overflow: "hidden", boxShadow: "0 40px 80px -40px rgba(0,0,0,.35)" }}>
-                  <Template />
-                </div>
-              </div>
-            );
-          })}
+        <section style={{ background: "#FAF2E8" }}>
+          <div className="mx-auto max-w-6xl px-6" style={{ paddingTop: 20, paddingBottom: 90 }}>
+            <div className="tv-template-stack">
+              {TEMPLATE_STACK.map((t) => {
+                const Template = TEMPLATE_MAP[t.id];
+                return (
+                  <div
+                    key={t.id}
+                    className="tv-template-card-wrap"
+                    style={{ left: t.left, top: t.top, transform: `rotate(${t.rotate}deg)`, zIndex: t.z }}
+                  >
+                    <Template />
+                  </div>
+                );
+              })}
+            </div>
+            <p
+              style={{
+                textAlign: "center",
+                marginTop: 24,
+                fontFamily: "'JetBrains Mono',ui-monospace,monospace",
+                fontSize: 11,
+                textTransform: "uppercase",
+                letterSpacing: ".2em",
+                color: "#DCAA33",
+              }}
+            >
+              Same brief. Six different proposals.
+            </p>
+          </div>
         </section>
 
         {/* ── The proposal trap ── */}
@@ -978,54 +968,9 @@ function TourMock({ tabId }: { tabId: string }) {
 }
 
 // ---------------------------------------------------------------------------
-// Template previews — header row + six full proposal renders
+// Template previews — six full proposal renders (clipped to their top
+// 280px inside .tv-template-card-wrap for the overlapping stack)
 // ---------------------------------------------------------------------------
-
-function TemplateHeader({
-  number,
-  name,
-  description,
-  tags,
-}: {
-  number: string;
-  name: string;
-  description: string;
-  tags: readonly string[];
-}) {
-  return (
-    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3" style={{ marginBottom: 22 }}>
-      <div className="flex items-baseline gap-3">
-        <span style={{ fontFamily: "'JetBrains Mono',ui-monospace,monospace", fontSize: 13, fontWeight: 700, color: "#DCAA33" }}>
-          {number}
-        </span>
-        <span style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 23, color: "#0A0A0A" }}>
-          {name}
-        </span>
-      </div>
-      <div className="sm:text-right">
-        <p style={{ fontSize: 13.5, color: "rgba(10,10,10,.6)", maxWidth: 360, marginLeft: "auto" }}>{description}</p>
-        <div className="flex sm:justify-end gap-2 mt-2 flex-wrap">
-          {tags.map((tag) => (
-            <span
-              key={tag}
-              style={{
-                fontSize: 10.5,
-                textTransform: "uppercase",
-                letterSpacing: ".08em",
-                color: "rgba(10,10,10,.5)",
-                border: "1px solid rgba(10,10,10,.15)",
-                borderRadius: 999,
-                padding: "3px 9px",
-              }}
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function MonochromeTemplate() {
   return (
