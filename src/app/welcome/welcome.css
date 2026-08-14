@@ -1,3 +1,9 @@
+/* ── Page-local design tokens (redesign pass) ── */
+:root {
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+}
+
 /* ── Anchor targets — offset for the sticky nav ── */
 .tv-anchor {
   scroll-margin-top: 88px;
@@ -13,6 +19,17 @@
   height: 100%;
   pointer-events: none;
   z-index: 0;
+}
+
+/* ── Hero dust trail — mouse-follow particle canvas, drawn in page.tsx.
+   Sits above the lightning field, below the hero content. ── */
+.hero-dust {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .bolt-path {
@@ -73,32 +90,6 @@
   }
 }
 
-/* ── Style slideshow — horizontal scroll-snap row ── */
-.tv-slideshow {
-  display: flex;
-  gap: 16px;
-  overflow-x: auto;
-  scroll-snap-type: x proximity;
-  padding: 4px 4px 16px;
-  scrollbar-width: thin;
-}
-.tv-slideshow::-webkit-scrollbar {
-  height: 6px;
-}
-.tv-slideshow::-webkit-scrollbar-thumb {
-  background: var(--tv-border);
-  border-radius: 20px;
-}
-.tv-slide-card {
-  scroll-snap-align: start;
-  flex: 0 0 auto;
-  width: 220px;
-  transition: transform 0.2s ease;
-}
-.tv-slide-card:hover {
-  transform: translateY(-3px);
-}
-
 /* ── Stat card + tour tab hover ── */
 .tv-hover-lift {
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -108,11 +99,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tv-slide-card,
   .tv-hover-lift {
     transition: none !important;
   }
-  .tv-slide-card:hover,
   .tv-hover-lift:hover {
     transform: none !important;
   }

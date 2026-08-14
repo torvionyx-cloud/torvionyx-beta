@@ -18,7 +18,6 @@ import { TorvionyxLogo } from "@/components/ui/TorvionyxLogo";
 import { MarketingNav } from "@/components/landing/MarketingNav";
 import { MarketingFooter } from "@/components/landing/MarketingFooter";
 import { MarketingFAQ } from "@/components/landing/MarketingFAQ";
-import { getTheme, PROPOSAL_TEMPLATES, type ProposalTemplateId } from "@/lib/themes";
 import "./welcome.css";
 
 // ---------------------------------------------------------------------------
@@ -26,12 +25,12 @@ import "./welcome.css";
 // ---------------------------------------------------------------------------
 
 const RESEARCH_STATS = [
-  { value: "23%", label: "Higher close rate", desc: "when a proposal lands within 24 hours vs 5+ days later.", callout: "Torvionyx makes \"within the hour\" realistic.", source: "Source: Proposify proposal data" },
-  { value: "41%", label: "More likely to be hired", desc: "when the proposal is tailored to the client, not generic.", callout: "Grounded in your brand voice and brief, every time.", source: "Source: freelance proposal industry analysis" },
-  { value: "75%+", label: "Rejection rate", desc: "for generic, copy and paste proposals.", callout: "Personalised output is the default, not the effort.", source: "Source: freelance proposal industry analysis" },
-  { value: "204 hrs", label: "Lost per year", desc: "per freelancer, to admin and paperwork, even with AI in the mix.", callout: "Reclaim the proposal slice of that.", source: "Source: Smallpdf Freelancer survey, 2026 (n=397)" },
-  { value: "1 in 3", label: "Freelancers", desc: "have no way to know if a client even opened the proposal they sent.", callout: "Live link + view and accept notifications, built in.", source: "Source: Smallpdf Freelancer survey, 2026" },
-  { value: "84%", label: "Of freelancers", desc: "now use AI tools regularly, up from 41% in 2023.", callout: "You're not early. You're right on time.", source: "Source: Freelancer Kompass, 2026" },
+  { value: "23%", label: "Higher close rate", desc: "when a proposal lands within 24 hours vs 5+ days later.", callout: "Torvionyx makes \"within the hour\" realistic.", source: "Source: Proposify proposal data", statColor: "#0F1F3D" },
+  { value: "41%", label: "More likely to be hired", desc: "when the proposal is tailored to the client, not generic.", callout: "Grounded in your brand voice and brief, every time.", source: "Source: freelance proposal industry analysis", statColor: "#DCAA33" },
+  { value: "75%+", label: "Rejection rate", desc: "for generic, copy and paste proposals.", callout: "Personalised output is the default, not the effort.", source: "Source: freelance proposal industry analysis", statColor: "#F2C84E" },
+  { value: "204 hrs", label: "Lost per year", desc: "per freelancer, to admin and paperwork, even with AI in the mix.", callout: "Reclaim the proposal slice of that.", source: "Source: Smallpdf Freelancer survey, 2026 (n=397)", statColor: "#DCAA33" },
+  { value: "1 in 3", label: "Freelancers", desc: "have no way to know if a client even opened the proposal they sent.", callout: "Live link + view and accept notifications, built in.", source: "Source: Smallpdf Freelancer survey, 2026", statColor: "#0F1F3D" },
+  { value: "84%", label: "Of freelancers", desc: "now use AI tools regularly, up from 41% in 2023.", callout: "You're not early. You're right on time.", source: "Source: Freelancer Kompass, 2026", statColor: "#F2C84E" },
 ];
 
 const AFTER_SEND_STATS = [
@@ -49,20 +48,56 @@ const TRAP_POINTS = [
 ];
 
 const FEATURE_PILLS = [
-  "7 built-in styles",
-  "Matches your brand automatically",
-  "Switch anytime, no rebuild",
-  "Zero design skills required",
+  "Content generated from your brief",
+  "Brand colours & logo applied automatically",
+  "Switch style in one click",
+  "Interactive live link + PDF export",
 ];
 
-const STYLE_PREVIEWS: { id: Exclude<ProposalTemplateId, "custom">; name: string }[] = [
-  { id: "monochrome", name: "Monochrome Editorial" },
-  { id: "warm_studio", name: "Warm Studio" },
-  { id: "midnight", name: "Midnight Premium" },
-  { id: "corporate", name: "Corporate Confident" },
-  { id: "gradient", name: "Gradient Creative" },
-  { id: "developer", name: "Developer Technical" },
-];
+const PROPOSAL_TEMPLATE_PREVIEWS = [
+  {
+    id: "monochrome",
+    number: "01",
+    name: "Monochrome Editorial",
+    description: "Clean, confident, black on white — built for founders who want the work to do the talking.",
+    tags: ["Minimal", "Editorial", "High contrast"],
+  },
+  {
+    id: "warm_studio",
+    number: "02",
+    name: "Warm Studio",
+    description: "Handwritten warmth for creative studios — personal without losing polish.",
+    tags: ["Serif", "Warm", "Personal"],
+  },
+  {
+    id: "midnight",
+    number: "03",
+    name: "Midnight Premium",
+    description: "Dark, editorial, and expensive-feeling — for proposals that need to feel exclusive.",
+    tags: ["Dark", "Luxury", "Serif"],
+  },
+  {
+    id: "corporate",
+    number: "04",
+    name: "Corporate Confident",
+    description: "Structured and credible — built for enterprise-facing freelance work.",
+    tags: ["Structured", "Blue", "Sidebar"],
+  },
+  {
+    id: "gradient",
+    number: "05",
+    name: "Gradient Creative",
+    description: "Bold colour for bold creative pitches — built to stand out in an inbox.",
+    tags: ["Bold", "Gradient", "Playful"],
+  },
+  {
+    id: "developer",
+    number: "06",
+    name: "Developer Technical",
+    description: "Monospace and precise — for technical scopes that read like documentation.",
+    tags: ["Monospace", "Technical", "Green"],
+  },
+] as const;
 
 const TOUR_TABS = [
   {
@@ -207,6 +242,94 @@ function LightningField() {
 }
 
 // ---------------------------------------------------------------------------
+// Dust trail — mouse-follow particle field, canvas-based
+// ---------------------------------------------------------------------------
+
+interface DustParticle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  life: number;
+  maxLife: number;
+  size: number;
+}
+
+function DustTrail() {
+  const dustRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = dustRef.current;
+    const section = canvas?.parentElement;
+    if (!canvas || !section) return;
+
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (mq.matches) return; // no particle motion for reduced-motion users
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let raf = 0;
+    let particles: DustParticle[] = [];
+
+    function resize() {
+      canvas.width = section.clientWidth;
+      canvas.height = section.clientHeight;
+    }
+    resize();
+    window.addEventListener("resize", resize);
+
+    function spawn(x: number, y: number) {
+      for (let i = 0; i < 2; i++) {
+        particles.push({
+          x,
+          y,
+          vx: (Math.random() - 0.5) * 0.45,
+          vy: -Math.random() * 0.65 - 0.1,
+          life: 0,
+          maxLife: 55 + Math.random() * 45,
+          size: 1 + Math.random() * 2.2,
+        });
+      }
+      if (particles.length > 160) particles = particles.slice(-160);
+    }
+
+    function onPointerMove(e: PointerEvent) {
+      if (e.pointerType !== "mouse") return;
+      const rect = canvas.getBoundingClientRect();
+      spawn(e.clientX - rect.left, e.clientY - rect.top);
+    }
+    section.addEventListener("pointermove", onPointerMove);
+
+    function tick() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles = particles.filter((p) => p.life < p.maxLife);
+      for (const p of particles) {
+        p.life += 1;
+        p.x += p.vx;
+        p.y += p.vy;
+        const t = p.life / p.maxLife;
+        const alpha = (1 - t) * 0.5;
+        ctx.beginPath();
+        ctx.fillStyle = `rgba(242,200,78,${alpha.toFixed(3)})`;
+        ctx.arc(p.x, p.y, p.size * (1 - t * 0.4), 0, Math.PI * 2);
+        ctx.fill();
+      }
+      raf = requestAnimationFrame(tick);
+    }
+    raf = requestAnimationFrame(tick);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", resize);
+      section.removeEventListener("pointermove", onPointerMove);
+    };
+  }, []);
+
+  return <canvas ref={dustRef} className="hero-dust" aria-hidden="true" />;
+}
+
+// ---------------------------------------------------------------------------
 // Page
 // ---------------------------------------------------------------------------
 
@@ -253,18 +376,16 @@ export default function WelcomePage() {
         {/* ── Hero ── */}
         <section ref={heroRef} className="relative overflow-hidden">
           <LightningField />
-          <div className="relative z-10 mx-auto max-w-4xl px-6 pt-24 pb-28 text-center">
-            <div
-              data-hero-reveal
-              className="inline-flex items-center gap-2 mb-6 px-3 py-1.5 rounded-full"
-              style={{ border: "1px solid var(--tv-border)", background: "var(--tv-panel-accent)" }}
-            >
+          <DustTrail />
+          <div className="relative z-10 mx-auto px-6 pt-24 pb-20" style={{ maxWidth: 1120 }}>
+            <div data-hero-reveal className="flex items-center gap-3 mb-7">
+              <span aria-hidden="true" style={{ width: 28, height: 1.5, background: "#DCAA33", display: "inline-block" }} />
               <span
                 style={{
                   fontFamily: "'JetBrains Mono',ui-monospace,monospace",
-                  fontSize: 10.5,
+                  fontSize: 11,
                   fontWeight: 700,
-                  letterSpacing: ".18em",
+                  letterSpacing: ".24em",
                   textTransform: "uppercase",
                   color: "#DCAA33",
                 }}
@@ -277,26 +398,27 @@ export default function WelcomePage() {
               data-hero-reveal
               style={{
                 fontFamily: "'Space Grotesk',sans-serif",
-                fontWeight: 600,
-                fontSize: "clamp(2.2rem, 5.2vw, 3.6rem)",
-                lineHeight: 1.05,
-                letterSpacing: "-.02em",
+                fontWeight: 700,
+                fontSize: "clamp(38px, 6vw, 64px)",
+                lineHeight: 1.02,
+                letterSpacing: "-.03em",
+                maxWidth: "15ch",
                 color: "var(--tv-text)",
               }}
             >
-              Win the work while the call is <span style={{ color: "#DCAA33" }}>still warm.</span>
+              Send a proposal <span style={{ color: "#DCAA33" }}>before the lead goes cold.</span>
             </h1>
 
             <p
               data-hero-reveal
-              className="mt-6 mx-auto"
-              style={{ maxWidth: 560, fontSize: 17, lineHeight: 1.6, color: "var(--tv-text-dim)" }}
+              className="mt-6"
+              style={{ maxWidth: "52ch", fontSize: 18, lineHeight: 1.55, color: "var(--tv-text-dim)" }}
             >
-              Torvionyx writes it, brands it, and tells you the moment it's read — so you can send while the lead
-              is still hot.
+              Torvionyx turns a rough brief or call notes into a beautiful, ready to send proposal in about two
+              minutes. That's the difference between "I'll send it tomorrow" and closing the deal today.
             </p>
 
-            <div data-hero-reveal className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <div data-hero-reveal className="mt-8 flex flex-col sm:flex-row items-start sm:items-center gap-3">
               <Link
                 href="/sign-in"
                 className="rounded-xl px-7 py-3.5 text-sm font-semibold transition-all hover:-translate-y-px"
@@ -307,92 +429,106 @@ export default function WelcomePage() {
                   boxShadow: "0 14px 30px -12px rgba(220,170,51,.7)",
                 }}
               >
-                Start free
+                Start free →
               </Link>
-              <a
-                href="#product"
+              <Link
+                href="/sign-in"
                 className="rounded-xl px-7 py-3.5 text-sm font-semibold transition-colors"
                 style={{ border: "1.5px solid var(--tv-border)", color: "var(--tv-text)" }}
               >
-                See how it works
-              </a>
+                See the app →
+              </Link>
             </div>
-          </div>
-        </section>
 
-        {/* ── Send before it goes cold ── */}
-        <section className="mx-auto max-w-5xl px-6 py-20">
-          <div className="text-center mb-10">
-            <h2
+            <div
+              data-hero-reveal
+              className="mt-5"
               style={{
-                fontFamily: "'Space Grotesk',sans-serif",
-                fontWeight: 600,
-                fontSize: "clamp(1.6rem, 3vw, 2.1rem)",
-                letterSpacing: "-.02em",
-                color: "var(--tv-text)",
+                fontFamily: "'JetBrains Mono',ui-monospace,monospace",
+                fontSize: 10.5,
+                letterSpacing: ".14em",
+                textTransform: "uppercase",
+                color: "var(--tv-text-faint)",
               }}
             >
-              Send a proposal before the lead goes cold
-            </h2>
-            <p className="mt-3 mx-auto" style={{ maxWidth: 520, fontSize: 15, color: "var(--tv-text-faint)" }}>
-              The faster you send, the more likely you win. Torvionyx collapses hours of writing into minutes.
-            </p>
-          </div>
+              No card required · Built for UK freelancers
+            </div>
 
-          <div
-            className="grid grid-cols-1 sm:grid-cols-2 overflow-hidden rounded-2xl"
-            style={{ border: "1px solid var(--tv-border)" }}
-          >
-            <div className="px-8 py-12 text-center" style={{ background: "var(--tv-panel-accent)" }}>
-              <div
-                style={{
-                  fontFamily: "'JetBrains Mono',ui-monospace,monospace",
-                  fontSize: 11,
-                  letterSpacing: ".14em",
-                  textTransform: "uppercase",
-                  color: "var(--tv-text-faint)",
-                  marginBottom: 12,
-                }}
-              >
-                Without Torvionyx
-              </div>
-              <div
-                style={{
-                  fontFamily: "'Space Grotesk',sans-serif",
-                  fontWeight: 700,
-                  fontSize: 44,
-                  color: "var(--tv-text-faint)",
-                }}
-              >
-                2–3 hrs
-              </div>
-              <p className="mt-3 text-sm" style={{ color: "var(--tv-text-faint)" }}>
-                Writing, formatting, and chasing your own pricing
-              </p>
-            </div>
+            {/* Speed comparison card */}
             <div
-              className="px-8 py-12 text-center"
-              style={{ background: "rgba(220,170,51,.08)", borderLeft: "1px solid var(--tv-border)" }}
+              data-hero-reveal
+              className="mt-14 grid grid-cols-[1fr_auto_1fr]"
+              style={{ borderRadius: 28, overflow: "hidden", boxShadow: "0 40px 80px -40px rgba(0,0,0,.55)" }}
             >
-              <div
-                style={{
-                  fontFamily: "'JetBrains Mono',ui-monospace,monospace",
-                  fontSize: 11,
-                  letterSpacing: ".14em",
-                  textTransform: "uppercase",
-                  color: "#DCAA33",
-                  marginBottom: 12,
-                }}
-              >
-                With Torvionyx
+              <div style={{ background: "linear-gradient(150deg,#132543,#0F1F3D 60%,#16294a)", padding: "38px 34px" }}>
+                <div
+                  style={{
+                    fontFamily: "'JetBrains Mono',ui-monospace,monospace",
+                    fontSize: 11,
+                    textTransform: "uppercase",
+                    letterSpacing: ".14em",
+                    color: "rgba(250,242,232,.62)",
+                  }}
+                >
+                  With Torvionyx
+                </div>
+                <div
+                  style={{
+                    fontFamily: "'Space Grotesk',sans-serif",
+                    fontWeight: 700,
+                    fontSize: "clamp(40px, 6vw, 60px)",
+                    lineHeight: 1,
+                    color: "#DCAA33",
+                    marginTop: 14,
+                  }}
+                >
+                  ~2 min
+                </div>
+                <p style={{ fontSize: 13.5, color: "rgba(250,242,232,.72)", marginTop: 14 }}>
+                  Brief in → polished, branded proposal out, ready to send.
+                </p>
               </div>
-              <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 44, color: "var(--tv-text)" }}>
-                ~2 min
+
+              <div style={{ background: "var(--tv-text)", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 6px" }}>
+                <span style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 15, color: "#0A1322" }}>
+                  vs
+                </span>
               </div>
-              <p className="mt-3 text-sm" style={{ color: "var(--tv-text-dim)" }}>
-                Brief in, branded proposal out
-              </p>
+
+              <div style={{ background: "#0A1322", padding: "38px 34px" }}>
+                <div
+                  style={{
+                    fontFamily: "'JetBrains Mono',ui-monospace,monospace",
+                    fontSize: 11,
+                    textTransform: "uppercase",
+                    letterSpacing: ".14em",
+                    color: "rgba(250,242,232,.62)",
+                  }}
+                >
+                  By hand
+                </div>
+                <div
+                  style={{
+                    fontFamily: "'Space Grotesk',sans-serif",
+                    fontWeight: 700,
+                    fontSize: "clamp(40px, 6vw, 60px)",
+                    lineHeight: 1,
+                    color: "#FFFFFF",
+                    marginTop: 14,
+                  }}
+                >
+                  2 to 3 hrs
+                </div>
+                <p style={{ fontSize: 13.5, color: "rgba(250,242,232,.72)", marginTop: 14 }}>
+                  The time freelancers typically lose writing and formatting one proposal.
+                </p>
+              </div>
             </div>
+
+            <p data-hero-reveal className="mt-4" style={{ fontSize: 12, color: "var(--tv-text-faint)" }}>
+              <span style={{ color: "#DCAA33" }}>›</span> The two minute figure is a Torvionyx product measure; the
+              2 to 3 hour comparison reflects commonly reported freelance proposal times.
+            </p>
           </div>
         </section>
 
@@ -415,24 +551,37 @@ export default function WelcomePage() {
             {RESEARCH_STATS.map((s) => (
               <div
                 key={s.label}
-                className="tv-hover-lift rounded-2xl p-6"
-                style={{ border: "1px solid rgba(10,10,10,.12)", background: "#FFFFFF" }}
+                className="tv-hover-lift"
+                style={{ background: "var(--tv-bg-panel)", border: "1px solid var(--tv-border)", borderRadius: "var(--radius-xl)", padding: 5 }}
               >
-                <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 30, color: "#DCAA33" }}>
-                  {s.value}
-                </div>
-                <div className="mt-1.5 font-semibold text-sm" style={{ color: "#0A0A0A" }}>
-                  {s.label}
-                </div>
-                <p className="mt-1.5 text-xs leading-relaxed" style={{ color: "rgba(10,10,10,.6)" }}>
-                  {s.desc}
-                </p>
-                <p style={{ color: "#DCAA33", fontStyle: "italic", fontSize: 12, marginTop: 8 }}>
-                  {s.callout}
-                </p>
-                <div style={{ color: "var(--tv-text-faint)", fontSize: 10.5, marginTop: 6, display: "flex", alignItems: "center", gap: 4 }}>
-                  <span aria-hidden="true">↗</span>
-                  {s.source}
+                <div style={{ background: "#FFFFFF", borderRadius: "var(--radius-lg)", padding: "24px 22px 20px", height: "100%" }}>
+                  <div style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 44, lineHeight: 1, color: s.statColor }}>
+                    {s.value}
+                  </div>
+                  <div className="mt-2" style={{ fontSize: 14, fontWeight: 500, color: "var(--tv-text)" }}>
+                    {s.label}
+                  </div>
+                  <p className="mt-1.5 text-xs leading-relaxed" style={{ color: "rgba(10,10,10,.6)" }}>
+                    {s.desc}
+                  </p>
+                  <p style={{ color: "#DCAA33", fontWeight: 600, fontSize: 12, marginTop: 8 }}>
+                    {s.callout}
+                  </p>
+                  <div
+                    style={{
+                      borderTop: "1px solid var(--tv-border-soft)",
+                      marginTop: 12,
+                      paddingTop: 10,
+                      color: "var(--tv-text-faint)",
+                      fontSize: 10.5,
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                  >
+                    <span aria-hidden="true">↗</span>
+                    {s.source}
+                  </div>
                 </div>
               </div>
             ))}
@@ -442,70 +591,61 @@ export default function WelcomePage() {
           </p>
         </section>
 
-        {/* ── One brief. Any style. ── */}
-        <section id="product" className="tv-anchor mx-auto max-w-6xl px-6 py-20">
-          <div className="text-center mb-8">
+        {/* ── Template previews — intro ── */}
+        <section id="product" className="tv-anchor mx-auto max-w-6xl px-6 py-20" style={{ background: "#0F1F3D" }}>
+          <div className="text-center">
+            <span
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full mb-6"
+              style={{ border: "1px solid rgba(220,170,51,.35)", background: "rgba(220,170,51,.1)", color: "#DCAA33", fontSize: 12, fontWeight: 600 }}
+            >
+              ◆ One brief. Any style.
+            </span>
             <h2
+              className="mx-auto"
               style={{
                 fontFamily: "'Space Grotesk',sans-serif",
-                fontWeight: 600,
-                fontSize: "clamp(1.6rem, 3vw, 2.1rem)",
-                letterSpacing: "-.02em",
-                color: "var(--tv-text)",
+                fontWeight: 700,
+                fontSize: "clamp(30px, 4.6vw, 50px)",
+                letterSpacing: "-.03em",
+                lineHeight: 1.08,
+                color: "#FAF2E8",
+                maxWidth: 760,
               }}
             >
-              One brief. Any style.
+              Not templates in different colours. Completely different proposals.
             </h2>
-            <p className="mt-3 mx-auto" style={{ maxWidth: 520, fontSize: 15, color: "var(--tv-text-faint)" }}>
-              The same brief, seven different looks. Pick a style, or let it default to your own brand.
+            <p className="mt-5 mx-auto" style={{ maxWidth: 620, fontSize: 15.5, lineHeight: 1.65, color: "rgba(250,242,232,.62)" }}>
+              Write your brief once. Torvionyx fills a finished, on brand proposal (the words, the structure, the
+              pricing), then lets you wear whichever style fits the client. Below is the same proposal, rendered six
+              ways. Nothing here is placeholder lorem: it's real content, restyled.
             </p>
+            <div className="flex flex-wrap justify-center gap-2 mt-8">
+              {FEATURE_PILLS.map((p) => (
+                <span
+                  key={p}
+                  className="px-3.5 py-1.5 rounded-full text-xs font-medium"
+                  style={{ border: "1px solid rgba(250,242,232,.15)", color: "rgba(250,242,232,.75)" }}
+                >
+                  {p}
+                </span>
+              ))}
+            </div>
           </div>
+        </section>
 
-          <div className="flex flex-wrap justify-center gap-2 mb-10">
-            {FEATURE_PILLS.map((p) => (
-              <span
-                key={p}
-                className="px-3.5 py-1.5 rounded-full text-xs font-medium"
-                style={{ border: "1px solid var(--tv-border)", color: "var(--tv-text-dim)" }}
-              >
-                {p}
-              </span>
-            ))}
-          </div>
-
-          <div className="tv-slideshow">
-            {STYLE_PREVIEWS.map((s) => {
-              const theme = getTheme(s.id);
-              return (
-                <div key={s.id} className="tv-slide-card">
-                  <div
-                    className="rounded-xl overflow-hidden"
-                    style={{ border: `1px solid ${theme.cardBorder}`, background: theme.cardBg, boxShadow: "var(--tv-shadow)" }}
-                  >
-                    <div style={{ background: theme.heroBg, height: 70, padding: "12px 14px" }}>
-                      <div style={{ width: 26, height: 5, borderRadius: 3, background: theme.heroText, opacity: 0.9 }} />
-                      <div style={{ width: 46, height: 4, borderRadius: 3, background: theme.heroText, opacity: 0.5, marginTop: 8 }} />
-                    </div>
-                    <div className="p-3.5 space-y-2">
-                      <div style={{ width: "70%", height: 5, borderRadius: 3, background: theme.textMuted, opacity: 0.5 }} />
-                      <div style={{ width: "45%", height: 5, borderRadius: 3, background: theme.textMuted, opacity: 0.5 }} />
-                      <StylePreviewCopy id={s.id} />
-                      <div className="flex items-center justify-between pt-1.5">
-                        <div style={{ width: 30, height: 8, borderRadius: 2, background: theme.textFaint, opacity: 0.5 }} />
-                        <div style={{ width: 34, height: 14, borderRadius: 4, background: theme.accent }} />
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    className="mt-2.5 text-xs font-medium text-center"
-                    style={{ color: "var(--tv-text-dim)", fontFamily: "'Space Grotesk',sans-serif" }}
-                  >
-                    {s.name}
-                  </div>
+        {/* ── Template previews — full renders ── */}
+        <section className="mx-auto max-w-6xl px-6" style={{ background: "#FAF2E8", paddingTop: 60, paddingBottom: 80 }}>
+          {PROPOSAL_TEMPLATE_PREVIEWS.map((t, i) => {
+            const Template = TEMPLATE_MAP[t.id];
+            return (
+              <div key={t.id} style={{ marginTop: i === 0 ? 0 : 56 }}>
+                <TemplateHeader number={t.number} name={t.name} description={t.description} tags={t.tags} />
+                <div style={{ borderRadius: 20, overflow: "hidden", boxShadow: "0 40px 80px -40px rgba(0,0,0,.35)" }}>
+                  <Template />
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
         </section>
 
         {/* ── The proposal trap ── */}
@@ -838,79 +978,524 @@ function TourMock({ tabId }: { tabId: string }) {
 }
 
 // ---------------------------------------------------------------------------
-// Style slideshow card copy — per-template prop text, abstracted the same
-// way as TourMock above (CSS-only, not screenshots)
+// Template previews — header row + six full proposal renders
 // ---------------------------------------------------------------------------
 
-function StylePreviewCopy({ id }: { id: Exclude<ProposalTemplateId, "custom"> }) {
-  switch (id) {
-    case "monochrome":
-      return (
-        <>
-          <div style={{ fontSize: 7, fontWeight: 700, color: "#0A0A0A", fontFamily: "'Space Grotesk',sans-serif", marginTop: 6 }}>
-            Brand identity & Shopify website
-          </div>
-          <div style={{ fontSize: 5.5, color: "rgba(10,10,10,.45)", fontFamily: "monospace", marginTop: 3 }}>
-            Prepared for Northlane Coffee Co.
-          </div>
-        </>
-      );
-    case "warm_studio":
-      return (
-        <>
-          <div style={{ fontSize: 7, fontStyle: "italic", color: "#B5502C", fontFamily: "'Playfair Display',serif", marginTop: 6 }}>
-            A proposal, made with care
-          </div>
-          <div style={{ fontSize: 9, fontWeight: 700, color: "#2C1810", fontFamily: "'Playfair Display',serif", marginTop: 2 }}>
-            Brand identity & Shopify website
-          </div>
-        </>
-      );
-    case "midnight":
-      return (
-        <>
-          <div style={{ fontSize: 5.5, fontFamily: "monospace", letterSpacing: ".1em", color: "rgba(220,170,51,.6)", marginTop: 6 }}>
-            PRIVATE PROPOSAL · 2026
-          </div>
-          <div style={{ fontSize: 8, fontWeight: 700, color: "#FAF2E8", fontFamily: "'Space Grotesk',sans-serif", marginTop: 3 }}>
-            Brand identity &
-          </div>
-        </>
-      );
-    case "corporate":
-      return (
-        <>
-          <div style={{ fontSize: 5, fontFamily: "monospace", letterSpacing: ".08em", color: "rgba(255,255,255,.4)", marginTop: 6 }}>
-            PROJECT PROPOSAL
-          </div>
-          <div style={{ fontSize: 7, fontWeight: 700, color: "#FFFFFF", fontFamily: "'Space Grotesk',sans-serif", marginTop: 3 }}>
-            Brand identity &
-          </div>
-        </>
-      );
-    case "gradient":
-      return (
-        <>
-          <div style={{ fontSize: 5.5, fontFamily: "monospace", letterSpacing: ".1em", color: "rgba(255,255,255,.7)", marginTop: 6 }}>
-            LET'S BUILD SOMETHING
-          </div>
-          <div style={{ fontSize: 9, fontWeight: 700, color: "#FFFFFF", fontFamily: "'Space Grotesk',sans-serif", marginTop: 3 }}>
-            Brand identity &
-          </div>
-        </>
-      );
-    case "developer":
-      return (
-        <>
-          <div style={{ fontSize: 6, fontFamily: "monospace", color: "#16A34A", marginTop: 6 }}>
-            ## the_opportunity
-          </div>
-          <div style={{ fontSize: 5.5, fontFamily: "monospace", color: "rgba(10,10,10,.5)", marginTop: 3 }}>
-            Northlane has outgrown
-          </div>
-        </>
-      );
-    default:
-      return null;
-  }
+function TemplateHeader({
+  number,
+  name,
+  description,
+  tags,
+}: {
+  number: string;
+  name: string;
+  description: string;
+  tags: readonly string[];
+}) {
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3" style={{ marginBottom: 22 }}>
+      <div className="flex items-baseline gap-3">
+        <span style={{ fontFamily: "'JetBrains Mono',ui-monospace,monospace", fontSize: 13, fontWeight: 700, color: "#DCAA33" }}>
+          {number}
+        </span>
+        <span style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: 23, color: "#0A0A0A" }}>
+          {name}
+        </span>
+      </div>
+      <div className="sm:text-right">
+        <p style={{ fontSize: 13.5, color: "rgba(10,10,10,.6)", maxWidth: 360, marginLeft: "auto" }}>{description}</p>
+        <div className="flex sm:justify-end gap-2 mt-2 flex-wrap">
+          {tags.map((tag) => (
+            <span
+              key={tag}
+              style={{
+                fontSize: 10.5,
+                textTransform: "uppercase",
+                letterSpacing: ".08em",
+                color: "rgba(10,10,10,.5)",
+                border: "1px solid rgba(10,10,10,.15)",
+                borderRadius: 999,
+                padding: "3px 9px",
+              }}
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
+
+function MonochromeTemplate() {
+  return (
+    <div style={{ background: "#FAF9F6", color: "#141414", fontFamily: "'Space Grotesk',sans-serif" }}>
+      <div style={{ padding: "60px 50px 40px", borderBottom: "1.5px solid #141414" }}>
+        <div style={{ fontFamily: "'JetBrains Mono',ui-monospace,monospace", fontSize: 11, textTransform: "uppercase", letterSpacing: ".34em", opacity: 0.6 }}>
+          PROPOSAL · 2026
+        </div>
+        <h3 style={{ marginTop: 18, fontSize: "clamp(42px, 6vw, 74px)", fontWeight: 700, letterSpacing: "-.04em", lineHeight: 1.02 }}>
+          Brand identity & Shopify website
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6" style={{ marginTop: 40 }}>
+          {[
+            ["Prepared for", "Northlane Coffee Co."],
+            ["From", "Ava Bennett, Studio Ava"],
+            ["Investment", "£4,200"],
+          ].map(([label, val]) => (
+            <div key={label}>
+              <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: ".14em", opacity: 0.5 }}>{label}</div>
+              <div style={{ fontSize: 14, fontWeight: 600, marginTop: 4 }}>{val}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ padding: "38px 50px 0" }}>
+        <div style={{ fontFamily: "'JetBrains Mono',ui-monospace,monospace", fontSize: 10.5, textTransform: "uppercase", letterSpacing: ".2em", opacity: 0.5 }}>
+          01 — The opportunity
+        </div>
+        <p style={{ marginTop: 14, fontSize: 16, lineHeight: 1.65, maxWidth: 620 }}>
+          Northlane has outgrown a packaging led identity. As you move from three cafés into ecommerce, the brand
+          needs to feel as considered on screen as it does in the room, and turn browsers into subscribers.
+        </p>
+      </div>
+
+      <div style={{ padding: "38px 50px 0" }}>
+        <div style={{ fontFamily: "'JetBrains Mono',ui-monospace,monospace", fontSize: 10.5, textTransform: "uppercase", letterSpacing: ".2em", opacity: 0.5 }}>
+          02 — Scope
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-5" style={{ marginTop: 16 }}>
+          {[
+            ["A", "Brand identity system", "Logo, colour, type, and a usage guide your team can actually follow."],
+            ["B", "Shopify storefront", "Custom theme design and build, from homepage to checkout."],
+            ["C", "Launch asset kit", "Social templates, packaging refresh, and email header set."],
+            ["D", "Two rounds of revisions", "Structured feedback rounds built into every phase."],
+          ].map(([letter, title, desc]) => (
+            <div key={letter} className="flex gap-4">
+              <div style={{ fontSize: 13, fontWeight: 700, opacity: 0.4, minWidth: 18 }}>{letter}</div>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 700 }}>{title}</div>
+                <div style={{ fontSize: 13, opacity: 0.6, marginTop: 3, lineHeight: 1.5 }}>{desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ padding: "38px 50px 44px" }}>
+        <div style={{ fontFamily: "'JetBrains Mono',ui-monospace,monospace", fontSize: 10.5, textTransform: "uppercase", letterSpacing: ".2em", opacity: 0.5 }}>
+          03 — Investment
+        </div>
+        <div style={{ marginTop: 16 }}>
+          {[
+            ["Brand identity", "£1,600"],
+            ["Shopify design & build", "£2,100"],
+            ["Launch asset kit", "£500"],
+          ].map(([label, price]) => (
+            <div
+              key={label}
+              className="flex items-center justify-between"
+              style={{ padding: "12px 0", borderBottom: "1px solid rgba(20,20,20,.1)", fontSize: 14 }}
+            >
+              <span>{label}</span>
+              <span style={{ fontWeight: 600 }}>{price}</span>
+            </div>
+          ))}
+          <div className="flex items-center justify-between" style={{ padding: "16px 0 0", fontSize: 18, fontWeight: 700 }}>
+            <span>Total</span>
+            <span>£4,200</span>
+          </div>
+        </div>
+      </div>
+
+      <div
+        className="flex flex-col sm:flex-row items-center justify-between gap-4"
+        style={{ background: "#141414", color: "#FAF9F6", padding: "26px 50px" }}
+      >
+        <p style={{ fontSize: 13.5, opacity: 0.85 }}>Ready when you are. 50% to start, 50% on launch · 5 week delivery.</p>
+        <div className="shrink-0 rounded-full text-xs font-semibold" style={{ border: "1px solid rgba(250,249,246,.4)", padding: "10px 20px" }}>
+          Accept proposal →
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function WarmStudioTemplate() {
+  return (
+    <div style={{ background: "#FDFBF7", color: "#2E2422" }}>
+      <div style={{ background: "linear-gradient(160deg,#F6ECE1,#FDFBF7)", padding: "56px 50px 44px" }}>
+        <div style={{ fontFamily: "'Playfair Display',serif", fontStyle: "italic", fontSize: 17, color: "#C4623F" }}>
+          A proposal, made with care
+        </div>
+        <h3
+          style={{
+            marginTop: 12,
+            fontFamily: "'Playfair Display',serif",
+            fontWeight: 700,
+            fontSize: "clamp(34px, 5vw, 54px)",
+            letterSpacing: "-.01em",
+            lineHeight: 1.08,
+          }}
+        >
+          Brand identity & Shopify website
+        </h3>
+        <div className="inline-block" style={{ marginTop: 26, background: "#FFFFFF", border: "1px solid rgba(46,36,34,.12)", borderRadius: 14, padding: "14px 20px" }}>
+          <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: ".14em", opacity: 0.55 }}>Prepared for</div>
+          <div style={{ fontSize: 15, fontWeight: 700, marginTop: 3 }}>Maya Chen, Northlane Coffee Co.</div>
+        </div>
+      </div>
+
+      <div style={{ padding: "44px 50px" }}>
+        <div style={{ fontFamily: "'Playfair Display',serif", fontWeight: 700, fontSize: 21 }}>What I'll make for you</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5" style={{ marginTop: 22 }}>
+          {[
+            ["1", "Brand identity system", "Logo, colour palette, type, and a guide that's actually usable day to day."],
+            ["2", "Shopify storefront", "A custom-built storefront that feels like the cafés, online."],
+          ].map(([num, title, desc]) => (
+            <div key={num} style={{ background: "#FFFFFF", border: "1px solid rgba(46,36,34,.1)", borderRadius: 16, padding: 22 }}>
+              <div
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: "50%",
+                  background: "#C4623F",
+                  color: "#FDFBF7",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {num}
+              </div>
+              <div style={{ fontFamily: "'Playfair Display',serif", fontWeight: 700, fontSize: 17, marginTop: 12 }}>{title}</div>
+              <p style={{ fontSize: 13.5, opacity: 0.7, marginTop: 6, lineHeight: 1.55 }}>{desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ margin: "0 50px 50px", background: "#2E2422", color: "#FDFBF7", borderRadius: 18, padding: "30px 32px" }}>
+        {[
+          ["Brand identity", "£1,600"],
+          ["Shopify design & build", "£2,100"],
+          ["Launch asset kit", "£500"],
+        ].map(([label, price]) => (
+          <div
+            key={label}
+            className="flex items-center justify-between"
+            style={{ padding: "10px 0", borderBottom: "1px solid rgba(250,251,247,.12)", fontSize: 14, opacity: 0.85 }}
+          >
+            <span>{label}</span>
+            <span>{price}</span>
+          </div>
+        ))}
+        <div className="flex items-center justify-between" style={{ paddingTop: 18 }}>
+          <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 16 }}>Total investment</span>
+          <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 26, fontWeight: 700, color: "#E9A671" }}>£4,200</span>
+        </div>
+        <div className="inline-block mt-6 rounded-full text-xs font-semibold" style={{ background: "#C4623F", color: "#FDFBF7", padding: "12px 24px" }}>
+          Accept & book my start date →
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MidnightTemplate() {
+  return (
+    <div style={{ background: "#07101E", color: "#FAF2E8" }}>
+      <div style={{ padding: "56px 50px 42px", borderBottom: "1px solid rgba(220,170,51,.18)" }}>
+        <div style={{ fontFamily: "'JetBrains Mono',ui-monospace,monospace", fontSize: 11, textTransform: "uppercase", letterSpacing: ".3em", color: "#DCAA33" }}>
+          PRIVATE PROPOSAL · 2026
+        </div>
+        <h3
+          style={{
+            marginTop: 20,
+            fontFamily: "'Playfair Display',serif",
+            fontWeight: 700,
+            fontSize: "clamp(36px, 5.4vw, 58px)",
+            letterSpacing: "-.01em",
+            lineHeight: 1.08,
+          }}
+        >
+          Brand identity & <span style={{ fontStyle: "italic", color: "#DCAA33" }}>Shopify</span> website
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6" style={{ marginTop: 34 }}>
+          {[
+            ["Prepared for", "Northlane Coffee Co."],
+            ["From", "Studio Ava"],
+            ["Investment", "£4,200"],
+          ].map(([label, val]) => (
+            <div key={label}>
+              <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: ".14em", opacity: 0.5 }}>{label}</div>
+              <div style={{ fontSize: 14, fontWeight: 600, marginTop: 4 }}>{val}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ padding: "40px 50px" }}>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+          {[
+            ["Identity system", "Logo, colour, type, and a guide built to feel considered wherever it lands."],
+            ["Shopify storefront", "Bespoke theme design and build, from homepage through to checkout."],
+          ].map(([title, desc]) => (
+            <div key={title} style={{ background: "rgba(250,242,232,.04)", border: "1px solid rgba(220,170,51,.16)", borderRadius: 16, padding: 22 }}>
+              <div style={{ fontFamily: "'Playfair Display',serif", fontWeight: 700, fontSize: 18 }}>{title}</div>
+              <p style={{ fontSize: 13.5, opacity: 0.65, marginTop: 8, lineHeight: 1.55 }}>{desc}</p>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ marginTop: 34 }}>
+          {[
+            ["Brand identity", "£1,600"],
+            ["Shopify design & build", "£2,100"],
+            ["Launch asset kit", "£500"],
+          ].map(([label, price]) => (
+            <div
+              key={label}
+              className="flex items-center justify-between"
+              style={{ padding: "12px 0", borderBottom: "1px solid rgba(220,170,51,.14)", fontSize: 14, opacity: 0.8 }}
+            >
+              <span>{label}</span>
+              <span>{price}</span>
+            </div>
+          ))}
+          <div className="flex items-center justify-between" style={{ paddingTop: 18 }}>
+            <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 17 }}>Total</span>
+            <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 28, fontWeight: 700, color: "#DCAA33" }}>£4,200</span>
+          </div>
+        </div>
+
+        <div
+          className="inline-block mt-8 rounded-full text-xs font-semibold"
+          style={{ background: "linear-gradient(135deg,#F2C84E,#DCAA33)", color: "#07101E", padding: "13px 26px" }}
+        >
+          Accept this proposal →
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CorporateTemplate() {
+  return (
+    <div style={{ background: "#FFFFFF", color: "#1C2E4A" }}>
+      <div style={{ background: "#1C2E4A", color: "#FFFFFF", padding: "48px 50px" }}>
+        <div style={{ fontFamily: "'JetBrains Mono',ui-monospace,monospace", fontSize: 10.5, textTransform: "uppercase", letterSpacing: ".2em", color: "rgba(255,255,255,.55)" }}>
+          PROJECT PROPOSAL
+        </div>
+        <h3 style={{ marginTop: 14, fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: "clamp(30px, 4.4vw, 44px)", letterSpacing: "-.02em" }}>
+          Brand identity & Shopify website
+        </h3>
+        <div style={{ marginTop: 18, fontSize: 13.5, color: "rgba(255,255,255,.7)" }}>
+          Prepared for Northlane Coffee Co. · Studio Ava
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr]">
+        <div style={{ borderRight: "1px solid rgba(28,46,74,.1)", padding: "36px 28px" }}>
+          <div style={{ fontSize: 10, textTransform: "uppercase", letterSpacing: ".14em", color: "#2563EB", fontWeight: 700, marginBottom: 14 }}>
+            Contents
+          </div>
+          {["01 Overview", "02 Scope", "03 Investment"].map((item) => (
+            <div key={item} style={{ fontSize: 13.5, padding: "8px 0", color: "#1C2E4A", opacity: 0.75 }}>
+              {item}
+            </div>
+          ))}
+        </div>
+
+        <div style={{ padding: "36px 42px" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#2563EB", textTransform: "uppercase", letterSpacing: ".1em" }}>01 — Overview</div>
+          <p style={{ marginTop: 10, fontSize: 14.5, lineHeight: 1.6, opacity: 0.85, maxWidth: 480 }}>
+            Northlane has outgrown a packaging led identity and needs a brand and storefront that scale from three
+            cafés into a national ecommerce audience.
+          </p>
+
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#2563EB", textTransform: "uppercase", letterSpacing: ".1em", marginTop: 30 }}>
+            02 — Scope
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4" style={{ marginTop: 12 }}>
+            {["Brand identity system", "Shopify storefront design & build", "Launch asset kit", "Handover & training"].map((item) => (
+              <div key={item} style={{ fontSize: 13.5, padding: "10px 0", borderBottom: "1px solid rgba(28,46,74,.08)" }}>
+                {item}
+              </div>
+            ))}
+          </div>
+
+          <div style={{ fontSize: 11, fontWeight: 700, color: "#2563EB", textTransform: "uppercase", letterSpacing: ".1em", marginTop: 30 }}>
+            03 — Investment
+          </div>
+          <div style={{ marginTop: 12 }}>
+            {[
+              ["Brand identity", "£1,600"],
+              ["Shopify design & build", "£2,100"],
+              ["Launch asset kit", "£500"],
+            ].map(([label, price]) => (
+              <div key={label} className="flex items-center justify-between" style={{ padding: "9px 0", fontSize: 13.5, opacity: 0.85 }}>
+                <span>{label}</span>
+                <span style={{ fontWeight: 600 }}>{price}</span>
+              </div>
+            ))}
+            <div className="flex items-center justify-between" style={{ paddingTop: 14, borderTop: "1px solid rgba(28,46,74,.12)", marginTop: 6 }}>
+              <span style={{ fontWeight: 700 }}>Total</span>
+              <span style={{ fontWeight: 700, color: "#2563EB", fontSize: 18 }}>£4,200</span>
+            </div>
+          </div>
+
+          <div className="inline-block mt-8 rounded-lg text-xs font-semibold" style={{ background: "#2563EB", color: "#FFFFFF", padding: "12px 24px" }}>
+            Approve & sign →
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function GradientTemplate() {
+  return (
+    <div style={{ background: "#FFFFFF" }}>
+      <div style={{ background: "linear-gradient(135deg,#7C3AED,#FF6F61)", padding: "60px 50px", color: "#FFFFFF" }}>
+        <h3 style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 700, fontSize: "clamp(34px, 5vw, 54px)", letterSpacing: "-.02em", lineHeight: 1.05 }}>
+          Brand identity & Shopify website
+        </h3>
+        <p style={{ marginTop: 14, fontSize: 14.5, opacity: 0.9 }}>For Northlane Coffee Co. · by Ava Bennett</p>
+      </div>
+
+      <div style={{ padding: "40px 50px" }}>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {[
+            ["Identity system", "#7C3AED"],
+            ["Shopify storefront", "#8B5CF6"],
+            ["Art direction", "#EC4899"],
+            ["Launch kit", "#FF6F61"],
+          ].map(([title, color]) => (
+            <div key={title} style={{ background: color, color: "#FFFFFF", borderRadius: 14, padding: "18px 16px", minHeight: 90 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, lineHeight: 1.3 }}>{title}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ marginTop: 32, background: "#1A1225", color: "#FFFFFF", borderRadius: 18, padding: "28px 30px" }}>
+          {[
+            ["Brand identity", "£1,600"],
+            ["Shopify design & build", "£2,100"],
+            ["Launch asset kit", "£500"],
+          ].map(([label, price]) => (
+            <div
+              key={label}
+              className="flex items-center justify-between"
+              style={{ padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,.1)", fontSize: 14, opacity: 0.85 }}
+            >
+              <span>{label}</span>
+              <span>{price}</span>
+            </div>
+          ))}
+          <div className="flex items-center justify-between" style={{ paddingTop: 16 }}>
+            <span style={{ fontSize: 15 }}>Total</span>
+            <span
+              style={{
+                fontSize: 26,
+                fontWeight: 700,
+                background: "linear-gradient(135deg,#FF6F61,#EC4899)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              £4,200
+            </span>
+          </div>
+        </div>
+
+        <div
+          className="inline-block mt-8 rounded-full text-xs font-semibold"
+          style={{ background: "linear-gradient(135deg,#7C3AED,#FF6F61)", color: "#FFFFFF", padding: "13px 26px" }}
+        >
+          Let's go, accept →
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DeveloperTemplate() {
+  return (
+    <div style={{ background: "#FAFAF9", color: "#141414" }}>
+      <div style={{ padding: "44px 50px 30px", borderBottom: "1px solid rgba(20,20,20,.1)" }}>
+        <div style={{ fontFamily: "monospace", fontSize: 12, color: "#16A34A" }}>// proposal.md · 2026</div>
+        <h3
+          style={{
+            marginTop: 14,
+            fontFamily: "'Space Grotesk',sans-serif",
+            fontWeight: 700,
+            fontSize: "clamp(30px, 4.4vw, 46px)",
+            letterSpacing: "-.02em",
+          }}
+        >
+          Brand identity & Shopify website
+        </h3>
+        <div style={{ marginTop: 16, fontFamily: "monospace", fontSize: 12.5, lineHeight: 1.9, opacity: 0.75 }}>
+          <div>&gt; client&nbsp;&nbsp;&nbsp;Northlane Coffee Co.</div>
+          <div>&gt; from&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Studio Ava</div>
+          <div>&gt; total&nbsp;&nbsp;&nbsp;&nbsp;£4,200</div>
+        </div>
+      </div>
+
+      <div style={{ padding: "34px 50px" }}>
+        <div style={{ fontFamily: "monospace", fontSize: 12.5, color: "#16A34A" }}>## the_opportunity</div>
+        <p style={{ marginTop: 10, fontSize: 14, lineHeight: 1.7, opacity: 0.85, maxWidth: 560 }}>
+          Northlane has outgrown a packaging led identity. Moving from three cafés into ecommerce means the brand
+          needs to feel as considered on screen as it does in the room.
+        </p>
+
+        <div style={{ fontFamily: "monospace", fontSize: 12.5, color: "#16A34A", marginTop: 26 }}>## scope</div>
+        <div style={{ marginTop: 10 }}>
+          {["Brand identity system", "Shopify storefront design & build", "Launch asset kit", "Handover & training"].map((item) => (
+            <div key={item} style={{ fontFamily: "monospace", fontSize: 13, padding: "5px 0", opacity: 0.85 }}>
+              [✓] {item}
+            </div>
+          ))}
+        </div>
+
+        <div style={{ fontFamily: "monospace", fontSize: 12.5, color: "#16A34A", marginTop: 26 }}>## investment</div>
+        <div style={{ marginTop: 10, fontFamily: "monospace" }}>
+          {[
+            ["brand_identity", "£1,600"],
+            ["shopify_build", "£2,100"],
+            ["launch_kit", "£500"],
+          ].map(([label, price]) => (
+            <div key={label} className="flex items-center justify-between" style={{ padding: "6px 0", fontSize: 13, opacity: 0.8 }}>
+              <span>{label}</span>
+              <span>{price}</span>
+            </div>
+          ))}
+          <div
+            className="flex items-center justify-between"
+            style={{ paddingTop: 12, borderTop: "1px solid rgba(20,20,20,.15)", marginTop: 6, fontWeight: 700 }}
+          >
+            <span>total</span>
+            <span>£4,200</span>
+          </div>
+        </div>
+
+        <div className="inline-block mt-8 rounded text-xs font-semibold" style={{ fontFamily: "monospace", background: "#141414", color: "#FAFAF9", padding: "12px 22px" }}>
+          $ accept_proposal
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const TEMPLATE_MAP: Record<string, () => JSX.Element> = {
+  monochrome: MonochromeTemplate,
+  warm_studio: WarmStudioTemplate,
+  midnight: MidnightTemplate,
+  corporate: CorporateTemplate,
+  gradient: GradientTemplate,
+  developer: DeveloperTemplate,
+};
