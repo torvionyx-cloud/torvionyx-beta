@@ -960,43 +960,45 @@ export default function WelcomePage() {
         </section>
 
         {/* ── Why freelancers win ── */}
-        <section id="why" className="tv-anchor mx-auto max-w-5xl px-6 py-20" style={{ background: "#FAF2E8" }}>
-          <div className="text-center mb-10">
-            <h2
-              style={{
-                fontFamily: "'Space Grotesk',sans-serif",
-                fontWeight: 600,
-                fontSize: "clamp(1.6rem, 3vw, 2.1rem)",
-                letterSpacing: "-.02em",
-                color: "#0A0A0A",
-              }}
-            >
-              Why freelancers win with Torvionyx
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {WHY_WINS.map((w) => (
-              <div
-                key={w.title}
-                className="rounded-2xl p-6"
-                style={{ border: "1px solid rgba(10,10,10,.12)", background: "#FFFFFF" }}
+        <section id="why" className="tv-anchor" style={{ background: "#FAF2E8" }}>
+          <div className="mx-auto max-w-5xl px-6 py-20">
+            <div className="text-center mb-10">
+              <h2
+                style={{
+                  fontFamily: "'Space Grotesk',sans-serif",
+                  fontWeight: 600,
+                  fontSize: "clamp(1.6rem, 3vw, 2.1rem)",
+                  letterSpacing: "-.02em",
+                  color: "#0A0A0A",
+                }}
               >
+                Why freelancers win with Torvionyx
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {WHY_WINS.map((w) => (
                 <div
-                  style={{
-                    fontFamily: "'Space Grotesk',sans-serif",
-                    fontWeight: 600,
-                    fontSize: 17,
-                    color: "#0A0A0A",
-                    marginBottom: 6,
-                  }}
+                  key={w.title}
+                  className="rounded-2xl p-6"
+                  style={{ border: "1px solid rgba(19,37,67,.1)", background: "rgba(19,37,67,.06)" }}
                 >
-                  {w.title}
+                  <div
+                    style={{
+                      fontFamily: "'Space Grotesk',sans-serif",
+                      fontWeight: 600,
+                      fontSize: 17,
+                      color: "#0A0A0A",
+                      marginBottom: 6,
+                    }}
+                  >
+                    {w.title}
+                  </div>
+                  <p className="text-sm leading-relaxed" style={{ color: "rgba(10,10,10,.6)" }}>
+                    {w.desc}
+                  </p>
                 </div>
-                <p className="text-sm leading-relaxed" style={{ color: "rgba(10,10,10,.6)" }}>
-                  {w.desc}
-                </p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </section>
 
