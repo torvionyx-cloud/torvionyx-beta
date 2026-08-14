@@ -164,6 +164,8 @@ export interface Proposal {
   updated_at: string;
   shared_at: string | null;
   accepted_at: string | null;
+  /** Presentation theme — see lib/themes.ts's ProposalTemplateId for the known values. */
+  template: string;
 }
 
 export interface AcceptanceRecord {

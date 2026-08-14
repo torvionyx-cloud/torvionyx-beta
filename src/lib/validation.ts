@@ -70,6 +70,17 @@ export const PROPOSAL_TYPES = [
 
 export const CURRENCIES = ["GBP", "USD", "EUR"] as const;
 export const TONE_PREFERENCES = ["concise", "balanced", "detailed"] as const;
+// Kept in sync with the DB check constraints on proposals.template and
+// brand_settings.default_template, and with lib/themes.ts's ProposalTemplateId.
+export const PROPOSAL_TEMPLATES = [
+  "custom",
+  "monochrome",
+  "warm_studio",
+  "midnight",
+  "corporate",
+  "gradient",
+  "developer",
+] as const;
 
 export const generateProposalSchema = z.object({
   client_name: z.string().min(1).max(200).trim(),
@@ -87,35 +98,43 @@ export const generateProposalSchema = z.object({
   currency: z.enum(CURRENCIES).default("GBP"),
   // Tone/length preference for the generated copy
   tone_preference: z.enum(TONE_PREFERENCES).default("balanced"),
+  // Presentation theme for the generated proposal
+  template: z.enum(PROPOSAL_TEMPLATES).default("custom"),
 });
 
 export type GenerateProposalInput = z.infer<typeof generateProposalSchema>;
 export type Currency = typeof CURRENCIES[number];
 export type TonePreference = typeof TONE_PREFERENCES[number];
+export type ProposalTemplate = typeof PROPOSAL_TEMPLATES[number];
 
 // ---------------------------------------------------------------------------
 // Proposal update (from editor)
 // ---------------------------------------------------------------------------
 
-// Per-block schemas — required fields enforced per type
+// Per-block schemas — required fields enforced per type.
+// .strict() on every block schema: an AI-generated (or malicious) block
+// carrying unexpected extra keys should fail validation outright rather
+// than have those keys silently stripped — matches the app's "treat every
+// input as potentially hostile" principle for anything that touches Claude's
+// output before it's persisted.
 const heroBlockSchema = z.object({
   type: z.literal("hero"),
   title: z.string().min(1).max(300),
   subtitle: z.string().max(500).optional(),
   clientName: z.string().min(1).max(200),
-});
+}).strict();
 
 const textBlockSchema = z.object({
   type: z.literal("text"),
   heading: z.string().min(1).max(300),
   body: z.string().min(1).max(10000),
-});
+}).strict();
 
 const bulletsBlockSchema = z.object({
   type: z.literal("bullets"),
   heading: z.string().min(1).max(300),
   items: z.array(z.string().min(1).max(500)).min(1).max(20),
-});
+}).strict();
 
 const scopeTableRowSchema = z.object({
   item: z.string().min(1).max(300),
@@ -126,7 +145,7 @@ const scopeTableBlockSchema = z.object({
   type: z.literal("scope_table"),
   heading: z.string().max(300).optional(),
   rows: z.array(scopeTableRowSchema).min(1).max(50),
-});
+}).strict();
 
 const timelineMilestoneSchema = z.object({
   label: z.string().min(1).max(300),
@@ -136,7 +155,7 @@ const timelineBlockSchema = z.object({
   type: z.literal("timeline"),
   heading: z.string().max(300).optional(),
   milestones: z.array(timelineMilestoneSchema).min(1).max(30),
-});
+}).strict();
 
 const pricingLineItemSchema = z.object({
   name: z.string().min(1).max(300),
@@ -153,21 +172,24 @@ const pricingBlockSchema = z.object({
   vatNote: z.string().max(300).optional(),
   vatEnabled: z.boolean().optional(),
   vatRate: z.number().min(0).max(100).optional(),
-});
+}).strict();
 
 const ctaBlockSchema = z.object({
   type: z.literal("cta"),
+  heading: z.string().max(300).optional(),
   label: z.string().min(1).max(100),
-});
+}).strict();
 
 const termsBlockSchema = z.object({
   type: z.literal("terms"),
+  heading: z.string().max(300).optional(),
   body: z.string().min(1).max(10000),
-});
+}).strict();
 
 const dividerBlockSchema = z.object({
   type: z.literal("divider"),
-});
+  heading: z.string().max(300).optional(),
+}).strict();
 
 const blockSchema = z.discriminatedUnion("type", [
   heroBlockSchema,

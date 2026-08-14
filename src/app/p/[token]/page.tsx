@@ -19,7 +19,7 @@ import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase";
 import { ProposalRenderer } from "@/components/proposals/ProposalRenderer";
 import type { Proposal, BrandSettings } from "@/types/database";
-import { createHash } from "crypto";
+import { hashIp } from "@/lib/hash";
 import AcceptSection from "./AcceptSection";
 import PrintButton from "./PrintButton";
 import { headers } from "next/headers";
@@ -125,12 +125,7 @@ async function logViewEvent(
     const headersList = headers();
     const forwarded = headersList.get("x-forwarded-for");
     const ip = forwarded ? forwarded.split(",")[0].trim() : "unknown";
-    const ipHash =
-      ip !== "unknown"
-        ? createHash("sha256")
-            .update(ip + (process.env.PROPOSAL_TOKEN_SECRET ?? ""))
-            .digest("hex")
-        : null;
+    const ipHash = ip !== "unknown" ? hashIp(ip) : null;
 
     await supabase.from("proposal_events").insert({
       proposal_id: proposal.id,

@@ -1,5 +1,6 @@
 // @ts-nocheck
 
+import { APIError } from "@anthropic-ai/sdk";
 import { createAdminClient } from "@/lib/supabase";
 import {
   getAnthropicClient,
@@ -24,6 +25,79 @@ export type GenerateProposalResult = {
   success: boolean;
   errorCode: string | null;
 };
+
+// ---------------------------------------------------------------------------
+// Retry wrapper around the raw Anthropic call
+//
+// Distinct from — and layered underneath — the existing "retry once if the
+// parsed content fails schema validation" logic below. This layer only
+// concerns itself with the API call itself failing transiently: network
+// errors, rate limits, and Anthropic-side 5xx/overload. A 400/401/404 means
+// the request itself is wrong and retrying won't fix it, so those fail fast.
+// ---------------------------------------------------------------------------
+
+const MAX_CLAUDE_ATTEMPTS = 3;
+// Delay AFTER attempt 1 fails (before attempt 2), then AFTER attempt 2 fails
+// (before attempt 3).
+const CLAUDE_RETRY_DELAYS_MS = [1000, 2000];
+const CLAUDE_TIMEOUT_MS = 55_000;
+const RETRYABLE_STATUS_CODES = new Set([429, 500, 502, 503, 529]);
+
+/** Thrown once all retry attempts are exhausted. */
+export class ProposalGenerationError extends Error {
+  cause?: unknown;
+  constructor(cause?: unknown) {
+    super("proposal_generation_failed");
+    this.name = "ProposalGenerationError";
+    this.cause = cause;
+  }
+}
+
+function isRetryableClaudeError(err: unknown): boolean {
+  if (err instanceof APIError) {
+    // status is undefined for connection-level failures (APIConnectionError,
+    // APIConnectionTimeoutError) — always transient, always retry.
+    if (err.status === undefined) return true;
+    return RETRYABLE_STATUS_CODES.has(err.status);
+  }
+  // Not a recognised SDK error shape — don't guess, don't retry.
+  return false;
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function callClaudeWithRetry(
+  anthropic: ReturnType<typeof getAnthropicClient>,
+  params: Parameters<ReturnType<typeof getAnthropicClient>["messages"]["create"]>[0]
+) {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= MAX_CLAUDE_ATTEMPTS; attempt++) {
+    try {
+      return await anthropic.messages.create(params, { timeout: CLAUDE_TIMEOUT_MS });
+    } catch (err) {
+      lastError = err;
+      const attemptsRemain = attempt < MAX_CLAUDE_ATTEMPTS;
+      if (!attemptsRemain || !isRetryableClaudeError(err)) break;
+
+      const delayMs = CLAUDE_RETRY_DELAYS_MS[attempt - 1];
+      const status = err instanceof APIError ? err.status ?? "network" : "unknown";
+      console.warn(
+        `[generateProposalForWorkspace] Claude call attempt ${attempt} failed (status: ${status}) — retrying in ${delayMs}ms`
+      );
+      await sleep(delayMs);
+    }
+  }
+
+  console.error("[generateProposalForWorkspace] All Claude call attempts exhausted:", lastError);
+  throw new ProposalGenerationError(lastError);
+}
+
+// ---------------------------------------------------------------------------
+// Generation
+// ---------------------------------------------------------------------------
 
 export async function generateProposalForWorkspace(
   workspaceId: string,
@@ -50,7 +124,7 @@ export async function generateProposalForWorkspace(
 
   const callClaude = async () => {
     const anthropic = getAnthropicClient();
-    const message = await anthropic.messages.create({
+    const message = await callClaudeWithRetry(anthropic, {
       model: GENERATION_MODEL,
       max_tokens: GENERATION_LIMITS.MAX_OUTPUT_TOKENS,
       system: [
@@ -138,6 +212,7 @@ export async function generateProposalForWorkspace(
       brief: input.brief,
       content,
       proposal_type: input.proposal_type,
+      template: input.template ?? "custom",
     })
     .select()
     .single();

@@ -28,7 +28,7 @@ import { createAdminClient } from "@/lib/supabase";
 import { validateInput, acceptProposalSchema } from "@/lib/validation";
 import { checkPublicRateLimit } from "@/lib/rate-limit";
 import { sendAcceptanceNotification, getClerkUserEmail } from "@/lib/email";
-import { createHash } from "crypto";
+import { hashIp } from "@/lib/hash";
 
 export async function POST(
   req: Request,
@@ -83,9 +83,7 @@ export async function POST(
     }
 
     // Hash the IP for data minimisation (never store raw IPs)
-    const ipHash = ip !== "unknown"
-      ? createHash("sha256").update(ip + (process.env.PROPOSAL_TOKEN_SECRET ?? "")).digest("hex")
-      : null;
+    const ipHash = ip !== "unknown" ? hashIp(ip) : null;
 
     const userAgent = req.headers.get("user-agent") ?? null;
 
