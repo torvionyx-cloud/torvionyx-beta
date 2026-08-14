@@ -18,7 +18,7 @@ function getResendClient(): Resend | null {
 }
 
 const FROM_EMAIL =
-  process.env.RESEND_FROM_EMAIL ?? "Pitchwright <notifications@pitchwright.app>";
+  process.env.RESEND_FROM_EMAIL ?? "Torvionyx <notifications@torvionyx.app>";
 const APP_URL = getAppUrl();
 
 export interface AcceptanceNotificationParams {
@@ -115,7 +115,7 @@ function buildAcceptanceEmailHtml(
     <tr><td align="center">
       <table width="560" cellpadding="0" cellspacing="0" role="presentation" style="background:#ffffff;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden;max-width:560px;">
         <tr><td style="background:#111111;padding:24px 36px;">
-          <span style="color:#ffffff;font-size:15px;font-weight:600;letter-spacing:-0.01em;">Pitchwright</span>
+          <span style="color:#ffffff;font-size:15px;font-weight:600;letter-spacing:-0.01em;">Torvionyx</span>
         </td></tr>
         <tr><td style="padding:36px 36px 0;">
           <p style="margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#9ca3af;">Proposal Accepted</p>
@@ -154,7 +154,7 @@ function buildAcceptanceEmailHtml(
         </td></tr>
         <tr><td style="padding:20px 36px;border-top:1px solid #f3f4f6;">
           <p style="margin:0;font-size:12px;color:#9ca3af;line-height:1.6;">
-            You received this because a client accepted a proposal in your Pitchwright account. If this was unexpected, you can safely ignore it.
+            You received this because a client accepted a proposal in your Torvionyx account. If this was unexpected, you can safely ignore it.
           </p>
         </td></tr>
       </table>

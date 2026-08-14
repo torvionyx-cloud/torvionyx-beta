@@ -49,13 +49,13 @@ function makeGenerationLimiters(): {
     minute: new Ratelimit({
       redis: r,
       limiter: Ratelimit.slidingWindow(2, "1 m"),
-      prefix: "pitchwright:gen:minute",
+      prefix: "torvionyx:gen:minute",
       analytics: false,
     }),
     day: new Ratelimit({
       redis: r,
       limiter: Ratelimit.slidingWindow(10, "24 h"),
-      prefix: "pitchwright:gen:day",
+      prefix: "torvionyx:gen:day",
       analytics: false,
     }),
   };
@@ -67,7 +67,7 @@ function makeScoringLimiter(): Ratelimit | null {
   return new Ratelimit({
     redis: r,
     limiter: Ratelimit.slidingWindow(20, "1 m"),
-    prefix: "pitchwright:score:minute",
+    prefix: "torvionyx:score:minute",
     analytics: false,
   });
 }
@@ -78,7 +78,7 @@ function makeWorkspaceGenerationLimiter(): Ratelimit | null {
   return new Ratelimit({
     redis: r,
     limiter: Ratelimit.slidingWindow(10, "1 h"),
-    prefix: "pitchwright:gen:workspace:hour",
+    prefix: "torvionyx:gen:workspace:hour",
     analytics: false,
   });
 }
@@ -89,7 +89,7 @@ function makeGeneralLimiter(): Ratelimit | null {
   return new Ratelimit({
     redis: r,
     limiter: Ratelimit.slidingWindow(60, "1 m"),
-    prefix: "pitchwright:api",
+    prefix: "torvionyx:api",
     analytics: false,
   });
 }
@@ -100,7 +100,7 @@ function makePublicLimiter(): Ratelimit | null {
   return new Ratelimit({
     redis: r,
     limiter: Ratelimit.slidingWindow(30, "1 m"),
-    prefix: "pitchwright:public",
+    prefix: "torvionyx:public",
     analytics: false,
   });
 }
