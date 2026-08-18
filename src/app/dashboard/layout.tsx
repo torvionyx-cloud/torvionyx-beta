@@ -78,7 +78,7 @@ export default async function DashboardLayout({
           <SidenavLink href="/dashboard/analytics" icon={<AnalyticsIcon />} exact variant="navy">
             Analytics
           </SidenavLink>
-          <SidenavLink href="/dashboard/knowledge/rates" icon={<KnowledgeIcon />} exact variant="navy">
+          <SidenavLink href="/dashboard/knowledge" icon={<KnowledgeIcon />} exact variant="navy">
             Knowledge
           </SidenavLink>
 

@@ -199,6 +199,22 @@ export interface RateCard {
   updated_at: string;
 }
 
+export interface Project {
+  id: string;
+  workspace_id: string;
+  name: string;
+  sector: string;
+  project_type: string;
+  location: string;
+  construction_value: number | null;
+  year_completed: number | null;
+  riba_stages_delivered: number[];
+  description: string;
+  outcome: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface AiGeneration {
   id: string;
   workspace_id: string;
@@ -256,6 +272,11 @@ export interface Database {
         Row: RateCard;
         Insert: Omit<RateCard, "id" | "created_at" | "updated_at">;
         Update: Partial<Omit<RateCard, "id" | "workspace_id" | "created_at">>;
+      };
+      projects: {
+        Row: Project;
+        Insert: Omit<Project, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<Project, "id" | "workspace_id" | "created_at">>;
       };
     };
   };

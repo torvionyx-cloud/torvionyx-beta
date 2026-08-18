@@ -79,6 +79,53 @@ export const updateRateCardSchema = rateCardSchema.partial();
 export type UpdateRateCardInput = z.infer<typeof updateRateCardSchema>;
 
 // ---------------------------------------------------------------------------
+// Projects (Knowledge section) — a practice's past projects, pulled into
+// proposals as "relevant experience". Sector/project type are fixed enums
+// (drive the Projects tab's dropdowns); everything else is free text/numeric.
+// Image upload is a second pass — no image field yet.
+// ---------------------------------------------------------------------------
+
+export const PROJECT_SECTORS = [
+  "Residential",
+  "Commercial",
+  "Education",
+  "Healthcare",
+  "Other",
+] as const;
+
+export const PROJECT_TYPES = [
+  "Residential Extension",
+  "New-Build Residential",
+  "Small Commercial",
+  "Refurbishment",
+  "Feasibility/Planning",
+  "Other",
+] as const;
+
+export const projectSchema = z.object({
+  name: z.string().min(1).max(200).trim(),
+  sector: z.enum(PROJECT_SECTORS),
+  project_type: z.enum(PROJECT_TYPES),
+  location: z.string().min(1).max(200).trim(),
+  construction_value: z.number().min(0).max(1_000_000_000).nullable(),
+  year_completed: z.number().int().min(1900).max(2100).nullable(),
+  // RIBA Plan of Work stages 0-7. Deduplicated + sorted so the same set
+  // always persists the same way regardless of toggle order.
+  riba_stages_delivered: z
+    .array(z.number().int().min(0).max(7))
+    .max(8)
+    .transform(stages => Array.from(new Set(stages)).sort((a, b) => a - b)),
+  description: z.string().max(4000).trim(),
+  outcome: z.string().max(300).trim(),
+});
+
+export type ProjectInput = z.infer<typeof projectSchema>;
+
+export const updateProjectSchema = projectSchema.partial();
+
+export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
+
+// ---------------------------------------------------------------------------
 // Proposal generation intake
 // ---------------------------------------------------------------------------
 
