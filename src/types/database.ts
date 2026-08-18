@@ -215,6 +215,16 @@ export interface Project {
   updated_at: string;
 }
 
+export interface ScopeLibraryRow {
+  id: string;
+  workspace_id: string;
+  riba_stage: number;
+  project_type: string;
+  scope_text: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface AiGeneration {
   id: string;
   workspace_id: string;
@@ -277,6 +287,11 @@ export interface Database {
         Row: Project;
         Insert: Omit<Project, "id" | "created_at" | "updated_at">;
         Update: Partial<Omit<Project, "id" | "workspace_id" | "created_at">>;
+      };
+      scope_library: {
+        Row: ScopeLibraryRow;
+        Insert: Omit<ScopeLibraryRow, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<ScopeLibraryRow, "id" | "workspace_id" | "created_at">>;
       };
     };
   };

@@ -4,24 +4,27 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Project, RateCard } from "@/types/database";
+import type { Project, RateCard, ScopeLibraryRow } from "@/types/database";
 import { ProjectsGrid } from "@/components/knowledge/ProjectsGrid";
 import { RateCardTable } from "@/components/knowledge/RateCardTable";
+import { ScopeLibraryAccordion } from "@/components/knowledge/ScopeLibraryAccordion";
 
-type Tab = "projects" | "rates";
+type Tab = "projects" | "rates" | "scope";
 
 interface Props {
   initialTab: Tab;
   initialProjects: Project[];
   initialRates: RateCard[];
+  initialScope: ScopeLibraryRow[];
 }
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "projects", label: "Projects" },
   { id: "rates", label: "Rate card" },
+  { id: "scope", label: "Scope Library" },
 ];
 
-export function KnowledgeTabs({ initialTab, initialProjects, initialRates }: Props) {
+export function KnowledgeTabs({ initialTab, initialProjects, initialRates, initialScope }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>(initialTab);
 
   // Lists live here, one level above both panels, and are seeded from the
@@ -37,19 +40,24 @@ export function KnowledgeTabs({ initialTab, initialProjects, initialRates }: Pro
   // mutated in place by each panel's save/delete handlers.
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [rates, setRates] = useState<RateCard[]>(initialRates);
+  const [scope, setScope] = useState<ScopeLibraryRow[]>(initialScope);
 
   const router = useRouter();
 
   const selectTab = useCallback((tab: Tab) => {
     setActiveTab(tab);
-    // Keep the URL in sync so the Rate card tab stays a real, shareable/
-    // refreshable link (old /dashboard/knowledge/rates redirects here with
-    // ?tab=rates) — router.replace, not push, so tab-switching doesn't
-    // pollute back-button history. Any fresh server data this triggers is
-    // harmless to ignore: projects/rates above are only seeded once, so a
-    // resulting prop update to initialProjects/initialRates never overwrites
-    // the live client-side lists.
-    router.replace(tab === "projects" ? "/dashboard/knowledge" : "/dashboard/knowledge?tab=rates", { scroll: false });
+    // Keep the URL in sync so every tab stays a real, shareable/refreshable
+    // link (old /dashboard/knowledge/rates redirects here with ?tab=rates)
+    // — router.replace, not push, so tab-switching doesn't pollute
+    // back-button history. Any fresh server data this triggers is harmless
+    // to ignore: projects/rates/scope above are only seeded once, so a
+    // resulting prop update to initialProjects/initialRates/initialScope
+    // never overwrites the live client-side lists.
+    const path =
+      tab === "projects" ? "/dashboard/knowledge"
+      : tab === "rates" ? "/dashboard/knowledge?tab=rates"
+      : "/dashboard/knowledge?tab=scope";
+    router.replace(path, { scroll: false });
   }, [router]);
 
   return (
@@ -84,14 +92,17 @@ export function KnowledgeTabs({ initialTab, initialProjects, initialRates }: Pro
         })}
       </div>
 
-      {/* Both panels stay mounted at all times — the inactive one is just
-          display:none, never unmounted — so neither ever re-seeds its list
-          from a stale snapshot on switch. */}
+      {/* All three panels stay mounted at all times — the inactive ones are
+          just display:none, never unmounted — so none of them ever re-seeds
+          its list from a stale snapshot on switch. */}
       <div style={{ display: activeTab === "projects" ? "block" : "none" }}>
         <ProjectsGrid projects={projects} setProjects={setProjects} />
       </div>
       <div style={{ display: activeTab === "rates" ? "block" : "none" }}>
         <RateCardTable rates={rates} setRates={setRates} />
+      </div>
+      <div style={{ display: activeTab === "scope" ? "block" : "none" }}>
+        <ScopeLibraryAccordion rows={scope} setRows={setScope} />
       </div>
     </div>
   );

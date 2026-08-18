@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import { getWorkspaceId } from "@/lib/workspace";
 import { createServerClient } from "@/lib/supabase";
 import { KnowledgeTabs } from "@/components/knowledge/KnowledgeTabs";
-import type { Project, RateCard } from "@/types/database";
+import type { Project, RateCard, ScopeLibraryRow } from "@/types/database";
 
 export default async function KnowledgePage({
   searchParams,
@@ -20,10 +20,10 @@ export default async function KnowledgePage({
   const workspaceId = await getWorkspaceId(userId);
   const supabase = createServerClient();
 
-  // Both tabs' data is fetched up front — a founder's portfolio and rate
-  // card are both small lists, and this keeps tab switching instant with
-  // no client-side fetch/RLS round trip.
-  const [projectsResult, ratesResult] = await Promise.all([
+  // All three tabs' data is fetched up front — a founder's portfolio, rate
+  // card, and scope library are all small lists, and this keeps tab
+  // switching instant with no client-side fetch/RLS round trip.
+  const [projectsResult, ratesResult, scopeResult] = await Promise.all([
     supabase
       .from("projects")
       .select("id, workspace_id, name, sector, project_type, location, construction_value, year_completed, riba_stages_delivered, description, outcome, created_at, updated_at")
@@ -34,14 +34,24 @@ export default async function KnowledgePage({
       .select("id, grade, hourly_rate, effective_from, created_at, updated_at")
       .eq("workspace_id", workspaceId)
       .order("hourly_rate", { ascending: false }),
+    supabase
+      .from("scope_library")
+      .select("id, workspace_id, riba_stage, project_type, scope_text, created_at, updated_at")
+      .eq("workspace_id", workspaceId)
+      .order("riba_stage", { ascending: true }),
   ]);
 
   if (projectsResult.error) throw new Error("Failed to load projects");
   if (ratesResult.error) throw new Error("Failed to load rate card");
+  if (scopeResult.error) throw new Error("Failed to load scope library");
 
   const projects = (projectsResult.data ?? []) as Project[];
   const rates = (ratesResult.data ?? []) as RateCard[];
-  const initialTab = searchParams?.tab === "rates" ? "rates" : "projects";
+  const scope = (scopeResult.data ?? []) as ScopeLibraryRow[];
+  const initialTab =
+    searchParams?.tab === "rates" ? "rates"
+    : searchParams?.tab === "scope" ? "scope"
+    : "projects";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
@@ -55,11 +65,16 @@ export default async function KnowledgePage({
           Knowledge
         </h1>
         <p style={{ marginTop: 8, fontSize: 13, color: "var(--tv-text-dim)" }}>
-          Your portfolio and charge-out rates — private data that powers every proposal you send.
+          Your portfolio, charge-out rates, and scope wording — private data that powers every proposal you send.
         </p>
       </div>
 
-      <KnowledgeTabs initialTab={initialTab} initialProjects={projects} initialRates={rates} />
+      <KnowledgeTabs
+        initialTab={initialTab}
+        initialProjects={projects}
+        initialRates={rates}
+        initialScope={scope}
+      />
     </div>
   );
 }
