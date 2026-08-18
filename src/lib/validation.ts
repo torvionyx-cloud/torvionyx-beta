@@ -126,6 +126,30 @@ export const updateProjectSchema = projectSchema.partial();
 export type UpdateProjectInput = z.infer<typeof updateProjectSchema>;
 
 // ---------------------------------------------------------------------------
+// Scope library (Knowledge section) — reusable scope-of-works text keyed by
+// RIBA stage + project type, pulled into proposal generation as boilerplate
+// scope language. project_type reuses PROJECT_TYPES (above) so library
+// entries stay aligned with the same project types used on the Projects tab.
+// ---------------------------------------------------------------------------
+
+export const scopeLibrarySchema = z.object({
+  riba_stage: z.number().int().min(0).max(7),
+  project_type: z.enum(PROJECT_TYPES),
+  scope_text: z.string().max(4000).trim(),
+});
+
+export type ScopeLibraryInput = z.infer<typeof scopeLibrarySchema>;
+
+// Identifies a single cell for DELETE, where riba_stage arrives as a query
+// string and needs coercing to a number rather than parsed from JSON.
+export const scopeLibraryCellQuerySchema = z.object({
+  riba_stage: z.coerce.number().int().min(0).max(7),
+  project_type: z.enum(PROJECT_TYPES),
+});
+
+export type ScopeLibraryCellInput = z.infer<typeof scopeLibraryCellQuerySchema>;
+
+// ---------------------------------------------------------------------------
 // Proposal generation intake
 // ---------------------------------------------------------------------------
 
