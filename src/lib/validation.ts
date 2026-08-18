@@ -57,6 +57,28 @@ export const brandSettingsSchema = z.object({
 export type BrandSettingsInput = z.infer<typeof brandSettingsSchema>;
 
 // ---------------------------------------------------------------------------
+// Rate card (Knowledge section) — charge-out rates by staff grade.
+// Never shown to clients; feeds the fee engine. Grade is free text (the
+// founder's own titles), not a fixed enum.
+// ---------------------------------------------------------------------------
+
+const isoDate = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be a date in YYYY-MM-DD format");
+
+export const rateCardSchema = z.object({
+  grade: z.string().min(1).max(100).trim(),
+  hourly_rate: z.number().min(0).max(100_000),
+  effective_from: isoDate,
+});
+
+export type RateCardInput = z.infer<typeof rateCardSchema>;
+
+export const updateRateCardSchema = rateCardSchema.partial();
+
+export type UpdateRateCardInput = z.infer<typeof updateRateCardSchema>;
+
+// ---------------------------------------------------------------------------
 // Proposal generation intake
 // ---------------------------------------------------------------------------
 

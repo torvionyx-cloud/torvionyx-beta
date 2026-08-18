@@ -189,6 +189,16 @@ export interface ProposalEvent {
   occurred_at: string;
 }
 
+export interface RateCard {
+  id: string;
+  workspace_id: string;
+  grade: string;
+  hourly_rate: number;
+  effective_from: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface AiGeneration {
   id: string;
   workspace_id: string;
@@ -241,6 +251,11 @@ export interface Database {
         Row: AiGeneration;
         Insert: Omit<AiGeneration, "id" | "generated_at">;
         Update: never;
+      };
+      rate_card: {
+        Row: RateCard;
+        Insert: Omit<RateCard, "id" | "created_at" | "updated_at">;
+        Update: Partial<Omit<RateCard, "id" | "workspace_id" | "created_at">>;
       };
     };
   };

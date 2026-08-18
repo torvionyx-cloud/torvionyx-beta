@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { TorvionyxLogo } from "@/components/ui/TorvionyxLogo";
 import { SidenavLink } from "@/components/ui/SidenavLink";
-import { ProposalsIcon, AnalyticsIcon, BrandIcon, SettingsIcon } from "@/components/dashboard/NavIcons";
+import { ProposalsIcon, AnalyticsIcon, KnowledgeIcon, BrandIcon, SettingsIcon } from "@/components/dashboard/NavIcons";
 
 export function MobileNavDrawer() {
   const [open, setOpen] = useState(false);
@@ -86,6 +86,9 @@ export function MobileNavDrawer() {
               </SidenavLink>
               <SidenavLink href="/dashboard/analytics" icon={<AnalyticsIcon />} exact variant="navy">
                 Analytics
+              </SidenavLink>
+              <SidenavLink href="/dashboard/knowledge/rates" icon={<KnowledgeIcon />} exact variant="navy">
+                Knowledge
               </SidenavLink>
 
               <p className="px-3 mt-4 mb-1.5"

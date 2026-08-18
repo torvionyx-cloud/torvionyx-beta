@@ -10,7 +10,7 @@ import { TorvionyxLogo } from "@/components/ui/TorvionyxLogo";
 import { SidenavLink } from "@/components/ui/SidenavLink";
 import { MobileNavDrawer } from "@/components/dashboard/MobileNavDrawer";
 import { WorkspaceProvisioningGate } from "@/components/dashboard/WorkspaceProvisioningGate";
-import { ProposalsIcon, AnalyticsIcon, BrandIcon, SettingsIcon } from "@/components/dashboard/NavIcons";
+import { ProposalsIcon, AnalyticsIcon, KnowledgeIcon, BrandIcon, SettingsIcon } from "@/components/dashboard/NavIcons";
 
 export default async function DashboardLayout({
   children,
@@ -77,6 +77,9 @@ export default async function DashboardLayout({
           </SidenavLink>
           <SidenavLink href="/dashboard/analytics" icon={<AnalyticsIcon />} exact variant="navy">
             Analytics
+          </SidenavLink>
+          <SidenavLink href="/dashboard/knowledge/rates" icon={<KnowledgeIcon />} exact variant="navy">
+            Knowledge
           </SidenavLink>
 
           <p className="px-3 mt-4 mb-1.5"
