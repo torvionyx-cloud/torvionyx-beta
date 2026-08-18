@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getWorkspaceId } from "@/lib/workspace";
 import { createServerClient } from "@/lib/supabase";
+import { STATUS_CHIP } from "@/lib/status-chip";
 import type { Proposal } from "@/types/database";
 
 const SENT_STATUSES = ["shared", "viewed", "accepted", "declined", "expired"];
@@ -17,15 +18,6 @@ function daysBetween(a: string, b: string): number {
 
 function formatDate(d: string): string {
   return new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-}
-
-const STATUS_CHIP: Record<string, { label: string; bg: string; color: string }> = {
-  draft:    { label: "Draft",    bg: "rgba(250,242,232,.10)", color: "rgba(250,242,232,.5)" },
-  shared:   { label: "Sent",     bg: "rgba(61,185,201,.14)",  color: "#3DB9C9" },
-  viewed:   { label: "Viewed",   bg: "rgba(242,169,59,.14)",  color: "#F2A93B" },
-  accepted: { label: "Accepted", bg: "rgba(95,208,138,.16)",  color: "#5FD08A" },
-  declined: { label: "Declined", bg: "rgba(242,99,92,.14)",   color: "#F2635C" },
-  expired:  { label: "Expired",  bg: "rgba(250,242,232,.08)", color: "rgba(250,242,232,.35)" },
 }
 
 function Chip({ status }: { status: string }) {

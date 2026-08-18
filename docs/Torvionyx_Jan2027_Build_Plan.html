@@ -1,0 +1,1153 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Torvionyx — Road to January 2027</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --ink:#0C1A2E;--ink-2:#2C3E55;--ink-3:#5C6E85;
+  --gold:#B8860B;--gold-br:#DCAA33;
+  --paper:#F2EFE7;--paper-2:#FBF9F4;
+  --line:#C9C2B4;--line-2:#DED8CB;
+  --ok:#2F7A55;--warn:#A8641B;--stop:#A33C36;--froz:#3F6B8A;
+  --disp:'Space Grotesk',system-ui,sans-serif;
+  --body:'Inter',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;
+  background-image:linear-gradient(var(--line-2) 1px,transparent 1px),linear-gradient(90deg,var(--line-2) 1px,transparent 1px);
+  background-size:28px 28px;background-position:-1px -1px}
+.shell{display:flex;min-height:100vh;align-items:flex-start}
+
+.index{width:286px;flex:0 0 286px;position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--ink);color:var(--paper-2);padding:22px 0 40px}
+.brand{padding:0 20px 16px;border-bottom:1px solid rgba(242,239,231,.16);margin-bottom:6px}
+.brand h1{font-family:var(--disp);font-size:17px;margin:0 0 4px;font-weight:700;letter-spacing:.01em}
+.brand p{margin:0;font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--gold-br)}
+.countdown{padding:12px 20px;border-bottom:1px solid rgba(242,239,231,.16);margin-bottom:8px}
+.countdown .big{font-family:var(--disp);font-size:27px;font-weight:700;color:var(--gold-br);line-height:1}
+.countdown .sm{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:#8FA0B5;margin-top:4px}
+.grp{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:#7B8CA3;padding:15px 20px 6px}
+.nav-i{display:flex;gap:10px;align-items:baseline;width:100%;text-align:left;background:none;border:0;border-left:3px solid transparent;
+  padding:8px 16px 8px 17px;color:#D6DBE3;font-family:var(--body);font-size:13.5px;cursor:pointer;line-height:1.32}
+.nav-i:hover{background:rgba(255,255,255,.05);color:#fff}
+.nav-i.on{background:rgba(220,170,51,.14);border-left-color:var(--gold-br);color:#fff;font-weight:600}
+.nav-i .no{font-family:var(--mono);font-size:10px;color:var(--gold-br);flex:0 0 33px}
+.nav-i .dt{display:block;font-family:var(--mono);font-size:9.5px;color:#8FA0B5;letter-spacing:.03em;margin-top:2px}
+.nav-i.on .dt{color:var(--gold-br)}
+
+.stage{flex:1;min-width:0;padding:26px 30px 60px;max-width:1030px}
+.sheet{background:var(--paper-2);border:1px solid var(--line);box-shadow:0 1px 0 var(--line),3px 3px 0 rgba(12,26,46,.055);display:none}
+.sheet.on{display:block;animation:in .22s ease-out}
+@keyframes in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.sheet-body{padding:34px 40px 30px}
+
+.eyebrow{font-family:var(--mono);font-size:10.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin:0 0 9px}
+h2{font-family:var(--disp);font-size:31px;line-height:1.12;letter-spacing:-.02em;margin:0 0 12px;font-weight:700}
+h3{font-family:var(--disp);font-size:17.5px;margin:30px 0 9px;letter-spacing:-.01em;font-weight:600}
+h4{font-family:var(--disp);font-size:14.5px;margin:20px 0 6px;font-weight:600}
+p{margin:0 0 13px;color:var(--ink-2);max-width:70ch}
+.lede{font-size:17.5px;color:var(--ink);max-width:64ch;line-height:1.55}
+ul,ol{margin:0 0 14px;padding-left:21px;color:var(--ink-2);max-width:70ch}
+li{margin-bottom:7px}
+strong{color:var(--ink);font-weight:600}
+code{font-family:var(--mono);font-size:.86em;background:#EAE5DA;padding:1.5px 5px;border:1px solid var(--line-2);white-space:nowrap}
+.rule{border-top:2px solid var(--ink);margin:0 0 22px}
+
+.datestrip{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  background:var(--ink);color:var(--gold-br);padding:6px 12px;margin:0 0 18px}
+
+.step{display:flex;gap:14px;padding:13px 0;border-bottom:1px dashed var(--line-2);align-items:flex-start}
+.step:last-child{border-bottom:0}
+.step .n{flex:0 0 30px;min-height:26px;border:1.5px solid var(--ink);border-radius:14px;font-family:var(--mono);font-size:11px;
+  display:flex;align-items:center;justify-content:center;margin-top:1px;padding:2px 4px}
+.step .txt{flex:1;min-width:0}
+.step .txt p{margin:0 0 5px}.step .txt p:last-child{margin-bottom:0}
+.chk{flex:0 0 auto;margin-top:4px;width:17px;height:17px;accent-color:var(--gold);cursor:pointer}
+.done .txt{opacity:.5}.done .txt p{text-decoration:line-through}
+
+.box{border-left:3px solid var(--gold);background:#F6F1E3;padding:14px 17px;margin:18px 0}
+.box.warn{border-left-color:var(--warn);background:#F8EFE2}
+.box.stop{border-left-color:var(--stop);background:#F9EDEC}
+.box.ok{border-left-color:var(--ok);background:#EDF4EF}
+.box.froz{border-left-color:var(--froz);background:#EAF0F5}
+.box .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.13em;text-transform:uppercase;margin-bottom:5px;color:var(--ink)}
+.box p{margin:0 0 8px;font-size:14.5px}.box p:last-child{margin:0}
+.box ul,.box ol{margin:6px 0 0;font-size:14.5px}
+
+.term{font:inherit;background:none;border:0;border-bottom:1.5px dotted var(--gold);color:var(--ink);cursor:pointer;padding:0}
+.term:hover{background:#F4EAD2}
+.def{display:none;margin:9px 0 13px;padding:11px 14px;background:var(--ink);color:#EDE9E0;font-size:14px;line-height:1.5;
+  border-left:3px solid var(--gold-br);max-width:70ch}
+.def.on{display:block}
+.def b{color:var(--gold-br);font-weight:600}
+
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:14px}
+th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.11em;text-transform:uppercase;border-bottom:1.5px solid var(--ink);
+  padding:7px 10px 7px 0;color:var(--ink);font-weight:500;vertical-align:bottom}
+td{padding:9px 10px 9px 0;border-bottom:1px solid var(--line-2);vertical-align:top;color:var(--ink-2)}
+td:first-child,th:first-child{padding-left:0}
+tr.frozen td{background:#EAF0F5;color:var(--froz)}
+tr.launch td{background:#F6EEDA;font-weight:600;color:var(--ink)}
+
+.gl{border-top:1px solid var(--line-2);padding:14px 0}
+.gl:first-of-type{border-top:1.5px solid var(--ink)}
+.gl dt{font-family:var(--disp);font-weight:600;font-size:15.5px;margin-bottom:3px}
+.gl dd{margin:0;color:var(--ink-2);font-size:14.5px;max-width:70ch}
+.gl .say{font-family:var(--mono);font-size:11px;color:var(--gold);letter-spacing:.04em;margin-left:7px}
+
+/* gantt */
+.gantt{margin:20px 0;font-size:12px}
+.grow{display:grid;grid-template-columns:150px 1fr;gap:0;align-items:center;border-bottom:1px solid var(--line-2)}
+.grow .lb{font-family:var(--mono);font-size:10.5px;padding:8px 10px 8px 0;color:var(--ink);letter-spacing:.02em}
+.gtrack{position:relative;height:34px}
+.gbar{position:absolute;top:8px;height:18px;background:var(--ink);color:#fff;font-family:var(--mono);font-size:9px;
+  display:flex;align-items:center;padding:0 6px;letter-spacing:.06em;white-space:nowrap;overflow:hidden}
+.gbar.g2{background:var(--gold)}
+.gbar.gf{background:var(--froz)}
+.gbar.gl{background:var(--stop)}
+.ghead{display:grid;grid-template-columns:150px 1fr;border-bottom:1.5px solid var(--ink)}
+.gmonths{display:grid;grid-template-columns:repeat(6,1fr)}
+.gmonths span{font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;padding:6px 0 6px 5px;
+  border-left:1px solid var(--line-2);color:var(--ink-3)}
+
+.tblock{border-top:2px solid var(--ink);display:grid;grid-template-columns:1fr 1.3fr 1fr 1fr 1.2fr;background:#EFEBE1}
+.tb{padding:11px 14px;border-right:1px solid var(--line)}
+.tb:last-child{border-right:0}
+.tb .k{font-family:var(--mono);font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);margin-bottom:3px}
+.tb .v{font-family:var(--disp);font-size:13px;font-weight:600;line-height:1.25}
+.bar{height:5px;background:var(--line-2);margin-top:6px;position:relative;overflow:hidden}
+.bar i{position:absolute;inset:0 auto 0 0;background:var(--gold-br);width:0;transition:width .3s}
+
+.pager{display:flex;justify-content:space-between;gap:12px;padding:18px 40px 26px;border-top:1px solid var(--line-2)}
+.pg{font-family:var(--disp);font-size:13.5px;font-weight:600;background:var(--ink);color:var(--paper-2);border:0;padding:11px 17px;cursor:pointer;max-width:46%;text-align:left}
+.pg:hover{background:var(--gold);color:var(--ink)}
+.pg small{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;font-weight:400;opacity:.7}
+
+.menu-btn{display:none}
+@media(max-width:900px){
+  body{background-image:none}.shell{display:block}
+  .index{position:fixed;inset:0 auto 0 0;z-index:40;transform:translateX(-100%);transition:transform .25s;width:272px}
+  .index.open{transform:none}
+  .stage{padding:64px 14px 40px;max-width:none}
+  .sheet-body{padding:22px 18px}
+  h2{font-size:25px}
+  .menu-btn{display:block;position:fixed;top:12px;left:12px;z-index:50;background:var(--ink);color:var(--gold-br);border:0;
+    padding:10px 14px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;cursor:pointer}
+  .tblock{grid-template-columns:1fr 1fr}.tb{border-bottom:1px solid var(--line)}
+  .pager{padding:16px 18px 22px;flex-direction:column}.pg{max-width:none}
+  .scroll-x{overflow-x:auto}
+  .grow,.ghead{grid-template-columns:96px 1fr}
+  .grow .lb{font-size:9.5px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+:focus-visible{outline:2.5px solid var(--gold);outline-offset:2px}
+</style>
+
+<button class="menu-btn" id="mb">☰ SHEETS</button>
+<div class="shell">
+<nav class="index" id="idx">
+  <div class="brand"><h1>Road to January 2027</h1><p>Torvionyx → Architecture · Rev B</p></div>
+  <div class="countdown"><div class="big" id="cd">—</div><div class="sm">weeks to 18 Jan 2027</div></div>
+  <div id="navlist"></div>
+</nav>
+<main class="stage" id="stage"></main>
+</div>
+
+<script>
+const SHEETS=[
+
+/* ================= B-00 ================= */
+{no:"B-00",grp:"Start",nav:"Read this first",dates:"Now",phase:"—",when:"Before anything",dur:"12 min",
+eyebrow:"Orientation",title:"Read this first — the January problem",
+html:`
+<p class="lede">You've said January 2027. That's <strong>22 working weeks</strong> from Monday 17 August, and it changes the plan in three specific ways. Two of them are problems. One is an unexpected gift.</p>
+
+<h3>Problem 1 — January can't mean what you probably think it means</h3>
+<p>There are two different things people call a launch:</p>
+<table>
+<tr><th>Kind of launch</th><th>What it is</th><th>Can you do it in January?</th></tr>
+<tr><td><strong>Paid launch</strong></td><td>10–15 firms you already know start paying. Quiet. High-touch. No announcement.</td><td><strong>Yes.</strong> Tight, but real.</td></tr>
+<tr><td><strong>Public launch</strong></td><td>Website live, Reddit and LinkedIn posts, anyone can sign up.</td><td><strong>No.</strong> Not honestly.</td></tr>
+</table>
+<p>The plan below targets <strong>paid launch on Monday 18 January 2027</strong>, with public launch in <strong>April 2027</strong> once ten real firms have proved the thing works.</p>
+<div class="box">
+<p>This isn't me softening your deadline. Launching publicly to strangers with a product no practice has ever used in anger is how you burn the one first impression the UK architecture world will give you. It's a small, connected profession. Word travels both ways.</p>
+</div>
+
+<h3>Problem 2 — Architecture shuts down for Christmas</h3>
+<div class="box stop">
+<div class="lbl">The scheduling fact that breaks most January plans</div>
+<p>UK architecture practices go quiet from roughly <strong>18 December to 5 January</strong>. You cannot interview them, sell to them, onboard them, or get feedback from them in that window. It sits directly in front of your launch date and it eats two of your last five weeks.</p>
+</div>
+<p>The plan handles this by putting the two weeks of work that need <em>no customer contact whatsoever</em> — Stripe billing and final polish — into exactly that dead zone. It's the only sensible use of it.</p>
+
+<h3>The gift — January is genuinely the right month</h3>
+<p>Practices come back in January doing their financial planning for the year, reviewing subscriptions, and chasing the enquiries that built up over Christmas. A tool that helps them win work lands better in the second week of January than at almost any other point in the calendar.</p>
+<p>So the date is good. It's the <em>definition</em> of launch that needs adjusting, not the date.</p>
+
+<h3>What this document is</h3>
+<p>Twenty sheets. Each one is a stage of work with real dates on it. Every step is written assuming you know nothing about architecture and don't write code. Words with a <button class="term" data-d="d0">dotted underline</button> explain themselves when clicked.</p>
+<div class="def" id="d0"><b>Like this.</b> Click again to close it.</div>
+<p>Tick steps as you go — the strip at the bottom of each sheet tracks how far through you are.</p>
+
+<div class="box warn">
+<div class="lbl">The one rule</div>
+<p><strong>There is no slack in this schedule.</strong> Twenty-two weeks of work in twenty-two weeks. If a stage slips by a week, you don't compress the next one — you cut scope from sheet B-04. That sheet exists specifically so you know in advance what's expendable.</p>
+</div>`},
+
+/* ================= B-01 ================= */
+{no:"B-01",grp:"Start",nav:"The calendar",dates:"Aug 26 → Apr 27",phase:"—",when:"Read second",dur:"10 min",
+eyebrow:"Critical path",title:"The calendar",
+html:`
+<span class="datestrip">Mon 17 Aug 2026 → Mon 18 Jan 2027 · 22 weeks</span>
+
+<div class="gantt">
+  <div class="ghead"><div class="lb" style="font-family:var(--mono);font-size:9.5px;padding:6px 0;letter-spacing:.1em;color:var(--ink-3)">SPRINT</div>
+    <div class="gmonths"><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span><span>Jan</span></div></div>
+  <div class="grow"><div class="lb">0 · Validate</div><div class="gtrack"><div class="gbar g2" style="left:1%;width:16%">3 wks</div></div></div>
+  <div class="grow"><div class="lb">0.5 · Fix (parallel)</div><div class="gtrack"><div class="gbar g2" style="left:6%;width:13%">2 wks</div></div></div>
+  <div class="grow"><div class="lb">1 · Firms & teams</div><div class="gtrack"><div class="gbar" style="left:18%;width:16%">3 wks</div></div></div>
+  <div class="grow"><div class="lb">2 · Knowledge</div><div class="gtrack"><div class="gbar" style="left:35%;width:21%">4 wks</div></div></div>
+  <div class="grow"><div class="lb">3 · Fee engine</div><div class="gtrack"><div class="gbar" style="left:57%;width:16%">3 wks</div></div></div>
+  <div class="grow"><div class="lb">4 · AI rewire</div><div class="gtrack"><div class="gbar" style="left:74%;width:16%">3 wks</div></div></div>
+  <div class="grow"><div class="lb">5 · Look & feel</div><div class="gtrack"><div class="gbar" style="left:91%;width:9%">2 wks</div></div></div>
+  <div class="grow"><div class="lb">6 · Billing (frozen)</div><div class="gtrack"><div class="gbar gf" style="left:0%;width:0%"></div><div class="gbar gf" style="left:0;width:100%;position:relative">DEC 21 – JAN 1 · SOLO WORK, NO CUSTOMERS</div></div></div>
+  <div class="grow"><div class="lb">7 · Onboard</div><div class="gtrack"><div class="gbar gl" style="left:0%;width:60%">4–15 JAN</div></div></div>
+  <div class="grow"><div class="lb">PAID LAUNCH</div><div class="gtrack"><div class="gbar gl" style="left:0%;width:46%">MON 18 JAN 2027</div></div></div>
+</div>
+<p style="font-size:13px;color:var(--ink-3)">The bar positions above are indicative — the exact dates are in the table below, and they're the ones to work from.</p>
+
+<h3>Every date, exactly</h3>
+<div class="scroll-x">
+<table>
+<tr><th>Sheet</th><th>Sprint</th><th>Starts</th><th>Ends</th><th>Weeks</th></tr>
+<tr><td>B-05</td><td>0 · Talk to 20 architects</td><td>Mon 17 Aug</td><td>Fri 4 Sep</td><td>3</td></tr>
+<tr><td>B-06</td><td>0.5 · Fix what's broken <em>(runs alongside)</em></td><td>Mon 24 Aug</td><td>Fri 4 Sep</td><td>2</td></tr>
+<tr><td>B-07</td><td>1 · One person → a firm</td><td>Mon 7 Sep</td><td>Fri 25 Sep</td><td>3</td></tr>
+<tr><td>B-08</td><td>2 · Practice Knowledge</td><td>Mon 28 Sep</td><td>Fri 23 Oct</td><td>4</td></tr>
+<tr><td>B-09</td><td>3 · The fee engine</td><td>Mon 26 Oct</td><td>Fri 13 Nov</td><td>3</td></tr>
+<tr><td>B-10</td><td>4 · Rewire the AI</td><td>Mon 16 Nov</td><td>Fri 4 Dec</td><td>3</td></tr>
+<tr><td>B-11</td><td>5 · How it looks</td><td>Mon 7 Dec</td><td>Fri 18 Dec</td><td>2</td></tr>
+<tr class="frozen"><td>B-12</td><td>6 · Billing + polish <em>(industry shutdown)</em></td><td>Mon 21 Dec</td><td>Fri 1 Jan</td><td>2</td></tr>
+<tr><td>B-13</td><td>7 · Onboard design partners</td><td>Mon 4 Jan</td><td>Fri 15 Jan</td><td>2</td></tr>
+<tr class="launch"><td>B-14</td><td>PAID LAUNCH</td><td colspan="2">Mon 18 January 2027</td><td>—</td></tr>
+<tr><td>B-15</td><td>Stabilise, then public launch</td><td>Jan 18</td><td>Apr 2027</td><td>12</td></tr>
+</table>
+</div>
+
+<h3>The three dates that cannot move</h3>
+<table>
+<tr><th>Date</th><th>What must be true</th><th>If it isn't</th></tr>
+<tr><td><strong>Fri 4 Sep</strong></td><td>20 interviews done, go/no-go decided in writing</td><td>Stop. Don't build on an unvalidated premise to protect a date.</td></tr>
+<tr><td><strong>Fri 13 Nov</strong></td><td>Fee engine works — you can reproduce a real proposal's fee table</td><td>January is gone. Move to March and say so early.</td></tr>
+<tr><td><strong>Fri 18 Dec</strong></td><td>Product is feature-complete and demo-ready</td><td>You have no runway left — the two weeks after are the shutdown.</td></tr>
+</table>
+
+<div class="box warn">
+<div class="lbl">Check-in ritual — every Friday, 20 minutes</div>
+<ol>
+<li>Am I on the sprint I should be on today? (Look at the table above.)</li>
+<li>If behind by 3+ days — what am I cutting from sheet B-04, today?</li>
+<li>Deploy whatever's finished. Push to GitHub.</li>
+</ol>
+<p>Do this even when it's obvious. Especially then.</p>
+</div>`},
+
+/* ================= B-02 ================= */
+{no:"B-02",grp:"Learn",nav:"Architecture words",dates:"By 21 Aug",phase:"—",when:"Before first interview",dur:"20 min",
+eyebrow:"Dictionary 1 of 2",title:"Architecture words you must know",
+html:`
+<span class="datestrip">Read before Mon 24 Aug — your first calls</span>
+<p class="lede">You'll be on a call with an architect within days. Getting these wrong once costs credibility you can't buy back. There are about fifteen that matter.</p>
+
+<div class="box stop">
+<div class="lbl">If you learn one thing</div>
+<p>Learn the <strong>RIBA Plan of Work</strong> and its eight stages. It is the spine of the entire product and of every conversation you're about to have.</p>
+</div>
+
+<h3>The spine</h3>
+<dl class="gl"><dt>RIBA <span class="say">"RYE-bah"</span></dt><dd>Royal Institute of British Architects. The professional body. Around 4,000 UK firms are "RIBA Chartered Practices" — that's your target list, and it's publicly searchable.</dd></dl>
+<dl class="gl"><dt>RIBA Plan of Work</dt><dd>The standard eight-stage map of how a building project runs, used by essentially every UK practice. Say "we're at stage 3" and every architect knows exactly what you mean. Your product organises scope, timeline and fees around these stages — that's the whole idea.</dd></dl>
+
+<h4>The eight stages, plainly</h4>
+<div class="scroll-x"><table>
+<tr><th>Stage</th><th>Official name</th><th>What happens</th></tr>
+<tr><td><strong>0</strong></td><td>Strategic Definition</td><td>Should we do this at all?</td></tr>
+<tr><td><strong>1</strong></td><td>Preparation & Briefing</td><td>Work out what the client wants. Survey the site. Set a budget.</td></tr>
+<tr><td><strong>2</strong></td><td>Concept Design</td><td>The first real design. Sketches, options, the big idea.</td></tr>
+<tr><td><strong>3</strong></td><td>Spatial Coordination</td><td>Make it work properly. Usually where planning permission is applied for.</td></tr>
+<tr><td><strong>4</strong></td><td>Technical Design</td><td>Every detail drawn so a builder can build it.</td></tr>
+<tr><td><strong>5</strong></td><td>Manufacturing & Construction</td><td>It gets built. Architect visits site.</td></tr>
+<tr><td><strong>6</strong></td><td>Handover</td><td>Finished, keys handed over, snags fixed.</td></tr>
+<tr><td><strong>7</strong></td><td>Use</td><td>Building in use. Most small firms never sell this.</td></tr>
+</table></div>
+<div class="box"><p>Most small residential jobs sell as <strong>stages 1–4</strong>, sometimes 1–6. "Planning only" stops at stage 3. Your fee engine has to let a firm switch stages on and off, and the fee must move when they do.</p></div>
+
+<h3>Money words</h3>
+<dl class="gl"><dt>Lump sum by stage</dt><dd>A fixed price per stage. "£8,000 for stage 2, £12,000 for stage 3." The most common way small firms quote. <strong>This is the only fee type you'll ship in January.</strong></dd></dl>
+<dl class="gl"><dt>Percentage fee</dt><dd>Fee as a percentage of what the building costs to build — often 5–15%. Simple, but RIBA advises against it because it doesn't reflect actual effort.</dd></dl>
+<dl class="gl"><dt>Resource-based fee</dt><dd>Work out hours × staff grade × stage, multiply by cost, add profit. What RIBA recommends and what your engine does. <strong>This single choice signals domain knowledge more than anything else in the product.</strong></dd></dl>
+<dl class="gl"><dt>Charge-out rate</dt><dd>What a firm bills per hour for a person — say £120/hr for a director, £65/hr for an assistant. Covers salary, overheads and profit.</dd></dl>
+<dl class="gl"><dt>Construction value / build cost</dt><dd>What the building costs to build — not the architect's fee. A £600k extension might carry a £45k fee.</dd></dl>
+<dl class="gl"><dt>Disbursements <span class="say">"dis-BURSE-ments"</span></dt><dd>Costs the architect pays and bills back — printing, travel, planning fees. Pass-through, not profit.</dd></dl>
+<dl class="gl"><dt>Exclusions</dt><dd>What the fee explicitly does <em>not</em> cover. "Structural engineer not included." Architects care enormously — vague exclusions destroy their profit later.</dd></dl>
+<dl class="gl"><dt>Assumptions</dt><dd>Conditions the price depends on. "Assumes one round of planning revisions."</dd></dl>
+<dl class="gl"><dt>Scope creep</dt><dd>Client keeps asking for more; fee doesn't move. The most common way architects lose money.</dd></dl>
+
+<h3>Job words</h3>
+<dl class="gl"><dt>Appointment</dt><dd>The contract that actually hires the architect, signed after the proposal is accepted. <strong>Your product stops here</strong> — a deliberate boundary.</dd></dl>
+<dl class="gl"><dt>The brief</dt><dd>What the client wants. Could be a two-line email or a 40-page document.</dd></dl>
+<dl class="gl"><dt>Programme</dt><dd>British for timeline. Not a computer program. Saying "programme" makes you sound like you belong.</dd></dl>
+<dl class="gl"><dt>Practice</dt><dd>What architects call their firm. Never say "agency." The "practice director" or "principal" signs your invoice.</dd></dl>
+<dl class="gl"><dt>Part 1 / 2 / 3</dt><dd>The three stages of qualifying. Useful because staff grades in your rate card should use these labels.</dd></dl>
+<dl class="gl"><dt>ARB</dt><dd>Architects Registration Board. The legal regulator. Only ARB-registered people may legally call themselves "architect" in the UK.</dd></dl>
+<dl class="gl"><dt>PI insurance</dt><dd>Professional Indemnity. Every practice carries it; clients often ask for the cover level. One line in your credentials section.</dd></dl>
+<dl class="gl"><dt>Consultants</dt><dd>The other specialists — structural engineer, quantity surveyor, planning consultant. Proposals must say who appoints and coordinates them.</dd></dl>
+
+<div class="box ok"><div class="lbl">Safely ignore for now</div>
+<p>BIM, Revit, Archicad, SF330, social value, PQQ, frameworks. All real, none relevant to a 6-person residential practice. Don't let anyone talk you into building for them before January.</p></div>`},
+
+/* ================= B-03 ================= */
+{no:"B-03",grp:"Learn",nav:"Product & tech words",dates:"By 4 Sep",phase:"—",when:"Before Sprint 1",dur:"15 min",
+eyebrow:"Dictionary 2 of 2",title:"Product & tech words, decoded",
+html:`
+<p class="lede">You'll be directing Claude Code to build these. You don't need to write code — you need to know what you're asking for and how to tell whether you got it.</p>
+
+<h3>Already in your app</h3>
+<dl class="gl"><dt>Clerk</dt><dd>Handles logging in. You never store passwords. Already working.</dd></dl>
+<dl class="gl"><dt>Supabase</dt><dd>Your database. Where everything actually lives.</dd></dl>
+<dl class="gl"><dt>RLS (Row Level Security)</dt><dd>A rule enforced by the database itself: "you may only see your own rows." Works even if the app code has a bug. You fixed this properly on 5 July. <strong>Sprint 1 rewrites all of it</strong> — the riskiest change in the plan.</dd></dl>
+<dl class="gl"><dt>Vercel</dt><dd>Where the app is hosted. Deploy with <code>vercel --prod --cwd ~/Desktop/torvionyx-v2</code></dd></dl>
+<dl class="gl"><dt>Migration</dt><dd>A numbered file that changes the database's shape — adds a table or a column. When I say "add a table," this is how.</dd></dl>
+
+<h3>About to be built</h3>
+<dl class="gl"><dt>Domain model</dt><dd>The list of "things" your app knows about. Now: user → proposal. Becoming: practice → members → opportunity → proposal → versions. Cheap to change now, expensive later.</dd></dl>
+<dl class="gl"><dt>CRUD <span class="say">"crud"</span></dt><dd>Create, Read, Update, Delete. The four screens for managing a list. "Build CRUD for Projects" = list page, add form, edit form, delete.</dd></dl>
+<dl class="gl"><dt>Retrieval / RAG</dt><dd>Before the AI writes, it searches the firm's own stored content and pulls the relevant bits — three similar past projects, the right standard wording — then writes using those. Stops it inventing things.</dd></dl>
+<dl class="gl"><dt>Embedding / vector</dt><dd>The trick that makes retrieval work: text turned into numbers so "find similar" becomes a database query. Needs <code>pgvector</code> switched on in Supabase — one line, no new service.</dd></dl>
+<dl class="gl"><dt>Stripe Checkout (hosted)</dt><dd>How you take money. "Hosted" = the customer types their card on Stripe's page. Card details never touch your servers, which your security standards require.</dd></dl>
+<dl class="gl"><dt>Seats</dt><dd>How many people from one firm can log in. Your plans give an allowance rather than charging per head.</dd></dl>
+<dl class="gl"><dt>Versioning</dt><dd>Keeping v1 when you make v2. Architects renegotiate constantly. Your app currently overwrites — a genuine gap, but one that's been <strong>cut to after January</strong>.</dd></dl>
+<dl class="gl"><dt>Roles & permissions</dt><dd>Who can do what. A junior can draft a proposal but must not see the firm's rates.</dd></dl>
+
+<h3>Business words</h3>
+<dl class="gl"><dt>ICP</dt><dd>Ideal Customer Profile. Yours: a UK RIBA Chartered Practice, 2–15 staff, mostly residential.</dd></dl>
+<dl class="gl"><dt>Activation</dt><dd>The moment a user gets real value. Yours: they send a genuine proposal to a genuine client. Not signup — <em>sent</em>.</dd></dl>
+<dl class="gl"><dt>Design partner</dt><dd>An early paying customer who gets a discount and your full attention in exchange for the truth every fortnight. Your January cohort.</dd></dl>
+<dl class="gl"><dt>MRR</dt><dd>Monthly Recurring Revenue.</dd></dl>
+<dl class="gl"><dt>Churn</dt><dd>Cancellations. Much lower with firms than freelancers — one of the quiet reasons this pivot is attractive.</dd></dl>`},
+
+/* ================= B-04 ================= */
+{no:"B-04",grp:"Start",nav:"What got cut for January",dates:"Reference",phase:"—",when:"Reference",dur:"6 min",
+eyebrow:"Scope control",title:"What got cut to make January",
+html:`
+<p class="lede">The six-month plan didn't fit into 22 weeks. Here is exactly what came out, so that when you're behind you cut deliberately rather than in a panic at 11pm.</p>
+
+<h3>Cut from January — moved to after launch</h3>
+<div class="scroll-x"><table>
+<tr><th>Cut</th><th>Why it's safe to cut</th><th>Returns</th></tr>
+<tr><td><strong>Versioning</strong> (proposal v2)</td><td>Painful but survivable. Firms can duplicate a proposal manually for now.</td><td>Feb 2027</td></tr>
+<tr><td><strong>Approval workflow</strong></td><td>Only matters for firms over 5 people. Your January cohort will be smaller.</td><td>Feb 2027</td></tr>
+<tr><td><strong>AI extraction from emails</strong></td><td>A convenience on top of a machine that has to work first. Users can fill the form.</td><td>Mar 2027</td></tr>
+<tr><td><strong>Insights / win-rate analytics</strong></td><td>Needs months of data to say anything. Useless on day one anyway.</td><td>Mar 2027</td></tr>
+<tr><td><strong>Proposal Intelligence scoring</strong></td><td>Your best differentiator, but not needed to win the first ten customers.</td><td>Apr 2027</td></tr>
+<tr><td><strong>Fee types beyond lump-sum-by-stage</strong></td><td>Percentage, time-charge and hybrid. One basis done perfectly beats four done roughly.</td><td>Feb–Mar 2027</td></tr>
+<tr><td><strong>Every integration</strong></td><td>E-sign, Dropbox, Monograph. All post-launch.</td><td>Mar–May 2027</td></tr>
+<tr><td><strong>Public launch marketing</strong></td><td>Website rewrite happens in January; the announcement happens in April.</td><td>Apr 2027</td></tr>
+</table></div>
+
+<h3>The emergency cut list — in order</h3>
+<p>If you're three or more days behind at a Friday check-in, cut from the top of this list. Do it that day.</p>
+<ol>
+<li><strong>Consultant matrix and site/context blocks.</strong> Nice, not load-bearing. Saves ~3 days.</li>
+<li><strong>Exclusions library as a library.</strong> Ship as plain editable text; make it structured in February. Saves ~4 days.</li>
+<li><strong>The People entity.</strong> Team section becomes a text block. Saves ~4 days.</li>
+<li><strong>Retrieval (RAG).</strong> Feed the AI the whole Knowledge base rather than searching it. Cruder, works fine at small volumes. Saves ~1 week.</li>
+<li><strong>Move launch to 1 March.</strong> Saves 6 weeks.</li>
+</ol>
+
+<div class="box stop">
+<div class="lbl">Four things you must never cut</div>
+<ol>
+<li><strong>The 20 interviews.</strong> Cutting these makes the other 19 weeks a gamble.</li>
+<li><strong>The three-account security test</strong> in Sprint 1. A cross-firm data leak ends the business.</li>
+<li><strong>Stripe billing.</strong> No billing, no launch — a launch with no way to pay isn't one.</li>
+<li><strong>Visual quality of the client-facing proposal.</strong> Your customers design buildings. This is the one place "good enough" isn't.</li>
+</ol>
+</div>
+
+<div class="box warn">
+<div class="lbl">If you must slip</div>
+<p>Slipping to <strong>1 March 2027</strong> costs you almost nothing commercially and buys six real weeks. Slipping past March puts you into the spring, when practices are busiest and hardest to reach. <strong>January or March. Not February</strong> — February is the shortest month and you'd be onboarding into it with no buffer.</p>
+</div>`},
+
+/* ================= B-05 ================= */
+{no:"B-05",grp:"Sprints",nav:"S0 · Talk to architects",dates:"17 Aug – 4 Sep",phase:"Sprint 0",when:"17 Aug – 4 Sep",dur:"3 weeks",
+eyebrow:"Sprint 0 · Hard gate",title:"Talk to 20 architects",
+html:`
+<span class="datestrip">Mon 17 Aug → Fri 4 Sep 2026 · 3 weeks</span>
+<div class="box stop">
+<div class="lbl">Do not skip this to protect the January date</div>
+<p>Everything in this plan is desk research. You have never spoken to an architect about it. Building for 19 weeks on an unvalidated premise to hit a date is how you lose five months instead of three weeks.</p>
+</div>
+
+<h3>What it means</h3>
+<p>Twenty calls, 45 minutes each, with people running small UK practices. You are not selling. You're finding out whether the problem you think exists actually does.</p>
+
+<h3>What you're creating</h3>
+<ul><li>A list of 60 target practices</li><li>20 completed interviews with notes</li><li><strong>15+ real fee proposals architects have actually sent</strong> — the most valuable thing you'll collect all year</li><li>A written go / no-go decision dated Fri 4 Sep</li></ul>
+
+<h3>Exactly what to do</h3>
+<div id="s5">
+<div class="step"><input type="checkbox" class="chk"><div class="n">W1</div><div class="txt">
+<p><strong>Mon 17 Aug — build the list.</strong> Go to <code>find-an-architect.architecture.com</code>, the RIBA Chartered Practice directory. Search by region. Check each practice's own website — the "Team" or "Studio" page tells you the size.</p>
+<p>Target 60 practices with 2–20 staff doing mostly houses and extensions. Spreadsheet columns: name, city, size, website, director's name, how you'd reach them.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W1</div><div class="txt">
+<p><strong>Tue 18 Aug — check who you already know.</strong> LinkedIn, old colleagues, friends of friends. One warm introduction beats ten cold emails. Mark these "warm."</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W1</div><div class="txt">
+<p><strong>Tue 18 Aug — write the outreach.</strong> Short, honest, no pitch: <em>"I'm researching how small practices put fee proposals together. Could you spare 45 minutes? I'm not selling anything — I'll share a summary of what all twenty practices say."</em> Offering the summary costs you nothing and is genuinely useful to them.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W1</div><div class="txt">
+<p><strong>Check the email rules first.</strong> A practice that's a limited company can be emailed. A sole trader legally cannot be cold-emailed for marketing under UK PECR. When in doubt: LinkedIn message or phone the office.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W1</div><div class="txt">
+<p><strong>Wed 19 Aug — send 30 messages.</strong> Expect 8 yeses. <em>Note: late August is holiday season. Send 40 rather than 30 and expect slower replies. This is the one real risk to the Sprint 0 dates.</em></p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W2</div><div class="txt">
+<p><strong>Mon 24 – Thu 27 Aug — run the first 8 interviews.</strong> Use sheet B-16. Record with permission; take notes anyway.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W2</div><div class="txt">
+<p><strong>Ask every single one for their last real fee proposal.</strong> Confidential, structure only. This is your design brief, your test data and your evidence in one. If nobody will share, that's a finding in itself.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W2</div><div class="txt">
+<p><strong>Fri 28 Aug — send 30 more messages</strong> and write up the first 8.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W3</div><div class="txt">
+<p><strong>Mon 31 Aug – Wed 2 Sep — run 12 more.</strong></p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W3</div><div class="txt">
+<p><strong>Thu 3 Sep — synthesise.</strong> Not a summary. A list of what surprised you and what contradicted your assumptions. Everything that confirmed them is noise.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W3</div><div class="txt">
+<p><strong>Fri 4 Sep — apply the gate, in writing, before you check whether you like the answer.</strong></p></div></div>
+</div>
+
+<div class="box warn"><div class="lbl">The gate — decided Fri 4 Sep</div>
+<ul>
+<li><strong>12+ of 20</strong> call fee proposals a top-three pain <strong>and</strong> 8+ would pay £75/mo or more → <strong>Go.</strong> Sprint 1 starts Monday.</li>
+<li><strong>6–11</strong> → narrow (residential-only?) and re-test. <strong>January is gone.</strong> Accept that on 4 September, not in November.</li>
+<li><strong>Under 6</strong> → <strong>Stop.</strong> Better to know now than in January.</li>
+</ul></div>
+
+<h3>How you know it worked</h3>
+<p>You can describe, from memory, exactly how a 6-person practice arrives at a fee — including the part they're embarrassed about. And 15 real proposals are on your hard drive.</p>`},
+
+/* ================= B-06 ================= */
+{no:"B-06",grp:"Sprints",nav:"S0.5 · Fix what's broken",dates:"24 Aug – 4 Sep",phase:"Sprint 0.5",when:"24 Aug – 4 Sep",dur:"2 weeks",
+eyebrow:"Sprint 0.5 · Runs alongside Sprint 0",title:"Fix what's already broken",
+html:`
+<span class="datestrip">Mon 24 Aug → Fri 4 Sep 2026 · in the gaps between interviews</span>
+<h3>What it means</h3>
+<p>Your existing app has things that don't work. Fix them now, in the hours between calls, because you'll be demoing this and because every fix survives the pivot.</p>
+
+<h3>Why now</h3>
+<p>You're showing this to twenty people whose profession is noticing when things are badly made. A dead nav link and a mobile layout that collapses will cost more credibility than any missing feature.</p>
+
+<h3>Exactly what to do</h3>
+<div id="s6">
+<div class="step"><input type="checkbox" class="chk"><div class="n">1</div><div class="txt">
+<p><strong>Confirm the folder.</strong> Open Terminal. Type <code>cd ~/Desktop/torvionyx-v2</code>, Enter. Then <code>ls</code>, Enter. You should see <code>src</code> and <code>package.json</code>. If not, stop — wrong folder.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">2</div><div class="txt">
+<p><strong>Fix mobile.</strong> Tell Claude Code: <em>"The dashboard sidebar and stat cards break on mobile. Collapse the sidebar into a hamburger menu below the md breakpoint and stack the stat card grid to one or two columns on small screens."</em> Then test on your actual phone, not a resized browser window.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">3</div><div class="txt">
+<p><strong>Fix the dead "View all" link.</strong> It points at <code>/dashboard/proposals</code>, which doesn't exist. Have Claude Code build that page — a simple list with status and date.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">4</div><div class="txt">
+<p><strong>Fix the two numbers that lie.</strong> "Revenue this month" shows £0; "average time to accept" says no data. Wire revenue to sum accepted proposals' pricing totals this month, and time-to-accept to average <code>accepted_at</code> minus <code>shared_at</code>. Have it verify both timestamps are actually saved.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">5</div><div class="txt">
+<p><strong>Check PDF export exists.</strong> Make a proposal, export it. Your landing page promises "one click PDF." If it doesn't work, build it or remove the claim today.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">6</div><div class="txt">
+<p><strong>Deal with the dormant rewrite buttons.</strong> Build the endpoint or hide the buttons. Half-working is worse than absent.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">7</div><div class="txt">
+<p><strong>After every single change:</strong> stop the dev server (Ctrl+C), run <code>npm run build</code>, confirm it passes, push to GitHub. One change at a time — never batched.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">8</div><div class="txt">
+<p><strong>Deploy:</strong> <code>vercel --prod --cwd ~/Desktop/torvionyx-v2</code></p></div></div>
+</div>
+
+<div class="box ok"><div class="lbl">None of this is throwaway</div><p>Every fix here carries straight through into the architecture product.</p></div>
+
+<h3>How you know it worked</h3>
+<p>Open the live site on your phone. Tap every nav item. Every link goes somewhere real, every number shows something true, nothing looks squashed.</p>`},
+
+/* ================= B-07 ================= */
+{no:"B-07",grp:"Sprints",nav:"S1 · One person → a firm",dates:"7 – 25 Sep",phase:"Sprint 1",when:"7 – 25 Sep",dur:"3 weeks",
+eyebrow:"Sprint 1 · Highest risk",title:"Turn one-person accounts into firms",
+html:`
+<span class="datestrip">Mon 7 Sep → Fri 25 Sep 2026 · 3 weeks</span>
+<h3>What it means</h3>
+<p>Your app assumes one person owns everything. A practice has a director, a couple of architects, maybe an office manager, all on the same proposals. You're changing the shape from <em>person owns proposals</em> to <em>firm owns proposals, people belong to the firm</em>.</p>
+
+<div class="box stop"><div class="lbl">The most dangerous three weeks in the plan</div>
+<p>You have to rewrite every security rule in the database. You already got a <strong>false pass</strong> on this once — a test said the security worked when it didn't. Do not accept a green tick without the tests in steps 7 and 8.</p></div>
+
+<h3>What you're creating</h3>
+<table>
+<tr><th>New</th><th>Plainly</th></tr>
+<tr><td><code>practices</code></td><td>The firm. Name, brand settings, plan.</td></tr>
+<tr><td><code>practice_members</code></td><td>Who belongs to the firm and their role.</td></tr>
+<tr><td><code>opportunities</code></td><td>An enquiry before it's a proposal. "Mrs Patel, rear extension, Bristol, ~£250k build."</td></tr>
+</table>
+
+<h4>Four roles</h4>
+<table>
+<tr><th>Role</th><th>Can</th></tr>
+<tr><td><strong>Owner</strong></td><td>Everything, incl. billing and rates.</td></tr>
+<tr><td><strong>Director</strong></td><td>Send proposals, see and edit all fees and rates.</td></tr>
+<tr><td><strong>Architect</strong></td><td>Create and edit proposals, see fees.</td></tr>
+<tr><td><strong>Contributor</strong></td><td>Edit assigned sections, comment. <strong>Must not see the rate card.</strong></td></tr>
+</table>
+
+<h3>Exactly what to do</h3>
+<div id="s7">
+<div class="step"><input type="checkbox" class="chk"><div class="n">W1</div><div class="txt">
+<p><strong>Mon 7 Sep — plan before code.</strong> Ask Claude Code for a written migration plan first: what tables get added, what's renamed, what data moves, how existing beta users convert. Read it. Ask questions. Don't let it start until you understand it.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W1</div><div class="txt">
+<p><strong>Back up the database.</strong> Supabase → your project → Database → Backups → take a manual backup, note the time. Do not proceed without this.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W1</div><div class="txt">
+<p><strong>Create the new tables</strong> — a migration adding <code>practices</code>, <code>practice_members</code>, <code>opportunities</code>.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W2</div><div class="txt">
+<p><strong>Convert existing data.</strong> Every existing workspace becomes a practice with its owner as sole member, role Owner. Nobody loses anything.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W2</div><div class="txt">
+<p><strong>Rewrite the security rules.</strong> Every rule changes from "does this row belong to this user?" to "is this user a member of the practice that owns it, and does their role allow it?" Ask for the membership check to be wrapped in a cached database function, or every page gets slower.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W2</div><div class="txt">
+<p><strong>Build three screens only:</strong> practice switcher, invite-a-member form, members list with roles. Nothing more.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W3</div><div class="txt">
+<p><strong>The three-account test.</strong> User A and User B in Practice 1; User C in Practice 2.</p>
+<ul><li>A creates a proposal. B (same firm) sees it. ✓</li>
+<li>C (other firm) does <strong>not</strong> — even pasting the proposal ID into the URL. ✓</li>
+<li>Make B a Contributor. They cannot load the rate card. ✓</li></ul></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W3</div><div class="txt">
+<p><strong>Then the harder test.</strong> As User C, open browser developer tools and try to fetch Practice 1's proposal directly from the API, bypassing the app's screens. It must fail. <em>This is the test that caught the false pass last time.</em></p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W3</div><div class="txt">
+<p><strong>Fri 25 Sep — write the test down</strong> in a file in the repo so you can re-run it after every future change.</p></div></div>
+</div>
+
+<h3>How you know it worked</h3>
+<p>Three accounts, two firms, nobody sees anything they shouldn't — including when they try on purpose.</p>`},
+
+/* ================= B-08 ================= */
+{no:"B-08",grp:"Sprints",nav:"S2 · Practice Knowledge",dates:"28 Sep – 23 Oct",phase:"Sprint 2",when:"28 Sep – 23 Oct",dur:"4 weeks",
+eyebrow:"Sprint 2 · The moat",title:"Build Practice Knowledge",
+html:`
+<span class="datestrip">Mon 28 Sep → Fri 23 Oct 2026 · 4 weeks · longest sprint</span>
+<h3>What it means</h3>
+<p>A place where each firm stores the things it currently copies from its last proposal: past projects, team members, standard wording per RIBA stage, standard exclusions, and its charge-out rates.</p>
+
+<h3>Why it matters</h3>
+<ol>
+<li>It makes proposal number ten take eight minutes instead of forty.</li>
+<li><strong>It's why they can't leave.</strong> Once a firm has 40 projects and a full scope library in here, switching means redoing months of work. That's the moat — not the AI.</li>
+</ol>
+
+<h3>What you're creating</h3>
+<div class="scroll-x"><table>
+<tr><th>Entity</th><th>Contains</th><th>Priority</th></tr>
+<tr><td><strong>Practice profile</strong></td><td>Name, philosophy, sectors, ARB/RIBA numbers, PI cover, accreditations</td><td>Must</td></tr>
+<tr><td><strong>Projects</strong></td><td>Name, sector, type, location, build cost, stages delivered, year, images, description, outcome</td><td><strong>Must — build first</strong></td></tr>
+<tr><td><strong>Scope library</strong></td><td>Standard wording per RIBA stage per project type, with deliverables listed</td><td>Must</td></tr>
+<tr><td><strong>Rate card</strong></td><td>Staff grade → hourly rate, with effective date</td><td>Must — feeds Sprint 3</td></tr>
+<tr><td><strong>Exclusions library</strong></td><td>Reusable clauses tagged by project type</td><td>Should — cuttable to plain text</td></tr>
+<tr><td><strong>People</strong></td><td>Name, role, qualification, years, sectors, photo</td><td>Should — cuttable to a text block</td></tr>
+</table></div>
+
+<h3>Exactly what to do</h3>
+<div id="s8">
+<div class="step"><input type="checkbox" class="chk"><div class="n">W1</div><div class="txt">
+<p><strong>Mon 28 Sep — design fields from the real proposals.</strong> Open the 15 documents from Sprint 0. Every field you create should appear in them. Do not invent fields.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W1</div><div class="txt">
+<p><strong>Add the tables</strong> — <code>projects</code>, <code>people</code>, <code>scope_items</code>, <code>exclusions</code>, <code>rate_card</code>, all locked to a practice.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W1</div><div class="txt">
+<p><strong>Set up image storage.</strong> Architecture photos are large. Ask for a Supabase Storage bucket with signed short-lived links, an upload size limit, and automatically generated smaller versions for thumbnails. Skip the smaller versions and your pages will crawl.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W2</div><div class="txt">
+<p><strong>Build Knowledge as one nav item with tabs:</strong> Projects · People · Scope · Exclusions · Rates. Not five nav items — it's a setup area, not a daily destination.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W2</div><div class="txt">
+<p><strong>Projects first, and make it genuinely good.</strong> List, add with image upload, edit, delete. This is the one you'll demo.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W3</div><div class="txt">
+<p><strong>Then Scope, then Rates.</strong> These two feed the fee engine, so they cannot slip. Build and push after each.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W3</div><div class="txt">
+<p><strong>Then Exclusions, then People</strong> — the two cuttable ones, deliberately last.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W4</div><div class="txt">
+<p><strong>Seed the scope library with defaults.</strong> Write standard scope text for each RIBA stage for "residential extension" and "new-build residential," lifted from the real proposals you collected. New firms start with something to edit rather than a blank page. This alone will make onboarding feel effortless in January.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W4</div><div class="txt">
+<p><strong>Fri 23 Oct — fill it in yourself for a fictional practice.</strong> 8 projects, 4 people, a full scope set. If it's painful for you it'll be unbearable for a busy director. Fix the friction before January.</p></div></div>
+</div>
+
+<div class="box"><div class="lbl">Decide this now, not in January</div>
+<p>Filling this in is real work. <strong>Plan to do it for them</strong> — a 60-minute call where you populate their Knowledge together from their website and past proposals. It's your best onboarding, your best sales call and your best research, all at once. Budget an hour per design partner in Sprint 7.</p></div>
+
+<h3>How you know it worked</h3>
+<p>You can add a project with three photos in under two minutes, and Knowledge loads instantly with 40 projects in it.</p>`},
+
+/* ================= B-09 ================= */
+{no:"B-09",grp:"Sprints",nav:"S3 · The fee engine",dates:"26 Oct – 13 Nov",phase:"Sprint 3",when:"26 Oct – 13 Nov",dur:"3 weeks",
+eyebrow:"Sprint 3 · The differentiator · Immovable deadline",title:"Build the fee engine",
+html:`
+<span class="datestrip">Mon 26 Oct → Fri 13 Nov 2026 · 3 weeks</span>
+<div class="box stop"><div class="lbl">The date that decides January</div>
+<p>If the fee engine isn't working on <strong>Friday 13 November</strong>, January is not achievable. Move to 1 March and tell people early. This is the point of no return, and knowing that in advance is worth more than optimism.</p></div>
+
+<h3>What it means</h3>
+<p>A proper tool for working out and presenting the price — not a text block with numbers in it. It asks how many hours of which grade each RIBA stage needs, applies the firm's rates, and produces a defensible fee per stage.</p>
+
+<h3>Why it matters</h3>
+<p>The single most differentiating thing in the product. RIBA tells practices to price this way and publishes its own Fee Calculator to help — but that calculator is separate from the document. Nobody has joined the two. That's the whole opportunity, in one sprint.</p>
+
+<div class="box">
+<p style="font-family:var(--mono);font-size:13px;line-height:1.9;margin:0">
+Project profile (type, build cost, which stages)<br>&nbsp;&nbsp;↓<br>
+Per stage: how many hours, of which grade?<br>&nbsp;&nbsp;↓<br>
+× the firm's charge-out rates<br>&nbsp;&nbsp;↓<br>
+Fee per stage + margin<br>&nbsp;&nbsp;↓<br>
+<b style="color:var(--gold)">Sanity check:</b> what % of build cost is that? What did we charge on similar jobs?<br>&nbsp;&nbsp;↓<br>
+Stage fee table + basis + expenses + VAT
+</p></div>
+
+<h3>January scope — deliberately narrow</h3>
+<table>
+<tr><th>Ships in January</th><th>February onwards</th></tr>
+<tr><td>Lump sum per stage <em>(the only one)</em></td><td>Percentage of build cost</td></tr>
+<tr><td>Additional / optional services</td><td>Time charge with a cap</td></tr>
+<tr><td>Expenses & disbursements</td><td>Hybrid bases</td></tr>
+<tr><td>VAT</td><td>Contingencies, variations, multi-currency</td></tr>
+</table>
+<p><strong>One fee basis done perfectly beats four done roughly.</strong> Lump sum by stage is what most small residential practices use anyway.</p>
+
+<h3>Exactly what to do</h3>
+<div id="s9">
+<div class="step"><input type="checkbox" class="chk"><div class="n">W1</div><div class="txt">
+<p><strong>Mon 26 Oct — design it on paper first.</strong> Take five real fee proposals from Sprint 0. For each: could my model produce this exact fee table? Where does it break? No code until this is done.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W1</div><div class="txt">
+<p><strong>Tue–Wed 27–28 Oct — show the paper model to three architects</strong> you interviewed. Thirty minutes each. Expect to be wrong about something. Better now than after two weeks of building.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W1</div><div class="txt">
+<p><strong>Store fees as proper database columns, not text.</strong> Two tables: one for the fee overall (basis, currency, VAT, expenses, total), one row per RIBA stage (stage number, included, hours by grade, amount).</p>
+<p><em>Why:</em> if fees live inside a blob of text you can never answer "what's our average fee for a residential new-build over £500k?" — and that question is your March analytics feature.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W2</div><div class="txt">
+<p><strong>Build the fee builder as its own screen</strong>, separate from the document editor. It's a calculator, not a paragraph.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W2</div><div class="txt">
+<p><strong>Add the sanity-check panel.</strong> Alongside the total, show the implied percentage of build cost and what this practice charged on the three most similar past jobs. Turns opinion into fact — and no competitor can produce it.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W3</div><div class="txt">
+<p><strong>Test the arithmetic obsessively.</strong> Exact to the penny, identical every time. Ask for automated tests covering rounding, VAT, discounts and switching stages on and off. A bug here is a business-ending embarrassment in front of a client.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W3</div><div class="txt">
+<p><strong>Fri 13 Nov — the go/no-go test.</strong> Take any real proposal from Sprint 0, enter its inputs, and reproduce the fee table the architect actually sent, within a few percent. If you can't, you are not on track for January.</p></div></div>
+</div>`},
+
+/* ================= B-10 ================= */
+{no:"B-10",grp:"Sprints",nav:"S4 · Rewire the AI",dates:"16 Nov – 4 Dec",phase:"Sprint 4",when:"16 Nov – 4 Dec",dur:"3 weeks",
+eyebrow:"Sprint 4",title:"Rewire the AI to use Practice Knowledge",
+html:`
+<span class="datestrip">Mon 16 Nov → Fri 4 Dec 2026 · 3 weeks</span>
+<h3>What it means</h3>
+<p>Right now the AI gets a brief and writes from nothing. You're changing it so that before it writes, it searches the firm's own stored projects, people and standard wording, and builds from those.</p>
+
+<h3>Why it matters</h3>
+<p>This is where the product stops being "AI writes a proposal" and becomes "AI writes <em>your practice's</em> proposal." It's also where the Knowledge base starts paying for itself.</p>
+
+<h3>What ships in January vs later</h3>
+<table>
+<tr><th>Layer</th><th>Does</th><th>When</th></tr>
+<tr><td>Retrieve</td><td>Find the 3 most relevant past projects, right scope wording, applicable exclusions</td><td><strong>January</strong></td></tr>
+<tr><td>Generate</td><td>Write narrative sections using what was retrieved</td><td><strong>January</strong></td></tr>
+<tr><td>Fee reasoning</td><td>Suggest hours by grade by stage from the firm's history</td><td><strong>January (basic)</strong></td></tr>
+<tr><td>Extract</td><td>Paste an email → structured project record</td><td>March</td></tr>
+<tr><td>Learn</td><td>Feed won/lost outcomes back into suggestions</td><td>April</td></tr>
+</table>
+
+<div class="box stop"><div class="lbl">The rule that protects you legally</div>
+<p><strong>Retrieved content goes in word-for-word. Only narrative gets generated.</strong></p>
+<p>A firm's standard stage-3 scope wording and its exclusions have been carefully considered, possibly by a solicitor. If your AI paraphrases them and the meaning shifts, that's a professional liability — theirs, and then yours. Generate the "understanding of your project" section. Never rewrite an exclusion clause.</p></div>
+
+<h3>Exactly what to do</h3>
+<div id="s10">
+<div class="step"><input type="checkbox" class="chk"><div class="n">W1</div><div class="txt">
+<p><strong>Mon 16 Nov — turn on pgvector.</strong> Ask Claude Code to enable the extension in Supabase and add an embedding column to <code>projects</code> and <code>scope_items</code>. No new service to buy.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W1</div><div class="txt">
+<p><strong>Build the search.</strong> When a project is saved its description becomes an embedding automatically. "Find the three most similar projects to this enquiry" becomes a database query.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W2</div><div class="txt">
+<p><strong>Split generation into sections.</strong> Instead of one big AI call for the whole document, one call per section, in parallel. Faster, and regenerating one section can no longer break the fee table.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W2</div><div class="txt">
+<p><strong>Wire retrieval into the prompt.</strong> Retrieved scope and exclusions pass through verbatim; only narrative is generated.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W3</div><div class="txt">
+<p><strong>Compare old versus new before switching.</strong> Generate the same proposal both ways and read both. If the new one isn't clearly better, don't ship it — a quality regression here is worse than no change at all.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W3</div><div class="txt">
+<p><strong>Check rate limits cover the new endpoints.</strong> Generation now costs more per proposal than it used to. Your Upstash setup handles this; make sure the new routes are actually covered.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W3</div><div class="txt">
+<p><strong>Set a billing alert on Anthropic today.</strong> Generation broke once before because a key went bad and it took eighteen days to notice. You cannot afford that in December.</p></div></div>
+</div>
+
+<h3>How you know it worked</h3>
+<p>Fill Knowledge for a fictional practice, paste a brief, and the generated proposal names three genuinely relevant past projects and uses the firm's own scope wording word-for-word. A reader shouldn't be able to tell it was generated.</p>`},
+
+/* ================= B-11 ================= */
+{no:"B-11",grp:"Sprints",nav:"S5 · How it looks",dates:"7 – 18 Dec",phase:"Sprint 5",when:"7 – 18 Dec",dur:"2 weeks",
+eyebrow:"Sprint 5 · Highest quality bar · Compressed",title:"How it looks",
+html:`
+<span class="datestrip">Mon 7 Dec → Fri 18 Dec 2026 · 2 weeks · compressed from 4</span>
+<div class="box stop"><div class="lbl">Read this before anything else on the page</div>
+<p>Your customers design buildings for a living. They will judge the visual quality of the output in the first ten seconds, and more harshly than any customer group you could have picked. <strong>If this sprint is merely fine, nothing else in the product matters.</strong></p>
+<p>This sprint got compressed from four weeks to two to fit January. <strong>Seriously consider hiring a designer for these two weeks.</strong> It may be the best money you spend all year, and it's the one place where paying someone genuinely buys back time.</p></div>
+
+<h3>Blocks to build — January only</h3>
+<table>
+<tr><th>Block</th><th>What it is</th><th>January?</th></tr>
+<tr><td><strong>Stage scope table</strong></td><td>Row per RIBA stage with tangible deliverables — "1:20 drawings," not "detailed design"</td><td><strong>Yes — critical</strong></td></tr>
+<tr><td><strong>Stage fee table</strong></td><td>The fee engine's output, clearly set. Clients spend more time here than anywhere.</td><td><strong>Yes — critical</strong></td></tr>
+<tr><td><strong>Project showcase</strong></td><td>Image-led past project. Big photos, short text.</td><td>Yes</td></tr>
+<tr><td><strong>Programme</strong></td><td>Timeline by stage with client decision points</td><td>Yes</td></tr>
+<tr><td><strong>Team grid</strong></td><td>Named people, photos, one-line credentials</td><td>Yes if People shipped</td></tr>
+<tr><td><strong>Exclusions list</strong></td><td>From the library</td><td>Yes</td></tr>
+<tr><td>Credentials bar</td><td>ARB, RIBA, PI cover</td><td>Yes — trivial</td></tr>
+<tr><td>Site & context</td><td>Image plus text</td><td>Cut if behind</td></tr>
+<tr><td>Consultant matrix</td><td>Who appoints and coordinates whom</td><td>Cut if behind</td></tr>
+</table>
+
+<h3>Exactly what to do</h3>
+<div id="s11">
+<div class="step"><input type="checkbox" class="chk"><div class="n">W1</div><div class="txt">
+<p><strong>Mon 7 Dec — print the 15 real proposals and lay them on a table.</strong> Literally. Look at what the good ones do: how much white space, how big the images, how the fee table is set. Your design brief is sitting in those documents.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W1</div><div class="txt">
+<p><strong>Design the client-facing page before building any block.</strong> The editor serves the output, not the reverse.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W1</div><div class="txt">
+<p><strong>Build the stage scope table and stage fee table first.</strong> Those two carry the product. If everything else slips, these must not.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W1</div><div class="txt">
+<p><strong>Handle images properly.</strong> Full-width, high resolution, but serve smaller versions so pages load fast. A slow page full of beautiful photographs is still a bad page.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W2</div><div class="txt">
+<p><strong>Track fee-section dwell time.</strong> In architecture, fee negotiation is normal — "your client spent four minutes on the fee page" is genuinely useful and costs almost nothing to capture.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W2</div><div class="txt">
+<p><strong>Make the PDF genuinely well set.</strong> Not a printed web page. Clients and planning consultants still want a file, and architects will judge the typography.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W2</div><div class="txt">
+<p><strong>Attachments as downloads, not viewers.</strong> Let them attach a site plan as a PDF. Do not build a drawing viewer — it's a months-long hole with no payoff.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W2</div><div class="txt">
+<p><strong>Thu 17 Dec — get three architects to critique it, before they disappear for Christmas.</strong> Not "does this look nice." Ask: "would you send this to your best client?" Watch their face, not their words. <em>This is your last chance to reach anyone until 5 January.</em></p></div></div>
+</div>
+
+<div class="box warn"><div class="lbl">Friday 18 December is a hard stop</div>
+<p>The product must be feature-complete and demo-ready. There is no runway after this — the next two weeks are the industry shutdown and the two after that are onboarding.</p></div>`},
+
+/* ================= B-12 ================= */
+{no:"B-12",grp:"Sprints",nav:"S6 · The frozen fortnight",dates:"21 Dec – 1 Jan",phase:"Sprint 6",when:"21 Dec – 1 Jan",dur:"2 weeks",
+eyebrow:"Sprint 6 · Industry shutdown",title:"The frozen fortnight — billing and polish",
+html:`
+<span class="datestrip">Mon 21 Dec 2026 → Fri 1 Jan 2027 · nobody to talk to</span>
+<div class="box froz"><div class="lbl">What's happening outside</div>
+<p>UK architecture practices are closed. You cannot interview, sell, onboard, or get feedback. Every task in this sprint is deliberately chosen to need <strong>zero customer contact</strong>.</p>
+<p>Also: take some of it off. You have five months of sprints behind you and a launch in three weeks. Working through Christmas to gain two days and arriving at January exhausted is a bad trade.</p></div>
+
+<h3>Task 1 — Stripe billing</h3>
+<p>You currently have <strong>no way to charge anyone anything.</strong> No plans, no limits, no card details. Every revenue number in every plan you own assumes a billing system that has never been started. This is the sprint it gets built, and it's perfect for the dead zone because it needs nobody.</p>
+
+<h4>The plans</h4>
+<table>
+<tr><th>Plan</th><th>Price</th><th>Seats</th><th>Includes</th></tr>
+<tr><td><strong>Studio</strong></td><td>£49/mo</td><td>3</td><td>10 proposals/month, Knowledge, fee engine, live links, PDF</td></tr>
+<tr><td><strong>Practice</strong></td><td>£119/mo</td><td>10</td><td>Unlimited proposals, custom domain, priority support</td></tr>
+<tr><td><strong>Practice+</strong></td><td>£249/mo</td><td>25</td><td>Everything, plus features arriving Feb–Apr</td></tr>
+</table>
+<p><strong>No free tier.</strong> Free worked for freelancers. For firms it attracts non-buyers and devalues the hands-on setup that makes the product work. A <strong>14-day full trial with a setup call</strong> instead.</p>
+
+<div id="s12">
+<div class="step"><input type="checkbox" class="chk"><div class="n">1</div><div class="txt">
+<p><strong>Create the Stripe account NOW, not in December.</strong> Do this in August. Verification needs business details and a bank account and can take days. Nothing else here can start until it's done.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">2</div><div class="txt">
+<p><strong>21–22 Dec — create the three products in Stripe</strong>, each with a monthly and an annual price (annual = ten months' cost, so two months free).</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">3</div><div class="txt">
+<p><strong>Use hosted Stripe Checkout.</strong> Tell Claude Code explicitly: hosted Checkout, not a custom card form. The customer types their card on Stripe's page. Card details never reach your servers — which your own security standards require.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">4</div><div class="txt">
+<p><strong>Store the Stripe customer ID on the practice</strong>, plus the plan and the trial end date.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">5</div><div class="txt">
+<p><strong>Enforce limits on the server, not in the browser.</strong> Seat and proposal counts must be checked server-side. Browser checks can be bypassed by anyone with a developer console.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">6</div><div class="txt">
+<p><strong>Handle the awkward cases:</strong> trial ends unpaid (read-only, don't delete), payment fails (retry then warn), cancellation (keep data 30 days).</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">7</div><div class="txt">
+<p><strong>29 Dec — test the whole path in Stripe test mode:</strong> signup → trial → subscribe → upgrade → failed payment → cancel. Use Stripe's test card numbers.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">8</div><div class="txt">
+<p><strong>Then run one real £1 charge on yourself in live mode</strong> and refund it. Test mode and live mode differ in ways that only show up live.</p></div></div>
+</div>
+
+<h3>Task 2 — Email notifications</h3>
+<div id="s12b">
+<div class="step"><input type="checkbox" class="chk"><div class="n">9</div><div class="txt">
+<p><strong>Wire "your client opened it" and "your client accepted."</strong> Resend or Postmark. This is your retention loop — the reason someone opens the app on a day they aren't writing a proposal. Small job, disproportionate value.</p></div></div>
+</div>
+
+<h3>Task 3 — Rewrite the website</h3>
+<div id="s12c">
+<div class="step"><input type="checkbox" class="chk"><div class="n">10</div><div class="txt">
+<p><strong>Every mention of freelancers goes.</strong> New headline: <em>"Fee proposals that win work. Written in RIBA stages, not from scratch."</em> New screenshots showing architecture content. A practice director landing on freelancer copy closes the tab.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">11</div><div class="txt">
+<p><strong>Write honestly to your existing freelancer beta users.</strong> Tell them the direction has changed, give them a long free period and a clean export. Do not let it quietly stop working. Word travels, and some of them know architects.</p></div></div>
+</div>
+
+<h3>Task 4 — The launch checklist</h3>
+<div id="s12d">
+<div class="step"><input type="checkbox" class="chk"><div class="n">12</div><div class="txt">
+<p><strong>Re-run your full pre-deployment checklist.</strong> No secrets in the code or git history, all environment variables set in Vercel, rate limiting live on every endpoint, the three-account security test passing, error messages leaking nothing, <code>npm audit</code> reviewed.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">13</div><div class="txt">
+<p><strong>Re-run the three-account test from Sprint 1.</strong> Four months of changes have happened since. Do not assume it still passes.</p></div></div>
+</div>`},
+
+/* ================= B-13 ================= */
+{no:"B-13",grp:"Sprints",nav:"S7 · Onboard partners",dates:"4 – 15 Jan",phase:"Sprint 7",when:"4 – 15 Jan",dur:"2 weeks",
+eyebrow:"Sprint 7 · The fortnight that matters",title:"Onboard your design partners",
+html:`
+<span class="datestrip">Mon 4 Jan → Fri 15 Jan 2027 · practices are back and planning their year</span>
+<div class="box ok"><div class="lbl">Good timing, genuinely</div>
+<p>Practices come back in January doing financial planning, reviewing subscriptions, and working through the enquiries that built up over Christmas. A tool that helps them win work lands better in the second week of January than almost any other point in the year.</p></div>
+
+<h3>Exactly what to do</h3>
+<div id="s13">
+<div class="step"><input type="checkbox" class="chk"><div class="n">Dec</div><div class="txt">
+<p><strong>Before 18 December — pre-book the January calls.</strong> Email your 20 interviewees in mid-December: <em>"The thing we talked about is ready. Can I book you 60 minutes in the first fortnight of January?"</em> Book them before Christmas. If you wait until January to start booking, you lose your first week to scheduling.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W1</div><div class="txt">
+<p><strong>Mon 4 Jan — offer the design partner deal:</strong> 50% off for twelve months, in exchange for a 30-minute call every fortnight and permission to quote them once it works.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W1</div><div class="txt">
+<p><strong>Do every setup call yourself.</strong> Sixty minutes on video, filling in their Knowledge base together from their website and past proposals. Not a cost — your best sales tool and your best research, at the same time.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W1</div><div class="txt">
+<p><strong>Aim for 4–5 setups in week one.</strong> Deliberately slow. If something's broken you want to find it on customer two, not customer twelve.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W2</div><div class="txt">
+<p><strong>Watch the first proposal they build, live.</strong> Screen share, say nothing, take notes. Every hesitation is a design flaw.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W2</div><div class="txt">
+<p><strong>Aim for 6–10 more setups in week two.</strong> Target 10–15 firms total.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">W2</div><div class="txt">
+<p><strong>Fri 15 Jan — fix everything you saw in week one</strong> before you call it launched.</p></div></div>
+</div>
+
+<div class="box warn"><div class="lbl">Expect a slower yes than you're used to</div>
+<p>Practices buy software in three to six weeks, not three days. There's usually a partner conversation and often a "let's raise it at the next practice meeting." A slow yes is not a no — but it does mean some of your January cohort actually signs in February. Plan for that.</p></div>
+
+<h3>How you know it worked</h3>
+<p>Ten firms are paying, at least five have sent a real proposal to a real client, and nothing has broken in a way that embarrassed anyone in front of a client.</p>`},
+
+/* ================= B-14 ================= */
+{no:"B-14",grp:"Launch",nav:"Launch day",dates:"Mon 18 Jan 2027",phase:"Launch",when:"Mon 18 Jan 2027",dur:"1 day",
+eyebrow:"The date",title:"Monday 18 January 2027",
+html:`
+<span class="datestrip">Paid launch · not public launch</span>
+<h3>What "launched" means on this date</h3>
+<table>
+<tr><th>True on 18 Jan</th><th>Not yet true</th></tr>
+<tr><td>10–15 UK practices are paying</td><td>Anyone can sign up unassisted</td></tr>
+<tr><td>Anyone with the link can subscribe</td><td>There's been an announcement</td></tr>
+<tr><td>The website says "for architects"</td><td>You're posting on Reddit or LinkedIn about it</td></tr>
+<tr><td>Real proposals have gone to real clients</td><td>Onboarding works without you on the call</td></tr>
+</table>
+
+<h3>The checklist for the morning</h3>
+<div id="s14">
+<div class="step"><input type="checkbox" class="chk"><div class="n">1</div><div class="txt"><p><strong>Someone who isn't you</strong> can go from the homepage to a paid subscription without your help. Test it that morning.</p></div></div>
+<div class="step"><input type="checkbox" class="chk"><div class="n">2</div><div class="txt"><p><strong>Three-account security test passes.</strong> Re-run it. Yes, again.</p></div></div>
+<div class="step"><input type="checkbox" class="chk"><div class="n">3</div><div class="txt"><p><strong>A generation works end to end</strong> on the live site, not just locally.</p></div></div>
+<div class="step"><input type="checkbox" class="chk"><div class="n">4</div><div class="txt"><p><strong>The billing alert on Anthropic is set</strong> and you know what a normal day's spend looks like.</p></div></div>
+<div class="step"><input type="checkbox" class="chk"><div class="n">5</div><div class="txt"><p><strong>You have a way to hear about problems</strong> — a support email that reaches your phone.</p></div></div>
+</div>
+
+<h3>What to measure from day one</h3>
+<table>
+<tr><th>Number</th><th>Target</th><th>If it's below</th></tr>
+<tr><td><strong>Activation</strong> — % who send a real proposal to a real client within 14 days</td><td>50%</td><td>Below 30%: stop selling, fix the product</td></tr>
+<tr><td>Proposals per firm per month</td><td>4+ by month 3</td><td>Below 2: they're not habituating</td></tr>
+<tr><td>Knowledge completion — 5+ projects, full scope set</td><td>70%</td><td>Onboarding is too hard</td></tr>
+<tr><td>Trial → paid</td><td>30%+</td><td>Wrong price or wrong customer</td></tr>
+</table>
+
+<div class="box"><div class="lbl">Don't announce yet</div>
+<p>Sit with ten paying firms for six to eight weeks. Fix what they find. Collect one story of a practice winning a job with it. <strong>That story is worth more than any launch post</strong>, and architecture is a referral profession — one good case study travels further than a hundred impressions.</p></div>`},
+
+/* ================= B-15 ================= */
+{no:"B-15",grp:"Launch",nav:"After January",dates:"Feb – Dec 2027",phase:"Post-launch",when:"Feb – Dec 2027",dur:"11 months",
+eyebrow:"The rest of 2027",title:"After January",
+html:`
+<h3>February — pay back the debt</h3>
+<p>Everything you cut to hit January, in the order it hurts most: <strong>versioning</strong> (proposal v2 after a renegotiation), <strong>the remaining fee bases</strong> (percentage, time charge with cap, hybrid), and <strong>approvals</strong> if any partner has more than five people.</p>
+<p>Also: whatever your ten firms have been complaining about for six weeks. That list beats this one.</p>
+
+<h3>March — the second wave of capability</h3>
+<p><strong>AI extraction</strong> — paste an enquiry email, get a filled-in project record. Removes the blank-form problem, which is the biggest activation barrier once you stop doing setup calls yourself.</p>
+<p><strong>Insights</strong> — win rate by sector, by project type, by build cost band. No practice can currently answer "what's our win rate on residential extensions over £500k?" You'll be the only one who can tell them. This works only because you stored fees as real data in Sprint 3.</p>
+
+<h3>April — public launch</h3>
+<p>Website, Reddit, Indie Hackers, LinkedIn, the case study from your best design partner. By now onboarding works without you on the call, the product has survived three months of real use, and you have proof.</p>
+<p>Also ship <strong>Architecture Proposal Intelligence</strong> — the eight-dimension scoring that replaces your six freelancer dimensions. The part nobody can copy is that several dimensions check against the firm's own history: <em>"You've quoted £48k for a £600k residential new-build. Your last four averaged £71k."</em> That's a fact, not an AI opinion.</p>
+
+<h3>May–July — integrations, in this order</h3>
+<ol>
+<li><strong>E-signature</strong> (Dropbox Sign or DocuSign). The appointment contract needs a real signature. Integrate; don't build.</li>
+<li><strong>Dropbox / Google Drive / OneDrive.</strong> Project photos already live there.</li>
+<li><strong>Monograph.</strong> Won proposal → project budget with stage allocations. Turns your closest threat into a partner.</li>
+</ol>
+<p><strong>Deliberately not building:</strong> CRM integrations (most small practices don't run one), Revit or Archicad (no data a fee proposal needs), Slack and Teams (nice, not needed).</p>
+
+<h3>Rest of 2027 — the compounding thing</h3>
+<p>Anonymised fee benchmarking across your customers. <em>"Practices your size charge 8–11% for this project type."</em> Needs around 100 firms and explicit opt-in consent from every one.</p>
+<p>Nobody else can build this, because nobody else is standing at the moment the fee is set. <strong>Your data model already supports it</strong> — that's why Sprint 3 insisted on storing fees as proper columns.</p>
+
+<h3>Where you should be</h3>
+<div class="scroll-x"><table>
+<tr><th>Month</th><th>Paying firms</th><th>Monthly revenue</th></tr>
+<tr><td>Jan 2027 (launch)</td><td>10–15 (at 50% off)</td><td>£500–900</td></tr>
+<tr><td>Apr 2027 (public)</td><td>25–35</td><td>£2,000–3,000</td></tr>
+<tr><td>Aug 2027</td><td>50–65</td><td>£5,000–6,500</td></tr>
+<tr><td>Dec 2027</td><td>80–110</td><td>£8,000–11,000</td></tr>
+</table></div>
+<p>That reaches your "modest freedom" target around <strong>April–May 2027</strong> and "comfortable" by the end of that year — roughly a year ahead of the trajectory in your original 2026–2028 roadmap, with fewer, stickier customers.</p>`},
+
+/* ================= B-16 ================= */
+{no:"B-16",grp:"Tools",nav:"Interview script",dates:"17 Aug – 4 Sep",phase:"—",when:"Sprint 0",dur:"45 min per call",
+eyebrow:"Tool",title:"The interview script",
+html:`
+<p class="lede">Forty-five minutes. Your job is to listen. If you're talking more than a quarter of the time, you're doing it wrong.</p>
+<div class="box"><div class="lbl">Opening — say this almost word for word</div>
+<p>"Thanks for the time. I'm researching how small practices put fee proposals together. I'm not selling anything today — I'll share a summary of what all twenty practices say, which I think you'll find useful. Mind if I record it so I'm not scribbling?"</p></div>
+
+<h3>The questions, in order</h3>
+<h4>1. Walk me through the last fee proposal you sent.</h4>
+<p>Then shut up. Your most valuable question. Listen for: how long it took, what they copied from, who did it, where they got frustrated.</p>
+<h4>2. Can you show it to me?</h4>
+<p>Ask for the actual document. Promise confidentiality, structure only. <strong>Collecting 15 of these is the single most valuable outcome of the whole three weeks.</strong></p>
+<h4>3. How did you arrive at the number?</h4>
+<p>Your key test. RIBA recommends the resource-based method — hours by grade by stage. Do they actually do that, or guess and check against a percentage? Either answer is fine. You need to know which.</p>
+<h4>4. What did the client push back on?</h4>
+<p>Listen for whether they cut the fee or the scope. Almost everyone cuts the fee — a margin problem your product could help with.</p>
+<h4>5. What would have to be true for you to stop using Word or InDesign?</h4>
+<p>Surfaces the real objection. Usually control over how it looks. Take it seriously — it's why Sprint 5 matters so much.</p>
+<h4>6. If a tool did these three things, what would you expect to pay?</h4>
+<p>Describe: RIBA-stage scope and fees, your firm's projects and standard wording stored and reused, a live link the client opens. Then be quiet and let them name a number first. Afterwards test £49 / £119 / £249 and watch which makes them wince.</p>
+<h4>7. What do you use today for time, projects and invoicing?</h4>
+<p>Tells you how many are on Monograph, which sizes the integration case later.</p>
+<h4>8. Who else should I speak to?</h4>
+<p>Always ask. Architecture is a referral profession — this is how 8 interviews becomes 20.</p>
+
+<div class="box warn"><div class="lbl">Three traps</div>
+<ul>
+<li><strong>Don't pitch.</strong> The moment you do, they become polite, and polite data is useless.</li>
+<li><strong>Don't ask "would you use this?"</strong> Everyone says yes. Ask what they do today and what it costs them.</li>
+<li><strong>Don't fill silences.</strong> The three seconds after they finish is where the real answer lives.</li>
+</ul></div>
+
+<h3>After each call, write three things immediately</h3>
+<ol><li>One thing that surprised me</li><li>One thing that contradicted my assumptions</li><li>The exact words they used for the pain <em>(this becomes your website copy in December)</em></li></ol>`},
+
+/* ================= B-17 ================= */
+{no:"B-17",grp:"Tools",nav:"The 10 decisions",dates:"Before 7 Sep",phase:"—",when:"Before Sprint 1",dur:"1 hour",
+eyebrow:"Commitments",title:"Ten decisions to make before Sprint 1",
+html:`
+<span class="datestrip">Decide by Fri 4 Sep, alongside the go/no-go</span>
+<p class="lede">Write your answer to each of these down somewhere you'll see it again. Half the value is having decided; the other half is being able to point at the decision when you're tempted to drift in November.</p>
+<div class="scroll-x"><table>
+<tr><th>#</th><th>Decision</th><th>My recommendation</th></tr>
+<tr><td>1</td><td>Pivot or second product?</td><td><strong>Pivot fully.</strong> One person cannot serve two customer types in 22 weeks. Tell your existing beta users honestly in December.</td></tr>
+<tr><td>2</td><td>UK-only, RIBA-native?</td><td><strong>Yes.</strong> It caps the market and it's your moat.</td></tr>
+<tr><td>3</td><td>Where does the product stop?</td><td><strong>At appointment.</strong> Write it down. Settles every future scope argument.</td></tr>
+<tr><td>4</td><td>Resource-based or percentage fees?</td><td><strong>Resource-based</strong>, percentage as a cross-check. Signals domain fluency more than anything else.</td></tr>
+<tr><td>5</td><td>What size practice?</td><td><strong>2–15 staff.</strong> Smaller churns; bigger needs sales you can't run alone.</td></tr>
+<tr><td>6</td><td>Per-seat or flat pricing?</td><td><strong>Flat, with seat allowances.</strong> Marketable against Monograph; doesn't punish collaboration.</td></tr>
+<tr><td>7</td><td>Free tier or trial?</td><td><strong>Trial only.</strong> 14 days, full features, with a setup call.</td></tr>
+<tr><td>8</td><td>Monograph — competitor or partner?</td><td><strong>Partner.</strong> Build the integration in summer. Position against Word.</td></tr>
+<tr><td>9</td><td>Hire a designer for Sprint 5?</td><td><strong>Probably yes.</strong> Two weeks is compressed and your customers design buildings.</td></tr>
+<tr><td>10</td><td>What does "launch" mean?</td><td><strong>Paid launch 18 Jan, public launch April.</strong> Decide this now so you're not renegotiating it with yourself in December.</td></tr>
+</table></div>`},
+
+/* ================= B-18 ================= */
+{no:"B-18",grp:"Tools",nav:"The money page",dates:"Reference",phase:"—",when:"Reference",dur:"5 min",
+eyebrow:"Reference",title:"The money page",
+html:`
+<h3>What you need</h3>
+<p>Your existing roadmap targets around £3,000/month to support the move to Saint Lucia, and £6,000–8,000 for comfort.</p>
+<div class="scroll-x"><table>
+<tr><th>Paying firms</th><th>Average price</th><th>Monthly</th><th>Roughly when</th></tr>
+<tr><td>10–15</td><td>£60 <em>(50% partner discount)</em></td><td>£700</td><td>Jan 2027</td></tr>
+<tr><td>30</td><td>£100</td><td>£3,000</td><td><strong>Apr–May 2027 — your stated goal</strong></td></tr>
+<tr><td>70</td><td>£110</td><td>£7,700</td><td>Sep–Oct 2027</td></tr>
+<tr><td>150</td><td>£125</td><td>£18,750</td><td>2028</td></tr>
+</table></div>
+
+<div class="box ok"><div class="lbl">Why this is an easier business than the freelancer one</div>
+<p>The old plan needed <strong>100–150 freelancers at £30–50</strong> to hit £3,000–5,000. This needs <strong>30 firms at £100.</strong> Fewer customers, higher value each, and firms churn far less. Materially easier to run alone from a different time zone.</p></div>
+
+<h3>The size of the pond</h3>
+<ul>
+<li>Roughly <strong>4,000–4,100 RIBA Chartered Practices</strong> in the UK, ~<strong>£5bn</strong> revenue between them.</li>
+<li>Maybe <strong>2,500</strong> sit in your 2–20 staff band.</li>
+<li>At £119/month across all 2,500, the whole UK market is about <strong>£3.5m a year.</strong></li>
+<li>Realistically 3–8% over four years: <strong>£100k–£280k a year.</strong></li>
+</ul>
+<div class="box warn"><div class="lbl">The honest ceiling</div>
+<p>This clears your personal goal comfortably. It is <strong>not</strong> a venture-scale business on the UK alone. More than that means Ireland, then Australia and New Zealand (similar stage frameworks), then the US with its AIA phases. That's a 2028 conversation.</p></div>
+
+<h3>What it costs to run</h3>
+<table>
+<tr><th>Cost</th><th>Monthly</th><th>Note</th></tr>
+<tr><td>Anthropic (AI)</td><td>£3–8 per active firm</td><td>Generation costs more now. Set the billing alert in August.</td></tr>
+<tr><td>Supabase</td><td>£20–100</td><td>Rises with image storage. Architecture photos are large.</td></tr>
+<tr><td>Vercel</td><td>£15–40</td><td></td></tr>
+<tr><td>Clerk</td><td>£20–80</td><td>Scales with users, and firms have several each.</td></tr>
+<tr><td>Stripe</td><td>~1.5% + 20p</td><td>Per transaction.</td></tr>
+<tr><td><em>Designer for Sprint 5</em></td><td><em>£2,000–4,000 one-off</em></td><td><em>Optional. Probably the best money you'll spend.</em></td></tr>
+</table>
+<p>At 70 firms your costs are roughly £700–1,200/month against £7,700 revenue. Healthy.</p>`},
+
+/* ================= B-19 ================= */
+{no:"B-19",grp:"Tools",nav:"Do this on Monday",dates:"Mon 17 Aug",phase:"—",when:"Tomorrow",dur:"1 day",
+eyebrow:"Start here",title:"Do this on Monday",
+html:`
+<span class="datestrip">Monday 17 August 2026 · day 1 of 154</span>
+<p class="lede">Five things. None of them involves writing architecture code, and one of them has a lead time you can't afford to discover in December.</p>
+
+<div id="s19">
+<div class="step"><input type="checkbox" class="chk"><div class="n">1</div><div class="txt">
+<p><strong>Open a Stripe account.</strong> Do this first, before anything else, because verification can take days and every revenue number in this plan depends on it. You won't use it until December, but discovering a verification problem in December would be a disaster.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">2</div><div class="txt">
+<p><strong>Set a billing alert on your Anthropic account.</strong> Two minutes. Generation broke once before because a key went bad and it took eighteen days to notice. You cannot afford that in the run-up to January.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">3</div><div class="txt">
+<p><strong>Build the 60-practice list.</strong> <code>find-an-architect.architecture.com</code>, filter by region, check each website's team page for size. Spreadsheet: name, city, size, website, director, route in.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">4</div><div class="txt">
+<p><strong>Read sheet B-02 properly.</strong> Twenty minutes on the RIBA Plan of Work and the fee vocabulary. Your first call is a week on Monday and getting a term wrong will cost you.</p></div></div>
+
+<div class="step"><input type="checkbox" class="chk"><div class="n">5</div><div class="txt">
+<p><strong>Put a recurring 20-minute Friday slot in your calendar</strong> called "Sprint check." Every Friday until 18 January. Sheet B-01 has the three questions.</p></div></div>
+</div>
+
+<div class="box stop"><div class="lbl">The two things most likely to go wrong</div>
+<ol>
+<li><strong>You skip the interviews to protect the date.</strong> Building for 19 weeks on an unvalidated premise is how you lose five months instead of three weeks. The gate is Friday 4 September and it's binding.</li>
+<li><strong>You let Sprint 3 slip and hope to catch up.</strong> If the fee engine isn't working on Friday 13 November, move to 1 March and say so that day. Silent slippage is how a January launch becomes an exhausted, half-finished February one.</li>
+</ol></div>
+
+<div class="box ok"><div class="lbl">And the honest encouragement</div>
+<p>Twenty-two weeks is tight but it isn't fantasy. The hard parts — auth, database, security, AI plumbing, the renderer — are already built and working. You're changing the shape of the thing, not starting over. The gap is real, the timing is right, and the boring items (interviews, billing) are the ones that decide it.</p></div>`}
+
+];
+
+/* ============================ RENDER ============================ */
+const stage=document.getElementById('stage'),navlist=document.getElementById('navlist');
+let cur=0,groups=[];
+
+const launch=new Date(2027,0,18);
+const wk=Math.ceil((launch-new Date())/6048e5);
+document.getElementById('cd').textContent=wk>0?wk:'—';
+
+SHEETS.forEach((s,i)=>{
+  if(!groups.includes(s.grp)){groups.push(s.grp);
+    const g=document.createElement('div');g.className='grp';g.textContent=s.grp;navlist.appendChild(g);}
+  const b=document.createElement('button');b.className='nav-i';b.dataset.i=i;
+  b.innerHTML=`<span class="no">${s.no}</span><span>${s.nav}<span class="dt">${s.dates}</span></span>`;
+  b.onclick=()=>go(i);navlist.appendChild(b);
+
+  const sh=document.createElement('section');sh.className='sheet';sh.id='sh'+i;
+  sh.innerHTML=`<div class="sheet-body"><p class="eyebrow">${s.eyebrow}</p><h2>${s.title}</h2><div class="rule"></div>${s.html}</div>
+  <div class="tblock">
+    <div class="tb"><div class="k">Sheet</div><div class="v">${s.no}</div></div>
+    <div class="tb"><div class="k">Dates</div><div class="v">${s.when}</div></div>
+    <div class="tb"><div class="k">Sprint</div><div class="v">${s.phase}</div></div>
+    <div class="tb"><div class="k">Duration</div><div class="v">${s.dur}</div></div>
+    <div class="tb"><div class="k">Steps done</div><div class="v" id="pc${i}">—</div><div class="bar"><i id="pb${i}"></i></div></div>
+  </div>
+  <div class="pager"><button class="pg" id="prev${i}"></button><button class="pg" id="next${i}" style="text-align:right"></button></div>`;
+  stage.appendChild(sh);
+});
+
+SHEETS.forEach((s,i)=>{
+  const p=document.getElementById('prev'+i),n=document.getElementById('next'+i);
+  if(i>0){p.innerHTML=`<small>← ${SHEETS[i-1].no}</small>${SHEETS[i-1].nav}`;p.onclick=()=>go(i-1);}else p.style.visibility='hidden';
+  if(i<SHEETS.length-1){n.innerHTML=`<small>${SHEETS[i+1].no} →</small>${SHEETS[i+1].nav}`;n.onclick=()=>go(i+1);}else n.style.visibility='hidden';
+});
+
+function go(i){cur=i;
+  document.querySelectorAll('.sheet').forEach((e,j)=>e.classList.toggle('on',j===i));
+  document.querySelectorAll('.nav-i').forEach(e=>e.classList.toggle('on',+e.dataset.i===i));
+  document.getElementById('idx').classList.remove('open');
+  window.scrollTo({top:0,behavior:'instant'});}
+
+document.addEventListener('click',e=>{const t=e.target.closest('.term');
+  if(t){const d=document.getElementById(t.dataset.d);if(d)d.classList.toggle('on');}});
+
+function key(i,j){return 'tvxB:'+SHEETS[i].no+':'+j;}
+function prog(i){const b=document.querySelectorAll('#sh'+i+' .chk'),pc=document.getElementById('pc'+i),pb=document.getElementById('pb'+i);
+  if(!b.length){pc.textContent='n/a';pb.parentElement.style.display='none';return;}
+  const d=[...b].filter(x=>x.checked).length;pc.textContent=d+' / '+b.length;pb.style.width=(d/b.length*100)+'%';}
+async function save(k,v){try{if(window.storage)await window.storage.set(k,v?'1':'0');}catch(e){}}
+SHEETS.forEach((s,i)=>{document.querySelectorAll('#sh'+i+' .chk').forEach((b,j)=>{
+  b.addEventListener('change',()=>{b.closest('.step').classList.toggle('done',b.checked);save(key(i,j),b.checked);prog(i);});});prog(i);});
+(async()=>{for(let i=0;i<SHEETS.length;i++){const b=document.querySelectorAll('#sh'+i+' .chk');
+  for(let j=0;j<b.length;j++){try{if(!window.storage)continue;const r=await window.storage.get(key(i,j));
+    if(r&&r.value==='1'){b[j].checked=true;b[j].closest('.step').classList.add('done');}}catch(e){}}prog(i);}})();
+
+go(0);
+document.getElementById('mb').onclick=()=>document.getElementById('idx').classList.toggle('open');
+document.addEventListener('keydown',e=>{if(e.target.matches('input,textarea'))return;
+  if(e.key==='ArrowRight'&&cur<SHEETS.length-1)go(cur+1);if(e.key==='ArrowLeft'&&cur>0)go(cur-1);});
+</script>

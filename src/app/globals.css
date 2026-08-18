@@ -16,6 +16,10 @@
   --tv-shadow: 0 24px 50px -28px rgba(0,0,0,.12);
   --tv-row-hover: rgba(19,37,67,.04);
   --tv-panel-accent: rgba(19,37,67,.05);
+  --tv-gold: #DCAA33;
+  --tv-gold-bright: #F2C84E;
+  --tv-success: #5FD08A;
+  --tv-warning: #F2A93B;
 }
 
 .dark {
@@ -35,6 +39,10 @@
   --tv-shadow: 0 24px 50px -28px rgba(0,0,0,.7);
   --tv-row-hover: rgba(250,242,232,.04);
   --tv-panel-accent: rgba(250,242,232,.05);
+  --tv-gold: #DCAA33;
+  --tv-gold-bright: #F2C84E;
+  --tv-success: #5FD08A;
+  --tv-warning: #F2A93B;
 }
 @tailwind base;
 @tailwind components;

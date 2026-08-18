@@ -1,0 +1,55 @@
+:root{
+  /* Navy scale — darkest to lightest */
+  --navy-900:#0A1322;
+  --navy-850:#0C1A2E;
+  --navy-800:#0F1F3D;
+  --navy-700:#132543;
+
+  /* Gold accent */
+  --gold:#DCAA33;
+  --gold-bright:#F2C84E;
+
+  /* Off-white */
+  --cream:#FAF2E8;
+  --cream-dim:rgba(250,242,232,.62);
+  --cream-faint:rgba(250,242,232,.38);
+
+  /* Status (functional only) */
+  --success:#5FD08A;
+  --warning:#F2A93B;
+  --error:#F2635C;
+  --info:#3DB9C9;
+
+  /* Semantic — light mode */
+  --surface-page:#F5F0E8;
+  --surface-sidebar:#0C1A2E;
+  --surface-panel:rgba(255,255,255,.9);
+  --surface-panel-accent:rgba(19,37,67,.05);
+  --surface-topbar:#F5F0E8;
+  --border:rgba(19,37,67,.12);
+  --border-soft:rgba(19,37,67,.08);
+  --text:#132543;
+  --text-dim:rgba(19,37,67,.62);
+  --text-faint:rgba(19,37,67,.38);
+  --row-hover:rgba(19,37,67,.04);
+  --shadow-panel:0 24px 50px -28px rgba(0,0,0,.12);
+
+  /* Sidebar — fixed navy regardless of theme */
+  --sidebar-text:rgba(250,242,232,.62);
+  --sidebar-text-faint:rgba(250,242,232,.38);
+  --sidebar-border:rgba(250,242,232,.07);
+  --sidebar-hover:rgba(250,242,232,.06);
+}
+.dark{
+  --surface-page:#0A1322;
+  --surface-panel:rgba(27,49,87,.45);
+  --surface-panel-accent:rgba(250,242,232,.05);
+  --surface-topbar:#0A1322;
+  --border:rgba(250,242,232,.09);
+  --border-soft:rgba(250,242,232,.07);
+  --text:#FAF2E8;
+  --text-dim:rgba(250,242,232,.62);
+  --text-faint:rgba(250,242,232,.38);
+  --row-hover:rgba(250,242,232,.04);
+  --shadow-panel:0 24px 50px -28px rgba(0,0,0,.7);
+}
