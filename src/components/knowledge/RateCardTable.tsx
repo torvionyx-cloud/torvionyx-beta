@@ -3,10 +3,16 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import type { RateCard } from "@/types/database";
 
 interface Props {
-  initialRates: RateCard[];
+  // Owned by KnowledgeTabs, not forked into local state here — this panel
+  // stays mounted across tab switches (see KnowledgeTabs), so a local
+  // useState(initialRates) would only ever reflect the page's original
+  // server-render snapshot, not anything added/edited/deleted since.
+  rates: RateCard[];
+  setRates: Dispatch<SetStateAction<RateCard[]>>;
 }
 
 interface Draft {
@@ -33,8 +39,7 @@ const inputStyle = {
   outline: "none",
 } as const;
 
-export function RateCardTable({ initialRates }: Props) {
-  const [rows, setRows] = useState<RateCard[]>(initialRates);
+export function RateCardTable({ rates: rows, setRates: setRows }: Props) {
   const [editingId, setEditingId] = useState<string | "new" | null>(null);
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [saving, setSaving] = useState(false);

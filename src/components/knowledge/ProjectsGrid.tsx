@@ -3,11 +3,17 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import type { Dispatch, SetStateAction } from "react";
 import type { Project } from "@/types/database";
 import { ProjectPanel } from "@/components/knowledge/ProjectPanel";
 
 interface Props {
-  initialProjects: Project[];
+  // Owned by KnowledgeTabs, not forked into local state here — this panel
+  // stays mounted across tab switches (see KnowledgeTabs), so a local
+  // useState(initialProjects) would only ever reflect the page's original
+  // server-render snapshot, not anything added/edited/deleted since.
+  projects: Project[];
+  setProjects: Dispatch<SetStateAction<Project[]>>;
 }
 
 function formatCurrency(value: number | null): string | null {
@@ -17,8 +23,7 @@ function formatCurrency(value: number | null): string | null {
   }).format(value);
 }
 
-export function ProjectsGrid({ initialProjects }: Props) {
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
+export function ProjectsGrid({ projects, setProjects }: Props) {
   // null = closed, "new" = add mode, a Project = edit mode
   const [panelTarget, setPanelTarget] = useState<Project | "new" | null>(null);
 

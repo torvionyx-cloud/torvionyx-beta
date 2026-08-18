@@ -23,6 +23,21 @@ const TABS: { id: Tab; label: string }[] = [
 
 export function KnowledgeTabs({ initialTab, initialProjects, initialRates }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>(initialTab);
+
+  // Lists live here, one level above both panels, and are seeded from the
+  // server only once (on this component's own initial mount). Previously
+  // ProjectsGrid/RateCardTable each forked their own useState(initialX) —
+  // harmless as long as they never unmounted, but the tab ternary below
+  // used to unmount whichever panel wasn't active, so switching back to it
+  // re-seeded from that original snapshot and silently dropped anything
+  // added/edited since (the row was always still in the DB — see the
+  // Supabase check from the bug report). Lifting the arrays here, plus
+  // keeping both panels permanently mounted below, removes the remount
+  // entirely: there's exactly one array per list, and it's only ever
+  // mutated in place by each panel's save/delete handlers.
+  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const [rates, setRates] = useState<RateCard[]>(initialRates);
+
   const router = useRouter();
 
   const selectTab = useCallback((tab: Tab) => {
@@ -30,7 +45,10 @@ export function KnowledgeTabs({ initialTab, initialProjects, initialRates }: Pro
     // Keep the URL in sync so the Rate card tab stays a real, shareable/
     // refreshable link (old /dashboard/knowledge/rates redirects here with
     // ?tab=rates) — router.replace, not push, so tab-switching doesn't
-    // pollute back-button history.
+    // pollute back-button history. Any fresh server data this triggers is
+    // harmless to ignore: projects/rates above are only seeded once, so a
+    // resulting prop update to initialProjects/initialRates never overwrites
+    // the live client-side lists.
     router.replace(tab === "projects" ? "/dashboard/knowledge" : "/dashboard/knowledge?tab=rates", { scroll: false });
   }, [router]);
 
@@ -66,11 +84,15 @@ export function KnowledgeTabs({ initialTab, initialProjects, initialRates }: Pro
         })}
       </div>
 
-      {activeTab === "projects" ? (
-        <ProjectsGrid initialProjects={initialProjects} />
-      ) : (
-        <RateCardTable initialRates={initialRates} />
-      )}
+      {/* Both panels stay mounted at all times — the inactive one is just
+          display:none, never unmounted — so neither ever re-seeds its list
+          from a stale snapshot on switch. */}
+      <div style={{ display: activeTab === "projects" ? "block" : "none" }}>
+        <ProjectsGrid projects={projects} setProjects={setProjects} />
+      </div>
+      <div style={{ display: activeTab === "rates" ? "block" : "none" }}>
+        <RateCardTable rates={rates} setRates={setRates} />
+      </div>
     </div>
   );
 }
