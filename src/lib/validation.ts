@@ -150,6 +150,36 @@ export const scopeLibraryCellQuerySchema = z.object({
 export type ScopeLibraryCellInput = z.infer<typeof scopeLibraryCellQuerySchema>;
 
 // ---------------------------------------------------------------------------
+// Fee resourcing templates (Knowledge section) — reusable resourcing lines
+// keyed by RIBA stage + project type + grade, each holding an hours value.
+// Multiple lines can share a (riba_stage, project_type) "cell" — one per
+// grade — pulled into the fee engine (Phase 2+) alongside rate_card to
+// compute a fee subtotal. project_type reuses PROJECT_TYPES like
+// scope_library; grade is free text, same reasoning as rate_card.grade — it
+// must match whatever grades the founder has defined there, which can
+// change independently and isn't a fixed enum.
+// ---------------------------------------------------------------------------
+
+export const feeResourcingTemplateSchema = z.object({
+  riba_stage: z.number().int().min(0).max(7),
+  project_type: z.enum(PROJECT_TYPES),
+  grade: z.string().min(1).max(100).trim(),
+  hours: z.number().min(0).max(9999.99),
+});
+
+export type FeeResourcingTemplateInput = z.infer<typeof feeResourcingTemplateSchema>;
+
+// Identifies a single line for DELETE, where riba_stage arrives as a query
+// string and needs coercing to a number rather than parsed from JSON.
+export const feeResourcingTemplateCellQuerySchema = z.object({
+  riba_stage: z.coerce.number().int().min(0).max(7),
+  project_type: z.enum(PROJECT_TYPES),
+  grade: z.string().min(1).max(100).trim(),
+});
+
+export type FeeResourcingTemplateCellInput = z.infer<typeof feeResourcingTemplateCellQuerySchema>;
+
+// ---------------------------------------------------------------------------
 // Proposal generation intake
 // ---------------------------------------------------------------------------
 

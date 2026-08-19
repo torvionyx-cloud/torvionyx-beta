@@ -4,27 +4,30 @@
 
 import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Project, RateCard, ScopeLibraryRow } from "@/types/database";
+import type { FeeResourcingTemplateRow, Project, RateCard, ScopeLibraryRow } from "@/types/database";
 import { ProjectsGrid } from "@/components/knowledge/ProjectsGrid";
 import { RateCardTable } from "@/components/knowledge/RateCardTable";
 import { ScopeLibraryAccordion } from "@/components/knowledge/ScopeLibraryAccordion";
+import { FeeTemplatesAccordion } from "@/components/knowledge/FeeTemplatesAccordion";
 
-type Tab = "projects" | "rates" | "scope";
+type Tab = "projects" | "rates" | "scope" | "templates";
 
 interface Props {
   initialTab: Tab;
   initialProjects: Project[];
   initialRates: RateCard[];
   initialScope: ScopeLibraryRow[];
+  initialFeeTemplates: FeeResourcingTemplateRow[];
 }
 
 const TABS: { id: Tab; label: string }[] = [
   { id: "projects", label: "Projects" },
   { id: "rates", label: "Rate card" },
   { id: "scope", label: "Scope Library" },
+  { id: "templates", label: "Fee Templates" },
 ];
 
-export function KnowledgeTabs({ initialTab, initialProjects, initialRates, initialScope }: Props) {
+export function KnowledgeTabs({ initialTab, initialProjects, initialRates, initialScope, initialFeeTemplates }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>(initialTab);
 
   // Lists live here, one level above both panels, and are seeded from the
@@ -41,6 +44,7 @@ export function KnowledgeTabs({ initialTab, initialProjects, initialRates, initi
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [rates, setRates] = useState<RateCard[]>(initialRates);
   const [scope, setScope] = useState<ScopeLibraryRow[]>(initialScope);
+  const [feeTemplates, setFeeTemplates] = useState<FeeResourcingTemplateRow[]>(initialFeeTemplates);
 
   const router = useRouter();
 
@@ -56,7 +60,8 @@ export function KnowledgeTabs({ initialTab, initialProjects, initialRates, initi
     const path =
       tab === "projects" ? "/dashboard/knowledge"
       : tab === "rates" ? "/dashboard/knowledge?tab=rates"
-      : "/dashboard/knowledge?tab=scope";
+      : tab === "scope" ? "/dashboard/knowledge?tab=scope"
+      : "/dashboard/knowledge?tab=templates";
     router.replace(path, { scroll: false });
   }, [router]);
 
@@ -92,7 +97,7 @@ export function KnowledgeTabs({ initialTab, initialProjects, initialRates, initi
         })}
       </div>
 
-      {/* All three panels stay mounted at all times — the inactive ones are
+      {/* All four panels stay mounted at all times — the inactive ones are
           just display:none, never unmounted — so none of them ever re-seeds
           its list from a stale snapshot on switch. */}
       <div style={{ display: activeTab === "projects" ? "block" : "none" }}>
@@ -103,6 +108,13 @@ export function KnowledgeTabs({ initialTab, initialProjects, initialRates, initi
       </div>
       <div style={{ display: activeTab === "scope" ? "block" : "none" }}>
         <ScopeLibraryAccordion rows={scope} setRows={setScope} />
+      </div>
+      <div style={{ display: activeTab === "templates" ? "block" : "none" }}>
+        {/* rates is passed straight through from this component's own state
+            (already loaded for the Rate Card tab) so the subtotal lookup
+            never needs its own fetch — see FeeTemplateCell's use of
+            getCurrentRate(). */}
+        <FeeTemplatesAccordion rows={feeTemplates} setRows={setFeeTemplates} rates={rates} />
       </div>
     </div>
   );

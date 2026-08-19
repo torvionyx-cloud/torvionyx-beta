@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import { getWorkspaceId } from "@/lib/workspace";
 import { createAdminClient } from "@/lib/supabase";
 import { KnowledgeTabs } from "@/components/knowledge/KnowledgeTabs";
-import type { Project, RateCard, ScopeLibraryRow } from "@/types/database";
+import type { FeeResourcingTemplateRow, Project, RateCard, ScopeLibraryRow } from "@/types/database";
 
 export default async function KnowledgePage({
   searchParams,
@@ -33,11 +33,11 @@ export default async function KnowledgePage({
 
   const supabase = createAdminClient();
 
-  // All three tabs' data is fetched up front — a founder's portfolio, rate
-  // card, and scope library are all small lists, and this keeps tab
-  // switching instant with no client-side fetch/RLS round trip.
+  // All four tabs' data is fetched up front — a founder's portfolio, rate
+  // card, scope library, and fee templates are all small lists, and this
+  // keeps tab switching instant with no client-side fetch/RLS round trip.
   const queryStart = Date.now();
-  const [projectsResult, ratesResult, scopeResult] = await Promise.all([
+  const [projectsResult, ratesResult, scopeResult, feeTemplatesResult] = await Promise.all([
     supabase
       .from("projects")
       .select("id, workspace_id, name, sector, project_type, location, construction_value, year_completed, riba_stages_delivered, description, outcome, created_at, updated_at")
@@ -51,6 +51,11 @@ export default async function KnowledgePage({
     supabase
       .from("scope_library")
       .select("id, workspace_id, riba_stage, project_type, scope_text, created_at, updated_at")
+      .eq("workspace_id", workspaceId)
+      .order("riba_stage", { ascending: true }),
+    supabase
+      .from("fee_resourcing_templates")
+      .select("id, workspace_id, riba_stage, project_type, grade, hours, created_at, updated_at")
       .eq("workspace_id", workspaceId)
       .order("riba_stage", { ascending: true }),
   ]);
@@ -68,13 +73,19 @@ export default async function KnowledgePage({
     console.error("[knowledge page] scope query failed:", scopeResult.error);
     throw new Error("Failed to load scope library");
   }
+  if (feeTemplatesResult.error) {
+    console.error("[knowledge page] fee templates query failed:", feeTemplatesResult.error);
+    throw new Error("Failed to load fee resourcing templates");
+  }
 
   const projects = (projectsResult.data ?? []) as Project[];
   const rates = (ratesResult.data ?? []) as RateCard[];
   const scope = (scopeResult.data ?? []) as ScopeLibraryRow[];
+  const feeTemplates = (feeTemplatesResult.data ?? []) as FeeResourcingTemplateRow[];
   const initialTab =
     searchParams?.tab === "rates" ? "rates"
     : searchParams?.tab === "scope" ? "scope"
+    : searchParams?.tab === "templates" ? "templates"
     : "projects";
 
   return (
@@ -98,6 +109,7 @@ export default async function KnowledgePage({
         initialProjects={projects}
         initialRates={rates}
         initialScope={scope}
+        initialFeeTemplates={feeTemplates}
       />
     </div>
   );
