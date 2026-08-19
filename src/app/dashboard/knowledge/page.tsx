@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 import { auth } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { getWorkspaceId } from "@/lib/workspace";
-import { createServerClient } from "@/lib/supabase";
+import { createAdminClient } from "@/lib/supabase";
 import { KnowledgeTabs } from "@/components/knowledge/KnowledgeTabs";
 import type { Project, RateCard, ScopeLibraryRow } from "@/types/database";
 
@@ -31,7 +31,7 @@ export default async function KnowledgePage({
   const workspaceId = await getWorkspaceId(userId);
   console.log(`[knowledge page] getWorkspaceId() resolved in ${Date.now() - workspaceStart}ms`);
 
-  const supabase = createServerClient();
+  const supabase = createAdminClient();
 
   // All three tabs' data is fetched up front — a founder's portfolio, rate
   // card, and scope library are all small lists, and this keeps tab
