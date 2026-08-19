@@ -14,15 +14,29 @@ export default async function KnowledgePage({
 }: {
   searchParams: { tab?: string };
 }) {
+  // Timing instrumentation — added while chasing an intermittent ~288s
+  // 500 on first load after a dev-server restart/cold start (fast on
+  // refresh). Nothing in this request path (auth(), getWorkspaceId(), or
+  // the Supabase queries below) has an explicit timeout, so if any one of
+  // them stalls, nothing here bounds it — nothing was logged the first two
+  // times it happened, so these markers exist to catch the next one with
+  // real numbers instead of another guess. Safe to remove once the cause
+  // is confirmed and fixed.
+  const authStart = Date.now();
   const { userId } = await auth();
+  console.log(`[knowledge page] auth() resolved in ${Date.now() - authStart}ms`);
   if (!userId) redirect("/sign-in");
 
+  const workspaceStart = Date.now();
   const workspaceId = await getWorkspaceId(userId);
+  console.log(`[knowledge page] getWorkspaceId() resolved in ${Date.now() - workspaceStart}ms`);
+
   const supabase = createServerClient();
 
   // All three tabs' data is fetched up front — a founder's portfolio, rate
   // card, and scope library are all small lists, and this keeps tab
   // switching instant with no client-side fetch/RLS round trip.
+  const queryStart = Date.now();
   const [projectsResult, ratesResult, scopeResult] = await Promise.all([
     supabase
       .from("projects")
@@ -40,10 +54,20 @@ export default async function KnowledgePage({
       .eq("workspace_id", workspaceId)
       .order("riba_stage", { ascending: true }),
   ]);
+  console.log(`[knowledge page] Promise.all Supabase queries resolved in ${Date.now() - queryStart}ms`);
 
-  if (projectsResult.error) throw new Error("Failed to load projects");
-  if (ratesResult.error) throw new Error("Failed to load rate card");
-  if (scopeResult.error) throw new Error("Failed to load scope library");
+  if (projectsResult.error) {
+    console.error("[knowledge page] projects query failed:", projectsResult.error);
+    throw new Error("Failed to load projects");
+  }
+  if (ratesResult.error) {
+    console.error("[knowledge page] rates query failed:", ratesResult.error);
+    throw new Error("Failed to load rate card");
+  }
+  if (scopeResult.error) {
+    console.error("[knowledge page] scope query failed:", scopeResult.error);
+    throw new Error("Failed to load scope library");
+  }
 
   const projects = (projectsResult.data ?? []) as Project[];
   const rates = (ratesResult.data ?? []) as RateCard[];
