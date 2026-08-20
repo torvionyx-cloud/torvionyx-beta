@@ -4,7 +4,7 @@ import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { checkWorkspaceReady } from "@/lib/workspace";
 import Link from "next/link";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton, ClerkLoading, ClerkLoaded } from "@clerk/nextjs";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { TorvionyxLogo } from "@/components/ui/TorvionyxLogo";
 import { SidenavLink } from "@/components/ui/SidenavLink";
@@ -177,7 +177,12 @@ export default async function DashboardLayout({
               New proposal
             </Link>
             <div className="lg:hidden">
-              <UserButton afterSignOutUrl="/sign-in" />
+              <ClerkLoading>
+                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(250,242,232,.08)" }} />
+              </ClerkLoading>
+              <ClerkLoaded>
+                <UserButton afterSignOutUrl="/sign-in" />
+              </ClerkLoaded>
             </div>
           </div>
         </header>
