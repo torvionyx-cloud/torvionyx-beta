@@ -12,7 +12,7 @@ export const dynamic = 'force-dynamic';
 import { auth } from "@clerk/nextjs/server";
 import { redirect, notFound } from "next/navigation";
 import { getWorkspaceId } from "@/lib/workspace";
-import { createServerClient } from "@/lib/supabase";
+import { createAdminClient } from "@/lib/supabase";
 import { ProposalEditorClient } from "@/components/proposals/ProposalEditorClient";
 
 interface PageProps {
@@ -24,23 +24,31 @@ export default async function EditProposalPage({ params }: PageProps) {
   if (!userId) redirect("/sign-in");
 
   const workspaceId = await getWorkspaceId(userId);
-  const supabase = createServerClient();
+  const supabase = createAdminClient();
 
-  const [{ data: proposal }, { data: brand }] = await Promise.all([
-    supabase
-      .from("proposals")
-      .select("*")
-      .eq("id", params.proposal_id)
-      .eq("workspace_id", workspaceId)
-      .single(),
-    supabase
-      .from("brand_settings")
-      .select("*")
-      .eq("workspace_id", workspaceId)
-      .single(),
+  const [
+    { data: proposal },
+    { data: brand },
+    { data: scopeLibrary },
+    { data: feeTemplates },
+    { data: rates },
+  ] = await Promise.all([
+    supabase.from("proposals").select("*").eq("id", params.proposal_id).eq("workspace_id", workspaceId).single(),
+    supabase.from("brand_settings").select("*").eq("workspace_id", workspaceId).single(),
+    supabase.from("scope_library").select("*").eq("workspace_id", workspaceId),
+    supabase.from("fee_resourcing_templates").select("*").eq("workspace_id", workspaceId),
+    supabase.from("rate_card").select("*").eq("workspace_id", workspaceId),
   ]);
 
   if (!proposal) notFound();
 
-  return <ProposalEditorClient proposal={proposal} brand={brand} />;
+  return (
+    <ProposalEditorClient
+      proposal={proposal}
+      brand={brand}
+      scopeLibrary={scopeLibrary ?? []}
+      feeTemplates={feeTemplates ?? []}
+      rates={rates ?? []}
+    />
+  );
 }

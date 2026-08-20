@@ -12,7 +12,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import type { Proposal, ProposalContent, ProposalBlock, BrandSettings } from "@/types/database";
+import type { Proposal, ProposalContent, ProposalBlock, BrandSettings, ScopeLibraryRow, FeeResourcingTemplateRow, RateCard } from "@/types/database";
 import { TorvionyxLogo } from "@/components/ui/TorvionyxLogo";
 import { ProposalScorePanel } from "@/components/proposals/ProposalScorePanel";
 
@@ -30,9 +30,12 @@ const CURRENCY_SYMBOLS: Record<string, string> = { GBP: "Â£", USD: "$", EUR: "â‚
 interface Props {
   proposal: Proposal;
   brand: BrandSettings | null;
+  scopeLibrary: ScopeLibraryRow[];
+  feeTemplates: FeeResourcingTemplateRow[];
+  rates: RateCard[];
 }
 
-export function ProposalEditorClient({ proposal, brand }: Props) {
+export function ProposalEditorClient({ proposal, brand, scopeLibrary, feeTemplates, rates }: Props) {
   const router = useRouter();
   const [content, setContent] = useState<ProposalContent>(proposal.content);
   const [title, setTitle] = useState(proposal.title);
