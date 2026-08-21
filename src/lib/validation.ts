@@ -329,6 +329,11 @@ const blockSchema = z.discriminatedUnion("type", [
 export const proposalContentSchema = z.object({
   version: z.literal(1),
   blocks: z.array(blockSchema).max(50),
+  stagesAdded: z
+    .array(z.number().int().min(0).max(7))
+    .max(8)
+    .transform(stages => Array.from(new Set(stages)).sort((a, b) => a - b))
+    .optional(),
 });
 
 export const updateProposalSchema = z.object({
@@ -336,6 +341,7 @@ export const updateProposalSchema = z.object({
   client_name: z.string().min(1).max(200).trim().optional(),
   client_email: z.string().email().optional().nullable(),
   content: proposalContentSchema.optional(),
+  project_type: z.enum(PROJECT_TYPES).optional().nullable(),
   status: z
     .enum(["draft", "shared", "viewed", "accepted", "declined", "expired"])
     .optional(),

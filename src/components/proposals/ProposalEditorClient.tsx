@@ -12,7 +12,10 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import type { Proposal, ProposalContent, ProposalBlock, BrandSettings, ScopeLibraryRow, FeeResourcingTemplateRow, RateCard } from "@/types/database";
+import type { Proposal, ProposalContent, ProposalBlock, BrandSettings, ScopeLibraryRow, FeeResourcingTemplateRow, RateCard, TextBlock, PricingBlock, PricingLineItem } from "@/types/database";
+import { RIBA_STAGES } from "@/lib/riba";
+import { getCurrentRate } from "@/lib/rateCard";
+import { PROJECT_TYPES } from "@/lib/validation";
 import { TorvionyxLogo } from "@/components/ui/TorvionyxLogo";
 import { ProposalScorePanel } from "@/components/proposals/ProposalScorePanel";
 
@@ -49,6 +52,9 @@ export function ProposalEditorClient({ proposal, brand, scopeLibrary, feeTemplat
   const [copySuccess, setCopySuccess] = useState(false);
   const [status, setStatus] = useState(proposal.status);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [selectedStage, setSelectedStage] = useState("");
+  const [stageAddWarning, setStageAddWarning] = useState<string | null>(null);
+  const [projectType, setProjectType] = useState(proposal.project_type ?? "");
 
   // Autosave: debounce 2s after last change
   useEffect(() => {
@@ -63,6 +69,89 @@ export function ProposalEditorClient({ proposal, brand, scopeLibrary, feeTemplat
   }, [content, title, isDirty]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const markDirty = useCallback(() => setIsDirty(true), []);
+
+  const handleSetProjectType = useCallback((value: string) => {
+    setProjectType(value);
+    markDirty();
+  }, [markDirty]);
+
+  const handleAddStage = useCallback((ribaStage: number) => {
+    const scopeRow = scopeLibrary.find(
+      (r) => r.riba_stage === ribaStage && r.project_type === projectType
+    );
+
+    const feeLines = feeTemplates.filter(
+      (r) => r.riba_stage === ribaStage && r.project_type === projectType
+    );
+
+    const stageInfo = RIBA_STAGES.find((s) => s.stage === ribaStage);
+    const stageName = stageInfo ? `Stage ${stageInfo.stage} — ${stageInfo.name}` : `Stage ${ribaStage}`;
+
+    const newLineItems: PricingLineItem[] = [];
+    const skippedGrades: string[] = [];
+
+    for (const line of feeLines) {
+      const rate = getCurrentRate(line.grade, rates);
+      if (rate) {
+        newLineItems.push({
+          name: `${line.grade} — ${stageName}`,
+          qty: line.hours,
+          unitPrice: rate.hourly_rate,
+        });
+      } else {
+        skippedGrades.push(line.grade);
+      }
+    }
+
+    setContent((prev) => {
+      const blocks = [...prev.blocks];
+
+      const scopeBlock: TextBlock = {
+        type: "text",
+        heading: stageName,
+        body: scopeRow?.scope_text ?? "Scope details for this stage haven't been added to your Scope Library yet.",
+      };
+
+      const pricingIdx = blocks.findIndex((b) => b.type === "pricing");
+
+      if (newLineItems.length > 0) {
+        if (pricingIdx === -1) {
+          const newPricingBlock: PricingBlock = {
+            type: "pricing",
+            currency: "GBP",
+            lineItems: newLineItems,
+            showTotals: true,
+          };
+          blocks.push(scopeBlock, newPricingBlock);
+        } else {
+          blocks.splice(pricingIdx, 0, scopeBlock);
+          const existingPricing = blocks[pricingIdx + 1] as PricingBlock;
+          blocks[pricingIdx + 1] = {
+            ...existingPricing,
+            lineItems: [...existingPricing.lineItems, ...newLineItems],
+          };
+        }
+      } else {
+        blocks.push(scopeBlock);
+      }
+
+      return {
+        ...prev,
+        blocks,
+        stagesAdded: [...(prev.stagesAdded ?? []), ribaStage],
+      };
+    });
+
+    markDirty();
+
+    setStageAddWarning(
+      feeLines.length === 0
+        ? `Added ${stageName}, but no fee resourcing template exists yet for this stage and project type — only scope was added. Add hours in Fee Templates, then add fee lines here manually.`
+        : skippedGrades.length > 0
+        ? `Added ${stageName}, but no current rate on file for: ${skippedGrades.join(", ")}. Add these to your Rate Card, then edit the fee lines manually.`
+        : null
+    );
+  }, [projectType, scopeLibrary, feeTemplates, rates, markDirty]);
 
   const updateBlock = useCallback(
     (idx: number, updates: Record<string, unknown>) => {
@@ -92,7 +181,11 @@ export function ProposalEditorClient({ proposal, brand, scopeLibrary, feeTemplat
       const res = await fetch(`/api/proposals/${proposal.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: title.trim() || proposal.title, content }),
+        body: JSON.stringify({
+          title: title.trim() || proposal.title,
+          content,
+          project_type: projectType || undefined,
+        }),
       });
       if (!res.ok) {
         const data = await res.json();
@@ -105,7 +198,7 @@ export function ProposalEditorClient({ proposal, brand, scopeLibrary, feeTemplat
     } finally {
       setIsSaving(false);
     }
-  }, [proposal.id, title, content]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [proposal.id, title, content, projectType]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleShare = useCallback(async () => {
     if (isDirty) await handleSave();
@@ -264,6 +357,64 @@ export function ProposalEditorClient({ proposal, brand, scopeLibrary, feeTemplat
             onRewrite={(blockIndex, coachingNote) => handleRewrite(blockIndex, coachingNote ?? null)}
             rewritingBlock={rewritingBlock}
           />
+          <div className="rounded-xl border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#1F2937] p-4 space-y-3">
+            <h3 className="text-sm font-medium text-neutral-900 dark:text-[#F3F4F6]">Add a stage</h3>
+            {projectType === "" ? (
+              <>
+                <p className="text-xs text-neutral-500">
+                  First, what type of project is this? This decides which Scope Library text and Fee Templates get pulled in.
+                </p>
+                <select
+                  value={projectType}
+                  onChange={(e) => handleSetProjectType(e.target.value)}
+                  className="w-full text-sm border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#111827] text-neutral-900 dark:text-[#F3F4F6] rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+                >
+                  <option value="">Select a project type…</option>
+                  {PROJECT_TYPES.map((pt) => (
+                    <option key={pt} value={pt}>{pt}</option>
+                  ))}
+                </select>
+              </>
+            ) : (
+              <>
+                <p className="text-xs text-neutral-500">
+                  Pulls scope wording and itemized fees from your Knowledge tab for this project type.
+                </p>
+                <select
+                  value={selectedStage}
+                  onChange={(e) => setSelectedStage(e.target.value)}
+                  className="w-full text-sm border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#111827] text-neutral-900 dark:text-[#F3F4F6] rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+                >
+                  <option value="">Select a stage…</option>
+                  {RIBA_STAGES.map((s) => {
+                    const alreadyAdded = (content.stagesAdded ?? []).includes(s.stage);
+                    return (
+                      <option key={s.stage} value={s.stage} disabled={alreadyAdded}>
+                        Stage {s.stage} — {s.name}{alreadyAdded ? " (added)" : ""}
+                      </option>
+                    );
+                  })}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (selectedStage !== "") {
+                      handleAddStage(Number(selectedStage));
+                      setSelectedStage("");
+                    }
+                  }}
+                  disabled={selectedStage === ""}
+                  className="w-full rounded-lg px-3 py-1.5 text-sm font-medium text-white disabled:opacity-40 transition"
+                  style={{ backgroundColor: primaryColor }}
+                >
+                  + Add stage
+                </button>
+                {stageAddWarning && (
+                  <p className="text-xs text-amber-600">{stageAddWarning}</p>
+                )}
+              </>
+            )}
+          </div>
           <div className="rounded-xl border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#1F2937] p-4 space-y-3">
             <h3 className="text-sm font-medium text-neutral-900 dark:text-[#F3F4F6]">Proposal details</h3>
             <dl className="space-y-2 text-sm">

@@ -120,6 +120,7 @@ export type ProposalBlock =
 export interface ProposalContent {
   version: 1;
   blocks: ProposalBlock[];
+  stagesAdded?: number[];
 }
 
 // ---------------------------------------------------------------------------
@@ -161,6 +162,11 @@ export interface Proposal {
   brief: string;
   content: ProposalContent;
   proposal_type: string;
+  /** RIBA project-type category — see lib/validation.ts's PROJECT_TYPES. Distinct
+   * from proposal_type above; this is what Scope Library and Fee Templates are
+   * keyed by, and what "Add a stage" matches against. Null until first set in
+   * the editor. */
+  project_type: string | null;
   share_token: string;
   created_at: string;
   updated_at: string;
