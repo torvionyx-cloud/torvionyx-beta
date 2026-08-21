@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { Proposal, ProposalContent, ProposalBlock, BrandSettings, ScopeLibraryRow, FeeResourcingTemplateRow, RateCard, TextBlock, PricingBlock, PricingLineItem } from "@/types/database";
 import { RIBA_STAGES } from "@/lib/riba";
-import { getCurrentRate } from "@/lib/rateCard";
+import { resolveStage } from "@/lib/stageResolver";
 import { PROJECT_TYPES } from "@/lib/validation";
 import { TorvionyxLogo } from "@/components/ui/TorvionyxLogo";
 import { ProposalScorePanel } from "@/components/proposals/ProposalScorePanel";
@@ -76,50 +76,25 @@ export function ProposalEditorClient({ proposal, brand, scopeLibrary, feeTemplat
   }, [markDirty]);
 
   const handleAddStage = useCallback((ribaStage: number) => {
-    const scopeRow = scopeLibrary.find(
-      (r) => r.riba_stage === ribaStage && r.project_type === projectType
-    );
-
-    const feeLines = feeTemplates.filter(
-      (r) => r.riba_stage === ribaStage && r.project_type === projectType
-    );
-
-    const stageInfo = RIBA_STAGES.find((s) => s.stage === ribaStage);
-    const stageName = stageInfo ? `Stage ${stageInfo.stage} — ${stageInfo.name}` : `Stage ${ribaStage}`;
-
-    const newLineItems: PricingLineItem[] = [];
-    const skippedGrades: string[] = [];
-
-    for (const line of feeLines) {
-      const rate = getCurrentRate(line.grade, rates);
-      if (rate) {
-        newLineItems.push({
-          name: `${line.grade} — ${stageName}`,
-          qty: line.hours,
-          unitPrice: rate.hourly_rate,
-        });
-      } else {
-        skippedGrades.push(line.grade);
-      }
-    }
+    const resolved = resolveStage(ribaStage, projectType, scopeLibrary, feeTemplates, rates);
 
     setContent((prev) => {
       const blocks = [...prev.blocks];
 
       const scopeBlock: TextBlock = {
         type: "text",
-        heading: stageName,
-        body: scopeRow?.scope_text ?? "Scope details for this stage haven't been added to your Scope Library yet.",
+        heading: resolved.stageName,
+        body: resolved.scopeText,
       };
 
       const pricingIdx = blocks.findIndex((b) => b.type === "pricing");
 
-      if (newLineItems.length > 0) {
+      if (resolved.lineItems.length > 0) {
         if (pricingIdx === -1) {
           const newPricingBlock: PricingBlock = {
             type: "pricing",
             currency: "GBP",
-            lineItems: newLineItems,
+            lineItems: resolved.lineItems,
             showTotals: true,
           };
           blocks.push(scopeBlock, newPricingBlock);
@@ -128,7 +103,7 @@ export function ProposalEditorClient({ proposal, brand, scopeLibrary, feeTemplat
           const existingPricing = blocks[pricingIdx + 1] as PricingBlock;
           blocks[pricingIdx + 1] = {
             ...existingPricing,
-            lineItems: [...existingPricing.lineItems, ...newLineItems],
+            lineItems: [...existingPricing.lineItems, ...resolved.lineItems],
           };
         }
       } else {
@@ -145,10 +120,10 @@ export function ProposalEditorClient({ proposal, brand, scopeLibrary, feeTemplat
     markDirty();
 
     setStageAddWarning(
-      feeLines.length === 0
-        ? `Added ${stageName}, but no fee resourcing template exists yet for this stage and project type — only scope was added. Add hours in Fee Templates, then add fee lines here manually.`
-        : skippedGrades.length > 0
-        ? `Added ${stageName}, but no current rate on file for: ${skippedGrades.join(", ")}. Add these to your Rate Card, then edit the fee lines manually.`
+      !resolved.hasFeeTemplate
+        ? `Added ${resolved.stageName}, but no fee resourcing template exists yet for this stage and project type — only scope was added. Add hours in Fee Templates, then add fee lines here manually.`
+        : resolved.skippedGrades.length > 0
+        ? `Added ${resolved.stageName}, but no current rate on file for: ${resolved.skippedGrades.join(", ")}. Add these to your Rate Card, then edit the fee lines manually.`
         : null
     );
   }, [projectType, scopeLibrary, feeTemplates, rates, markDirty]);
