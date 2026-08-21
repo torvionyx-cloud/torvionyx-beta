@@ -230,6 +230,12 @@ export const generateProposalSchema = z.object({
   tone_preference: z.enum(TONE_PREFERENCES).default("balanced"),
   // Presentation theme for the generated proposal
   template: z.enum(PROPOSAL_TEMPLATES).default("custom"),
+  // RIBA project type — optional at intake (Phase B). Reuses PROJECT_TYPES,
+  // same nullable/optional pattern as updateProposalSchema.project_type
+  // below. Not yet wired into the Claude generation call itself (Phase C) —
+  // Claude still writes the full proposal; any RIBA stages selected at
+  // intake are added afterward via the existing handleAddStage() flow.
+  project_type: z.enum(PROJECT_TYPES).optional().nullable(),
 });
 
 export type GenerateProposalInput = z.infer<typeof generateProposalSchema>;

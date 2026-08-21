@@ -213,6 +213,7 @@ export async function generateProposalForWorkspace(
       content,
       proposal_type: input.proposal_type,
       template: input.template ?? "custom",
+      project_type: input.project_type ?? null,
     })
     .select()
     .single();
