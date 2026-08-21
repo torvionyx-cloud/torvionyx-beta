@@ -102,6 +102,13 @@ export const PROJECT_TYPES = [
   "Other",
 ] as const;
 
+// Fee basis — hourly vs lump-sum pricing presentation for resolved stage
+// fee lines (proposal creation rework, Phase A). Distinct from
+// proposal_type (which picks AI document structure): this picks how the
+// fee engine presents resolved numbers. Null until set — same
+// optional/nullable pattern as project_type on updateProposalSchema below.
+export const FEE_BASIS = ["hourly", "lump_sum"] as const;
+
 export const projectSchema = z.object({
   name: z.string().min(1).max(200).trim(),
   sector: z.enum(PROJECT_SECTORS),
@@ -342,6 +349,7 @@ export const updateProposalSchema = z.object({
   client_email: z.string().email().optional().nullable(),
   content: proposalContentSchema.optional(),
   project_type: z.enum(PROJECT_TYPES).optional().nullable(),
+  fee_basis: z.enum(FEE_BASIS).optional().nullable(),
   status: z
     .enum(["draft", "shared", "viewed", "accepted", "declined", "expired"])
     .optional(),

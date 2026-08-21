@@ -167,6 +167,12 @@ export interface Proposal {
    * keyed by, and what "Add a stage" matches against. Null until first set in
    * the editor. */
   project_type: string | null;
+  /** Pricing presentation — hourly vs lump-sum, resolved fee engine output.
+   * Distinct from proposal_type above (that picks AI document structure);
+   * this picks how resolved stage fee lines are presented. Null until set
+   * by the proposal creation rework (Phase B/C) or set manually in the
+   * editor. See lib/validation.ts's FEE_BASIS. */
+  fee_basis: string | null;
   share_token: string;
   created_at: string;
   updated_at: string;
