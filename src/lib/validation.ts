@@ -198,6 +198,22 @@ export const PROPOSAL_TYPES = [
   "photography_proposal",
 ] as const;
 
+// Internal keys above are historical — unchanged deliberately: 56 live
+// proposals already hold these exact string values with no CHECK
+// constraint, and changing the keys risks an old proposal hitting a
+// fallback label if it's ever regenerated. Labels reflect architecture
+// practice document types. Client-safe (unlike lib/prompt.ts, which is
+// server-only) — this is the one source of truth; prompt.ts imports it
+// rather than keeping its own copy, and any UI showing proposal_type
+// should use this instead of a raw .replace(/_/g," ") on the enum value.
+export const PROPOSAL_TYPE_LABELS: Record<string, string> = {
+  service_proposal: "Full RIBA Appointment",
+  project_quote: "Planning Application",
+  retainer_proposal: "Retainer / Ongoing Advisory",
+  consultancy_proposal: "Feasibility & Options Appraisal",
+  photography_proposal: "Contract Administration",
+};
+
 export const CURRENCIES = ["GBP", "USD", "EUR"] as const;
 export const TONE_PREFERENCES = ["concise", "balanced", "detailed"] as const;
 // Kept in sync with the DB check constraints on proposals.template and

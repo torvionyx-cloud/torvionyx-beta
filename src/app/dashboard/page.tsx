@@ -8,6 +8,7 @@ import Link from "next/link";
 import { getWorkspaceId } from "@/lib/workspace";
 import { createServerClient }from "@/lib/supabase";
 import { STATUS_CHIP } from "@/lib/status-chip";
+import { PROPOSAL_TYPE_LABELS } from "@/lib/validation";
 import type { Proposal } from "@/types/database";
 
 function relativeTime(dateString: string): string {
@@ -190,7 +191,7 @@ export default async function DashboardPage() {
                 <div>
                   <div style={{ fontWeight:500, fontSize:14, color:"var(--tv-text)" }}>{p.client_name}</div>
                   <div style={{ fontSize:12, color:"var(--tv-text-faint)", marginTop:2 }}>
-                    {p.proposal_type.replace(/_/g," ")} · {p.shared_at ? `Sent ${relativeTime(p.shared_at)}` : "Draft"}
+                    {PROPOSAL_TYPE_LABELS[p.proposal_type] ?? p.proposal_type.replace(/_/g," ")} · {p.shared_at ? `Sent ${relativeTime(p.shared_at)}` : "Draft"}
                   </div>
                 </div>
                 <div style={{ fontFamily:"monospace", fontWeight:700, fontSize:13.5, color:"var(--tv-text)", textAlign:"right" }}>

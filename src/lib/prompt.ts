@@ -9,43 +9,39 @@
 
 import type { BrandSettings, ProposalContent, ProposalBlock } from "@/types/database";
 import type { GenerateProposalInput } from "@/lib/validation";
+import { PROPOSAL_TYPE_LABELS } from "@/lib/validation";
 
 // ---------------------------------------------------------------------------
 // Proposal type labels + section guides
 // ---------------------------------------------------------------------------
 
-const PROPOSAL_TYPE_LABELS: Record<string, string> = {
-  service_proposal: "Service Proposal",
-  project_quote: "Project Quote",
-  retainer_proposal: "Retainer Proposal",
-  consultancy_proposal: "Consultancy Proposal",
-  photography_proposal: "Photography Proposal",
-};
+// PROPOSAL_TYPE_LABELS lives in lib/validation.ts (client-safe, single
+// source of truth) and is imported above.
 
 const SECTION_GUIDES: Record<string, string> = {
-  service_proposal: `1. hero — compelling title + short punchy subtitle
-2. text — "Understanding your needs": mirror the brief empathetically, 2–3 paragraphs
-3. text — "Our approach" or "Why we're the right fit": 2–3 paragraphs
-4. bullets — "What we'll deliver": 5–8 specific deliverables
-5. scope_table — scope of work with specific line items
-6. timeline — 4–6 milestones
-7. pricing — line items with totals
+  service_proposal: `1. hero — compelling title naming the project and RIBA stages covered
+2. text — "Understanding your project": mirror the brief and site/planning context, 2–3 paragraphs
+3. text — "Our approach": stage-by-stage methodology across the RIBA Plan of Work
+4. bullets — "What's included": 5–8 specific deliverables per stage
+5. scope_table — RIBA stages with scope detail
+6. timeline — stage milestones
+7. pricing — fee per stage with totals
 8. text — "About us": brief credibility paragraph (2–3 sentences)
-9. terms — payment, revisions, IP (plain English)
+9. terms — payment, professional indemnity, appointment basis (plain English)
 10. cta`,
 
-  project_quote: `1. hero — title + subtitle naming the project type
-2. text — "Project overview": what we'll build/deliver (2–3 paragraphs)
-3. bullets — "What's included": 5–7 specific deliverables
+  project_quote: `1. hero — title naming the planning application and site
+2. text — "Project overview": what's being submitted for planning (2–3 paragraphs)
+3. bullets — "What's included": 5–7 specific deliverables (drawings, reports, application management)
 4. scope_table — deliverables with detail
-5. timeline — milestones
+5. timeline — submission and determination milestones
 6. pricing — line items
-7. terms — payment schedule, IP, revisions
+7. terms — payment schedule, planning fee disbursements, IP
 8. cta`,
 
   retainer_proposal: `1. hero
-2. text — "The retainer": overview of the ongoing engagement (2–3 paragraphs)
-3. bullets — "What's included every month": 5–8 items
+2. text — "The retainer": overview of the ongoing advisory arrangement (2–3 paragraphs)
+3. bullets — "What's included every month": 5–8 items (site visits, technical input, advice)
 4. bullets — "How we'll work together": 3–5 items on process/communication
 5. pricing — monthly fee as a single line item (or broken down)
 6. text — "Getting started": onboarding process
@@ -53,20 +49,20 @@ const SECTION_GUIDES: Record<string, string> = {
 8. cta`,
 
   consultancy_proposal: `1. hero
-2. text — "Understanding your challenge": shows we've listened (2–3 paragraphs)
-3. text — "Our approach": how we'll tackle it
-4. bullets — "What we'll do": 4–6 specific activities
-5. timeline — engagement phases
-6. pricing — engagement fee
+2. text — "Understanding your site and brief": shows we've listened (2–3 paragraphs)
+3. text — "Our approach": appraisal methodology
+4. bullets — "What we'll assess": 4–6 specific items (massing, planning policy, viability, constraints)
+5. timeline — appraisal phases
+6. pricing — appraisal fee
 7. terms — scope, IP, confidentiality
 8. cta`,
 
-  photography_proposal: `1. hero — evocative title + short creative subtitle
-2. text — "Creative vision": how we see this shoot (2–3 paragraphs)
-3. bullets — "What's included": 5–7 items (hours, images delivered, edits, usage rights, etc.)
-4. pricing — package pricing
-5. text — "Booking process": next steps to confirm
-6. terms — cancellation, usage rights, delivery timeline
+  photography_proposal: `1. hero — title naming the project and contract administration role
+2. text — "Role on site": overview of contract administration duties (2–3 paragraphs)
+3. bullets — "What's included": 5–7 items (inspections, certificates, valuations, snagging)
+4. pricing — contract administration fee structure
+5. text — "Process": how instructions and variations are handled
+6. terms — site visit frequency, liability, programme
 7. cta`,
 };
 
@@ -97,7 +93,7 @@ export function buildSystemPrompt(brand: BrandSettings | null, tonePreference?: 
 
   const toneInstruction = TONE_INSTRUCTIONS[tonePreference] || TONE_INSTRUCTIONS.balanced;
 
-  return `You are a world-class proposal writer for freelancers and consultants. You write compelling, specific, professional proposals that win work. You write on behalf of ${companyName}.${aboutSection}
+  return `You are a world-class proposal writer for UK RIBA-registered architecture practices. You write compelling, specific, professional proposals that win work. You write on behalf of ${companyName}.${aboutSection}
 
 ${toneNote}
 ${toneInstruction}
@@ -114,14 +110,14 @@ CRITICAL RULES:
 You will use the generate_proposal tool to produce the structured proposal. Choose the right block types and fill every field with real, specific content.
 
 Block type guide:
-- hero: Punchy title (e.g. "Brand Identity Project for Acme Co"), short evocative subtitle. clientName exactly as given.
+- hero: Punchy title naming the project and its nature (e.g. "Rear Extension & Loft Conversion — Sharma Residence"), short evocative subtitle. clientName exactly as given.
 - text: Use for narrative sections. heading is the section title. body is 1–4 paragraphs of real prose separated by \\n\\n.
 - bullets: Use for deliverable lists, inclusions, process steps. heading required. 4–8 specific items — each a tight phrase or single sentence.
-- scope_table: Specific deliverables as rows. item = deliverable name, detail = brief description, weeks = optional duration.
+- scope_table: Specific deliverables as rows — RIBA stage tasks, drawings, surveys, or reports depending on proposal type. item = deliverable name, detail = brief description, weeks = optional duration.
 - timeline: Realistic milestones. label = milestone name, when = timing (e.g. "Week 1", "Month 2", "Day 1–3").
 - pricing: Always include. currency as specified. lineItems must reflect the stated budget if one was given — if not, use realistic market-rate figures. showTotals: true. Do not set vatNote — VAT is applied separately by the user, not generated by you.
 - cta: Short action label, e.g. "Accept this proposal" or "Ready to move forward? Let's talk."
-- terms: Plain-English 3–5 point summary: payment schedule, revision rounds, IP/ownership, cancellation. Write as flowing text, not a list.`;
+- terms: Plain-English 3–5 point summary: payment schedule, professional indemnity insurance, appointment basis/IP, cancellation. Write as flowing text, not a list.`;
 }
 
 // ---------------------------------------------------------------------------

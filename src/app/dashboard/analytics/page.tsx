@@ -8,6 +8,7 @@ import Link from "next/link";
 import { getWorkspaceId } from "@/lib/workspace";
 import { createServerClient } from "@/lib/supabase";
 import { STATUS_CHIP } from "@/lib/status-chip";
+import { PROPOSAL_TYPE_LABELS } from "@/lib/validation";
 import type { Proposal } from "@/types/database";
 
 const SENT_STATUSES = ["shared", "viewed", "accepted", "declined", "expired"];
@@ -246,7 +247,7 @@ export default async function AnalyticsPage() {
                     </Link>
                   </td>
                   <td style={{ padding:"11px 16px", fontSize:12, color:"var(--tv-text-faint)" }}>
-                    {p.proposal_type.replace(/_/g," ")}
+                    {PROPOSAL_TYPE_LABELS[p.proposal_type] ?? p.proposal_type.replace(/_/g," ")}
                   </td>
                   <td style={{ padding:"11px 16px", fontFamily:"monospace", fontSize:12, color:"var(--tv-text-faint)" }}>
                     {p.shared_at ? formatDate(p.shared_at) : "—"}

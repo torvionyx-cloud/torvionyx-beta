@@ -65,3 +65,10 @@ html {
     margin: 1.5cm;
   }
 }
+
+/* Gold focus ring for form fields on the redesigned intake form */
+.tv-input:focus,
+.tv-select:focus {
+  border-color: var(--tv-gold) !important;
+  box-shadow: 0 0 0 3px rgba(220,170,51,.15);
+}

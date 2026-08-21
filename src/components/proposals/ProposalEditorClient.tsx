@@ -15,7 +15,7 @@ import Link from "next/link";
 import type { Proposal, ProposalContent, ProposalBlock, BrandSettings, ScopeLibraryRow, FeeResourcingTemplateRow, RateCard, TextBlock, PricingBlock, PricingLineItem } from "@/types/database";
 import { RIBA_STAGES } from "@/lib/riba";
 import { resolveStage } from "@/lib/stageResolver";
-import { PROJECT_TYPES } from "@/lib/validation";
+import { PROJECT_TYPES, PROPOSAL_TYPE_LABELS } from "@/lib/validation";
 import { TorvionyxLogo } from "@/components/ui/TorvionyxLogo";
 import { ProposalScorePanel } from "@/components/proposals/ProposalScorePanel";
 
@@ -399,7 +399,7 @@ export function ProposalEditorClient({ proposal, brand, scopeLibrary, feeTemplat
               </div>
               <div className="flex justify-between">
                 <dt className="text-neutral-500">Type</dt>
-                <dd className="text-neutral-900 capitalize">{proposal.proposal_type.replace(/_/g, " ")}</dd>
+                <dd className="text-neutral-900 capitalize">{PROPOSAL_TYPE_LABELS[proposal.proposal_type] ?? proposal.proposal_type.replace(/_/g, " ")}</dd>
               </div>
               {proposal.client_email && (
                 <div className="flex justify-between">
