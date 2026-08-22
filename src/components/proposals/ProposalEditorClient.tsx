@@ -7,6 +7,15 @@
  *
  * Client-side proposal editor. Receives the proposal from the server component
  * and manages edit state, autosave, sharing, and regeneration.
+ *
+ * Editor redesign: navy/gold design system, collapsible block rows, scoring
+ * moved from sidebar to a full-width top card, project-type/stage picker
+ * moved from sidebar to a compact bar above the block list, up/down
+ * reordering added. All existing handlers (save, share, regenerate, rewrite,
+ * add-stage, VAT) are unchanged — this is a layout/visual rebuild, not a
+ * logic rebuild. "Delete" is shown but disabled: no delete API route exists
+ * yet and cascading deletion (ai_generations, etc.) isn't built, so it's not
+ * wired to a real destructive call against live data.
  */
 
 import { useState, useCallback, useRef, useEffect } from "react";
@@ -19,16 +28,119 @@ import { PROJECT_TYPES, PROPOSAL_TYPE_LABELS } from "@/lib/validation";
 import { TorvionyxLogo } from "@/components/ui/TorvionyxLogo";
 import { ProposalScorePanel } from "@/components/proposals/ProposalScorePanel";
 
-const STATUS_LABELS: Record<string, { label: string; className: string }> = {
-  draft: { label: "Draft", className: "bg-neutral-100 text-neutral-600" },
-  shared: { label: "Shared", className: "bg-blue-100 text-blue-700" },
-  viewed: { label: "Viewed", className: "bg-purple-100 text-purple-700" },
-  accepted: { label: "Accepted", className: "bg-green-100 text-green-700" },
-  declined: { label: "Declined", className: "bg-red-100 text-red-700" },
-  expired: { label: "Expired", className: "bg-neutral-100 text-neutral-400" },
+const STATUS_BADGE: Record<string, { label: string; bg: string; color: string }> = {
+  draft: { label: "DRAFT", bg: "var(--tv-panel-accent)", color: "var(--tv-text-dim)" },
+  shared: { label: "SHARED", bg: "rgba(61,185,201,.15)", color: "#3DB9C9" },
+  viewed: { label: "VIEWED", bg: "rgba(220,170,51,.15)", color: "var(--tv-gold)" },
+  accepted: { label: "ACCEPTED", bg: "rgba(95,208,138,.15)", color: "var(--tv-success)" },
+  declined: { label: "DECLINED", bg: "rgba(242,99,92,.15)", color: "#F2635C" },
+  expired: { label: "EXPIRED", bg: "var(--tv-panel-accent)", color: "var(--tv-text-faint)" },
 };
 
 const CURRENCY_SYMBOLS: Record<string, string> = { GBP: "£", USD: "$", EUR: "€" };
+
+const TYPE_META: Record<string, { label: string; gold: boolean; icon: React.ReactNode }> = {
+  hero: {
+    label: "Hero",
+    gold: true,
+    icon: <path d="M4 22V4a1 1 0 0 1 1-1h13l-3 5 3 5H5" />,
+  },
+  text: {
+    label: "Text section",
+    gold: false,
+    icon: <path d="M4 6h16M4 12h16M4 18h10" />,
+  },
+  bullets: {
+    label: "Bullet list",
+    gold: false,
+    icon: <path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01" />,
+  },
+  scope_table: {
+    label: "Scope of work",
+    gold: false,
+    icon: (
+      <>
+        <rect x="3" y="4" width="18" height="16" rx="2" />
+        <path d="M3 10h18M9 10v10" />
+      </>
+    ),
+  },
+  timeline: {
+    label: "Timeline",
+    gold: false,
+    icon: (
+      <>
+        <circle cx="12" cy="12" r="3" />
+        <path d="M3 12h6M15 12h6" />
+      </>
+    ),
+  },
+  pricing: {
+    label: "Fees",
+    gold: true,
+    icon: <path d="M16 5H11a3.5 3.5 0 0 0-3.5 3.5V19h9M7 13h7" />,
+  },
+  terms: {
+    label: "Terms",
+    gold: false,
+    icon: <path d="M12 3l8 3v6c0 5-3.4 8.3-8 9-4.6-.7-8-4-8-9V6z" />,
+  },
+  cta: {
+    label: "Call to action",
+    gold: true,
+    icon: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M9 12h6M13 9l3 3-3 3" />
+      </>
+    ),
+  },
+  divider: {
+    label: "Divider",
+    gold: false,
+    icon: <path d="M4 12h16" />,
+  },
+};
+
+function wordCount(text: string): number {
+  return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+function pricingMeta(block: Extract<ProposalBlock, { type: "pricing" }>): string {
+  const sym = CURRENCY_SYMBOLS[block.currency] ?? block.currency;
+  const subtotal = block.lineItems.reduce((s, i) => s + i.qty * i.unitPrice, 0);
+  const vatEnabled = !!block.vatEnabled;
+  const vatRate = typeof block.vatRate === "number" ? block.vatRate : 20;
+  const total = vatEnabled ? subtotal * (1 + vatRate / 100) : subtotal;
+  return `${sym}${total.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+}
+
+function blockMeta(block: ProposalBlock): string {
+  switch (block.type) {
+    case "hero":
+      return "Title + subtitle";
+    case "text":
+    case "terms":
+      return `${wordCount(block.body || "")} words`;
+    case "bullets":
+      return `${block.items.length} items`;
+    case "scope_table": {
+      const weeksKnown = block.rows.filter((r) => typeof r.weeks === "number");
+      const totalWeeks = weeksKnown.reduce((s, r) => s + (r.weeks ?? 0), 0);
+      return weeksKnown.length > 0
+        ? `${block.rows.length} rows · ${totalWeeks} weeks`
+        : `${block.rows.length} rows`;
+    }
+    case "timeline":
+      return `${block.milestones.length} milestones`;
+    case "pricing":
+      return pricingMeta(block);
+    case "cta":
+      return "Closing button";
+    default:
+      return "";
+  }
+}
 
 interface Props {
   proposal: Proposal;
@@ -55,6 +167,20 @@ export function ProposalEditorClient({ proposal, brand, scopeLibrary, feeTemplat
   const [selectedStage, setSelectedStage] = useState("");
   const [stageAddWarning, setStageAddWarning] = useState<string | null>(null);
   const [projectType, setProjectType] = useState(proposal.project_type ?? "");
+  const [scoringEnabled, setScoringEnabled] = useState(true);
+
+  // Which blocks are expanded. Keyed by array index — kept in sync with
+  // content.blocks on reorder/remove so open state travels with the
+  // content rather than the position. Pricing blocks default open.
+  const [openBlocks, setOpenBlocks] = useState<Record<number, boolean>>(() => {
+    const initial: Record<number, boolean> = {};
+    proposal.content.blocks.forEach((b, i) => {
+      if (b.type === "pricing") initial[i] = true;
+    });
+    return initial;
+  });
+
+  const sectionRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
   // Autosave: debounce 2s after last change
   useEffect(() => {
@@ -69,6 +195,17 @@ export function ProposalEditorClient({ proposal, brand, scopeLibrary, feeTemplat
   }, [content, title, isDirty]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const markDirty = useCallback(() => setIsDirty(true), []);
+
+  const toggleBlock = useCallback((idx: number) => {
+    setOpenBlocks((prev) => ({ ...prev, [idx]: !prev[idx] }));
+  }, []);
+
+  const jumpToBlock = useCallback((idx: number) => {
+    setOpenBlocks((prev) => ({ ...prev, [idx]: true }));
+    requestAnimationFrame(() => {
+      sectionRefs.current[idx]?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, []);
 
   const handleSetProjectType = useCallback((value: string) => {
     setProjectType(value);
@@ -146,6 +283,34 @@ export function ProposalEditorClient({ proposal, brand, scopeLibrary, feeTemplat
       ...prev,
       blocks: prev.blocks.filter((_, i) => i !== idx),
     }));
+    setOpenBlocks((prev) => {
+      const next: Record<number, boolean> = {};
+      Object.entries(prev).forEach(([k, v]) => {
+        const i = Number(k);
+        if (i < idx) next[i] = v;
+        else if (i > idx) next[i - 1] = v;
+      });
+      return next;
+    });
+    markDirty();
+  }, [markDirty]);
+
+  const moveBlock = useCallback((idx: number, direction: -1 | 1) => {
+    setContent((prev) => {
+      const newIdx = idx + direction;
+      if (newIdx < 0 || newIdx >= prev.blocks.length) return prev;
+      const blocks = [...prev.blocks];
+      [blocks[idx], blocks[newIdx]] = [blocks[newIdx], blocks[idx]];
+      return { ...prev, blocks };
+    });
+    setOpenBlocks((prev) => {
+      const next = { ...prev };
+      const a = prev[idx];
+      const b = prev[idx + direction];
+      next[idx] = b;
+      next[idx + direction] = a;
+      return next;
+    });
     markDirty();
   }, [markDirty]);
 
@@ -246,119 +411,183 @@ export function ProposalEditorClient({ proposal, brand, scopeLibrary, feeTemplat
     }
   }, [proposal.id]);
 
-  const statusInfo = STATUS_LABELS[status] ?? STATUS_LABELS.draft;
-  const primaryColor = brand?.primary_color ?? "#111111";
+  const badge = STATUS_BADGE[status] ?? STATUS_BADGE.draft;
+  const primaryColor = brand?.primary_color ?? "var(--tv-gold)";
+  const shareLink = shareUrl ?? `torvionyx.com/p/${proposal.share_token}`;
+
+  const btnGhost: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    gap: 7,
+    padding: "7px 11px",
+    borderRadius: 10,
+    color: "var(--tv-text-dim)",
+    fontSize: 12.5,
+    whiteSpace: "nowrap",
+    cursor: "pointer",
+    background: "none",
+    border: "none",
+  };
 
   return (
-    <div className="-mt-10 -mx-6">
-      {/* Editor toolbar */}
-      <div className="sticky top-0 z-30 border-b border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#1F2937]">
-        <div className="px-6 py-3 flex items-center gap-3">
-          <TorvionyxLogo size={18} className="shrink-0 opacity-70" />
-          <Link
-            href="/dashboard"
-            className="text-sm text-neutral-400 hover:text-neutral-600 transition-colors shrink-0"
-          >
-            ← Proposals
-          </Link>
-          <div className="flex-1 min-w-0">
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => { setTitle(e.target.value); markDirty(); }}
-              maxLength={300}
-              className="w-full text-sm font-medium text-neutral-900 bg-transparent border-0 focus:outline-none focus:ring-0 truncate"
-            />
+    <div style={{ margin: "-1.75rem -2rem 0", color: "var(--tv-text)" }}>
+      {/* Header */}
+      <div
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 30,
+          background: "var(--tv-bg-topbar)",
+          borderBottom: "1px solid var(--tv-border-soft)",
+        }}
+      >
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "16px 32px 14px", display: "flex", alignItems: "center", gap: 18 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0, flex: 1 }}>
+            <Link
+              href="/dashboard"
+              style={{
+                display: "flex", alignItems: "center", gap: 7, padding: "7px 11px", borderRadius: 10,
+                border: "1px solid var(--tv-border)", color: "var(--tv-text-dim)", fontSize: 12.5,
+                whiteSpace: "nowrap", textDecoration: "none", flexShrink: 0,
+              }}
+            >
+              ← Proposals
+            </Link>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => { setTitle(e.target.value); markDirty(); }}
+                  maxLength={300}
+                  style={{
+                    margin: 0, fontFamily: "'Space Grotesk', sans-serif", fontSize: 19, fontWeight: 600,
+                    letterSpacing: "-.01em", color: "var(--tv-text)", background: "transparent", border: "none",
+                    outline: "none", minWidth: 0, maxWidth: 460,
+                  }}
+                />
+                <span style={{
+                  flexShrink: 0, fontFamily: "monospace", fontSize: 9.5, letterSpacing: ".1em", fontWeight: 700,
+                  padding: "3px 9px", borderRadius: 999, background: badge.bg, color: badge.color,
+                }}>
+                  {badge.label}
+                </span>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 5, fontFamily: "monospace", fontSize: 10.5, letterSpacing: ".08em", textTransform: "uppercase", color: "var(--tv-text-faint)" }}>
+                <span style={{ width: 6, height: 6, borderRadius: 999, background: "var(--tv-success)", boxShadow: "0 0 0 3px rgba(95,208,138,.16)" }} />
+                {isSaving ? "Saving…" : isDirty ? "Unsaved changes" : "All changes saved"}
+              </div>
+            </div>
           </div>
-          <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${statusInfo.className}`}>
-            {statusInfo.label}
-          </span>
-          <span className="text-xs text-neutral-400 shrink-0">
-            {isSaving ? "Saving…" : isDirty ? "Unsaved" : "Saved"}
-          </span>
-          <button
-            onClick={handleSave}
-            disabled={isSaving || !isDirty}
-            className="shrink-0 rounded-lg border border-neutral-200 px-3 py-1.5 text-sm text-neutral-700 hover:border-neutral-400 disabled:opacity-40 transition"
-          >
-            Save
+
+          <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "8px 10px 8px 13px", borderRadius: 10, border: "1px solid var(--tv-border)", background: "var(--tv-panel-accent)" }}>
+              <span style={{ fontFamily: "monospace", fontSize: 11.5, color: "var(--tv-text-dim)" }}>{shareLink}</span>
+              <button
+                onClick={handleCopyLink}
+                style={{ display: "flex", alignItems: "center", gap: 5, color: "var(--tv-gold)", fontSize: 11.5, fontWeight: 600, cursor: "pointer", background: "none", border: "none", fontFamily: "'Space Grotesk', sans-serif" }}
+              >
+                {copySuccess ? "Copied!" : "Copy"}
+              </button>
+            </div>
+            <button
+              onClick={isSharing ? undefined : handleShare}
+              disabled={isSharing}
+              style={{
+                borderRadius: 10, padding: "9px 18px", fontFamily: "'Space Grotesk', sans-serif", fontWeight: 600,
+                fontSize: 13.5, border: "none", cursor: isSharing ? "not-allowed" : "pointer",
+                background: "linear-gradient(135deg,#F2C84E,#DCAA33)", color: "#0A1322", opacity: isSharing ? 0.6 : 1,
+              }}
+            >
+              {isSharing ? "Sending…" : "Send to client"}
+            </button>
+          </div>
+        </div>
+
+        {/* Action row */}
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "0 32px 16px", display: "flex", alignItems: "center", gap: 4, borderTop: "1px solid var(--tv-border-soft)", paddingTop: 14, flexWrap: "wrap" }}>
+          {!scoringEnabled && (
+            <button onClick={() => setScoringEnabled(true)} style={{ ...btnGhost, color: "var(--tv-gold)" }}>
+              Turn on scoring
+            </button>
+          )}
+          <a href={`/p/${proposal.share_token}`} target="_blank" rel="noopener noreferrer" style={{ ...btnGhost, textDecoration: "none" }}>
+            Preview live link
+          </a>
+          <a href={`/p/${proposal.share_token}`} target="_blank" rel="noopener noreferrer" title="Opens the live link — use your browser's Print → Save as PDF" style={{ ...btnGhost, textDecoration: "none" }}>
+            Download PDF
+          </a>
+          <button onClick={handleRegenerate} disabled={isRegenerating} style={{ ...btnGhost, opacity: isRegenerating ? 0.5 : 1 }}>
+            {isRegenerating ? "Regenerating…" : "Regenerate all"}
           </button>
+          <div style={{ width: 1, height: 20, background: "var(--tv-border-soft)", margin: "0 6px" }} />
           <button
-            onClick={isSharing ? undefined : (shareUrl ? handleCopyLink : handleShare)}
-            disabled={isSharing}
-            className="shrink-0 rounded-lg px-4 py-1.5 text-sm font-medium text-white disabled:opacity-60 transition"
-            style={{ backgroundColor: primaryColor }}
+            disabled
+            title="Not available yet — deletion isn't fully wired up on the backend"
+            style={{ ...btnGhost, color: "var(--tv-text-faint)", cursor: "not-allowed", opacity: 0.5 }}
           >
-            {isSharing
-              ? "Sharing…"
-              : copySuccess
-              ? "Copied!"
-              : shareUrl || status !== "draft"
-              ? "Copy link"
-              : "Share"}
+            Delete
           </button>
         </div>
+
         {saveError && (
-          <div className="bg-red-50 px-4 py-2 text-xs text-red-600 text-center">{saveError}</div>
-        )}
-        {copySuccess && (
-          <div className="bg-green-50 px-4 py-2 text-xs text-green-700 text-center">
-            Link copied to clipboard — send it to your client!
-          </div>
+          <div style={{ background: "rgba(242,99,92,.1)", padding: "8px 32px", fontSize: 12, color: "#F2635C", textAlign: "center" }}>{saveError}</div>
         )}
       </div>
 
-      {/* Main editor area */}
-      <div className="px-6 py-8 grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-8">
-        {/* Blocks */}
-        <div className="space-y-4">
-          {content.blocks.map((block, idx) => (
-            <EditableBlock
-              key={idx}
-              block={block}
-              idx={idx}
-              primaryColor={primaryColor}
-              brand={brand}
-              onUpdate={(updates) => updateBlock(idx, updates)}
-              onRemove={() => removeBlock(idx)}
-            />
-          ))}
-        </div>
+      {/* Body */}
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 32px 80px" }}>
+        <main style={{ display: "flex", flexDirection: "column", gap: 10, minWidth: 0 }}>
 
-        {/* Sidebar */}
-        <aside className="space-y-4">
-          <ProposalScorePanel
-            proposalId={proposal.id}
-            onRewrite={(blockIndex, coachingNote) => handleRewrite(blockIndex, coachingNote ?? null)}
-            rewritingBlock={rewritingBlock}
-          />
-          <div className="rounded-xl border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#1F2937] p-4 space-y-3">
-            <h3 className="text-sm font-medium text-neutral-900 dark:text-[#F3F4F6]">Add a stage</h3>
-            {projectType === "" ? (
+          {scoringEnabled && (
+            <ProposalScorePanel
+              proposalId={proposal.id}
+              onRewrite={(blockIndex, coachingNote) => handleRewrite(blockIndex, coachingNote ?? null)}
+              rewritingBlock={rewritingBlock}
+              onHide={() => setScoringEnabled(false)}
+            />
+          )}
+
+          {proposal.brief && (
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "12px 16px", border: "1px solid var(--tv-border-soft)", borderRadius: 14, background: "var(--tv-panel-accent)", marginBottom: 4 }}>
+              <div style={{ fontFamily: "monospace", fontSize: 9.5, letterSpacing: ".14em", textTransform: "uppercase", color: "var(--tv-text-faint)", paddingTop: 2, whiteSpace: "nowrap" }}>
+                Original brief
+              </div>
+              <p style={{ margin: 0, fontSize: 12.5, lineHeight: 1.6, color: "var(--tv-text-dim)" }}>{proposal.brief}</p>
+            </div>
+          )}
+
+          {/* Project type & add-stage bar */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", border: "1px solid var(--tv-border-soft)", borderRadius: 14, background: "var(--tv-panel-accent)", flexWrap: "wrap" }}>
+            <span style={{ fontFamily: "monospace", fontSize: 9.5, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--tv-text-faint)", whiteSpace: "nowrap" }}>
+              Project type
+            </span>
+            <select
+              value={projectType}
+              onChange={(e) => handleSetProjectType(e.target.value)}
+              className="tv-select"
+              style={{
+                fontSize: 13, borderRadius: 8, border: "1px solid var(--tv-border)", background: "var(--tv-bg-panel)",
+                color: "var(--tv-text)", padding: "6px 10px", outline: "none",
+              }}
+            >
+              <option value="">Not set…</option>
+              {PROJECT_TYPES.map((pt) => (
+                <option key={pt} value={pt}>{pt}</option>
+              ))}
+            </select>
+
+            {projectType !== "" && (
               <>
-                <p className="text-xs text-neutral-500">
-                  First, what type of project is this? This decides which Scope Library text and Fee Templates get pulled in.
-                </p>
-                <select
-                  value={projectType}
-                  onChange={(e) => handleSetProjectType(e.target.value)}
-                  className="w-full text-sm border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#111827] text-neutral-900 dark:text-[#F3F4F6] rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-neutral-400"
-                >
-                  <option value="">Select a project type…</option>
-                  {PROJECT_TYPES.map((pt) => (
-                    <option key={pt} value={pt}>{pt}</option>
-                  ))}
-                </select>
-              </>
-            ) : (
-              <>
-                <p className="text-xs text-neutral-500">
-                  Pulls scope wording and itemized fees from your Knowledge tab for this project type.
-                </p>
+                <div style={{ width: 1, height: 18, background: "var(--tv-border-soft)" }} />
                 <select
                   value={selectedStage}
                   onChange={(e) => setSelectedStage(e.target.value)}
-                  className="w-full text-sm border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#111827] text-neutral-900 dark:text-[#F3F4F6] rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+                  className="tv-select"
+                  style={{
+                    fontSize: 13, borderRadius: 8, border: "1px solid var(--tv-border)", background: "var(--tv-bg-panel)",
+                    color: "var(--tv-text)", padding: "6px 10px", outline: "none", minWidth: 200,
+                  }}
                 >
                   <option value="">Select a stage…</option>
                   {RIBA_STAGES.map((s) => {
@@ -379,172 +608,195 @@ export function ProposalEditorClient({ proposal, brand, scopeLibrary, feeTemplat
                     }
                   }}
                   disabled={selectedStage === ""}
-                  className="w-full rounded-lg px-3 py-1.5 text-sm font-medium text-white disabled:opacity-40 transition"
-                  style={{ backgroundColor: primaryColor }}
+                  style={{
+                    fontFamily: "'Space Grotesk', sans-serif", fontSize: 12.5, fontWeight: 600, color: "var(--tv-gold)",
+                    background: "none", border: "none", cursor: selectedStage === "" ? "not-allowed" : "pointer",
+                    opacity: selectedStage === "" ? 0.4 : 1, padding: "6px 4px",
+                  }}
                 >
                   + Add stage
                 </button>
-                {stageAddWarning && (
-                  <p className="text-xs text-amber-600">{stageAddWarning}</p>
-                )}
               </>
             )}
-          </div>
-          <div className="rounded-xl border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#1F2937] p-4 space-y-3">
-            <h3 className="text-sm font-medium text-neutral-900 dark:text-[#F3F4F6]">Proposal details</h3>
-            <dl className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <dt className="text-neutral-500">Client</dt>
-                <dd className="text-neutral-900 font-medium truncate ml-2">{proposal.client_name}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-neutral-500">Type</dt>
-                <dd className="text-neutral-900 capitalize">{PROPOSAL_TYPE_LABELS[proposal.proposal_type] ?? proposal.proposal_type.replace(/_/g, " ")}</dd>
-              </div>
-              {proposal.client_email && (
-                <div className="flex justify-between">
-                  <dt className="text-neutral-500">Email</dt>
-                  <dd className="text-neutral-600 text-xs truncate ml-2">{proposal.client_email}</dd>
-                </div>
-              )}
-            </dl>
+            {stageAddWarning && (
+              <p style={{ margin: 0, fontSize: 11.5, color: "var(--tv-warning)", width: "100%" }}>{stageAddWarning}</p>
+            )}
           </div>
 
-          <div className="rounded-xl border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#1F2937] p-4 space-y-2">
-            <h3 className="text-sm font-medium text-neutral-900 dark:text-[#F3F4F6]">Actions</h3>
-            <a
-              href={`/p/${proposal.share_token}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900 transition-colors py-1"
-            >
-              <span>↗</span> Preview live link
-            </a>
-            <a
-              href={`/p/${proposal.share_token}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              title="Opens the live link — use your browser's Print → Save as PDF"
-              className="flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900 transition-colors py-1"
-            >
-              <span>↓</span> Download PDF
-            </a>
-            <button
-              onClick={handleRegenerate}
-              disabled={isRegenerating}
-              className="flex items-center gap-2 text-sm text-neutral-600 hover:text-neutral-900 disabled:opacity-40 transition-colors py-1"
-            >
-              <span>↺</span> {isRegenerating ? "Regenerating…" : "Regenerate all"}
-            </button>
-          </div>
-
-          <div className="rounded-xl border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#1F2937] p-4">
-            <h3 className="text-sm font-medium text-neutral-900 mb-2">Original brief</h3>
-            <p className="text-xs text-neutral-500 leading-relaxed line-clamp-6">{proposal.brief}</p>
-          </div>
-
-          <div className="flex items-center justify-center gap-2 pt-1 opacity-[0.18]">
-            <TorvionyxLogo size={16} />
-            <span className="text-xs font-semibold text-neutral-500 dark:text-gray-400 tracking-tight">Torvionyx</span>
-          </div>
-        </aside>
+          {/* Blocks */}
+          {content.blocks.map((block, idx) => (
+            <BlockRow
+              key={idx}
+              ref={(el) => { sectionRefs.current[idx] = el; }}
+              block={block}
+              idx={idx}
+              total={content.blocks.length}
+              isOpen={!!openBlocks[idx]}
+              onToggle={() => toggleBlock(idx)}
+              onMove={(dir) => moveBlock(idx, dir)}
+              primaryColor={primaryColor}
+              brand={brand}
+              onUpdate={(updates) => updateBlock(idx, updates)}
+              onRemove={() => removeBlock(idx)}
+            />
+          ))}
+        </main>
       </div>
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Editable block components
+// Collapsible block row shell
 // ---------------------------------------------------------------------------
 
-interface EditableBlockProps {
+interface BlockRowProps {
   block: ProposalBlock;
   idx: number;
+  total: number;
+  isOpen: boolean;
+  onToggle: () => void;
+  onMove: (dir: -1 | 1) => void;
   primaryColor: string;
   brand: BrandSettings | null;
   onUpdate: (updates: Record<string, unknown>) => void;
   onRemove: () => void;
 }
 
-function EditableBlock({ block, idx, primaryColor, brand, onUpdate, onRemove }: EditableBlockProps) {
-  const baseClass = "group relative rounded-xl border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#1F2937] p-5";
+const BlockRow = ({ block, idx, total, isOpen, onToggle, onMove, primaryColor, brand, onUpdate, onRemove, ref }: BlockRowProps & { ref?: (el: HTMLDivElement | null) => void }) => {
+  const meta = TYPE_META[block.type] ?? TYPE_META.divider;
+  const title = "heading" in block && block.heading ? block.heading : "title" in block && block.title ? block.title : meta.label;
+  const isPricing = block.type === "pricing";
 
-  const BlockControls = () => (
-    <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-      <button
-        onClick={onRemove}
-        title="Remove block"
-        className="rounded p-1 text-neutral-300 hover:text-red-500 hover:bg-red-50 transition text-xs"
-      >
-        ✕
-      </button>
+  return (
+    <div
+      ref={ref}
+      style={{
+        border: isPricing ? "1.5px solid rgba(220,170,51,.3)" : "1px solid var(--tv-border)",
+        borderRadius: 16,
+        background: "var(--tv-bg-panel)",
+        boxShadow: "var(--tv-shadow)",
+        overflow: "hidden",
+        scrollMarginTop: 190,
+      }}
+    >
+      <div style={{ display: "grid", gridTemplateColumns: "44px 34px minmax(0,1fr) auto 20px", alignItems: "center", gap: 14, padding: "14px 18px" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); onMove(-1); }}
+            disabled={idx === 0}
+            style={{ background: "none", border: "none", padding: 0, color: idx === 0 ? "var(--tv-border)" : "var(--tv-text-faint)", cursor: idx === 0 ? "not-allowed" : "pointer" }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M18 15l-6-6-6 6" /></svg>
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onMove(1); }}
+            disabled={idx === total - 1}
+            style={{ background: "none", border: "none", padding: 0, color: idx === total - 1 ? "var(--tv-border)" : "var(--tv-text-faint)", cursor: idx === total - 1 ? "not-allowed" : "pointer" }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M6 9l6 6 6-6" /></svg>
+          </button>
+        </div>
+
+        <div
+          onClick={onToggle}
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "center", width: 34, height: 34, borderRadius: 10, cursor: "pointer",
+            background: meta.gold ? "rgba(220,170,51,.13)" : "var(--tv-panel-accent)",
+            color: meta.gold ? "var(--tv-gold)" : "var(--tv-text-dim)",
+          }}
+        >
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round">{meta.icon}</svg>
+        </div>
+
+        <div onClick={onToggle} style={{ minWidth: 0, cursor: "pointer" }}>
+          <div style={{ fontFamily: "monospace", fontSize: 9.5, letterSpacing: ".14em", textTransform: "uppercase", color: meta.gold ? "var(--tv-gold)" : "var(--tv-text-faint)", marginBottom: 3 }}>
+            {meta.label}
+          </div>
+          <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 15, fontWeight: 600, color: "var(--tv-text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            {title}
+          </div>
+        </div>
+
+        <div onClick={onToggle} style={{ fontFamily: block.type === "pricing" ? "'Space Grotesk', sans-serif" : "monospace", fontSize: block.type === "pricing" ? 16 : 10.5, fontWeight: block.type === "pricing" ? 600 : 400, color: "var(--tv-text-faint)", whiteSpace: "nowrap", cursor: "pointer" }}>
+          {blockMeta(block)}
+        </div>
+
+        <svg
+          onClick={onToggle}
+          width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+          style={{ color: "var(--tv-text-faint)", cursor: "pointer", transform: isOpen ? "rotate(180deg)" : "none", transition: "transform .18s" }}
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </div>
+
+      {isOpen && (
+        <div style={{ padding: "0 18px 20px" }}>
+          <BlockFields block={block} primaryColor={primaryColor} brand={brand} onUpdate={onUpdate} onRemove={onRemove} />
+        </div>
+      )}
     </div>
   );
+};
 
+// ---------------------------------------------------------------------------
+// Per-type editable fields — unchanged editing logic from before, restyled
+// ---------------------------------------------------------------------------
+
+const fieldInput: React.CSSProperties = {
+  width: "100%", fontSize: 14, color: "var(--tv-text)", background: "var(--tv-panel-accent)",
+  border: "1px solid var(--tv-border)", borderRadius: 10, padding: "10px 12px", outline: "none", boxSizing: "border-box",
+};
+
+const fieldTextarea: React.CSSProperties = { ...fieldInput, resize: "vertical", lineHeight: 1.55 };
+
+function RemoveButton({ onRemove }: { onRemove: () => void }) {
+  return (
+    <button
+      onClick={onRemove}
+      title="Remove block"
+      style={{ marginTop: 12, background: "none", border: "none", color: "var(--tv-text-faint)", fontSize: 11.5, cursor: "pointer", padding: 0 }}
+    >
+      Remove this block
+    </button>
+  );
+}
+
+function BlockFields({ block, primaryColor, brand, onUpdate, onRemove }: {
+  block: ProposalBlock;
+  primaryColor: string;
+  brand: BrandSettings | null;
+  onUpdate: (updates: Record<string, unknown>) => void;
+  onRemove: () => void;
+}) {
   switch (block.type) {
     case "hero":
       return (
-        <div className={baseClass}>
-          <BlockControls />
-          <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 dark:text-gray-500 mb-3">Hero</div>
-          <input
-            type="text"
-            value={block.title}
-            onChange={(e) => onUpdate({ title: e.target.value })}
-            placeholder="Proposal title"
-            className="w-full text-2xl font-bold text-neutral-900 dark:text-[#F3F4F6] border-0 p-0 focus:outline-none focus:ring-0 bg-transparent mb-2"
-          />
-          <input
-            type="text"
-            value={block.subtitle ?? ""}
-            onChange={(e) => onUpdate({ subtitle: e.target.value })}
-            placeholder="Subtitle"
-            className="w-full text-lg text-neutral-500 border-0 p-0 focus:outline-none focus:ring-0 bg-transparent"
-          />
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <input type="text" value={block.title} onChange={(e) => onUpdate({ title: e.target.value })} placeholder="Proposal title" style={fieldInput} />
+          <input type="text" value={block.subtitle ?? ""} onChange={(e) => onUpdate({ subtitle: e.target.value })} placeholder="Subtitle" style={fieldInput} />
+          <RemoveButton onRemove={onRemove} />
         </div>
       );
 
     case "text":
       return (
-        <div className={baseClass}>
-          <BlockControls />
-          <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 dark:text-gray-500 mb-3">Text section</div>
-          <input
-            type="text"
-            value={block.heading}
-            onChange={(e) => onUpdate({ heading: e.target.value })}
-            placeholder="Section heading"
-            className="w-full text-lg font-semibold text-neutral-900 dark:text-[#F3F4F6] border-0 p-0 focus:outline-none focus:ring-0 bg-transparent mb-3"
-          />
-          <textarea
-            value={block.body}
-            onChange={(e) => onUpdate({ body: e.target.value })}
-            rows={6}
-            placeholder="Section content…"
-            className="w-full text-sm text-neutral-700 dark:text-[#F3F4F6] bg-white dark:bg-[#111827] border border-neutral-200 dark:border-[#374151] rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 resize-y transition"
-          />
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <input type="text" value={block.heading} onChange={(e) => onUpdate({ heading: e.target.value })} placeholder="Section heading" style={fieldInput} />
+          <textarea value={block.body} onChange={(e) => onUpdate({ body: e.target.value })} rows={7} placeholder="Section content…" style={fieldTextarea} />
+          <RemoveButton onRemove={onRemove} />
         </div>
       );
 
     case "bullets":
       return (
-        <div className={baseClass}>
-          <BlockControls />
-          <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 dark:text-gray-500 mb-3">Bullet list</div>
-          <input
-            type="text"
-            value={block.heading}
-            onChange={(e) => onUpdate({ heading: e.target.value })}
-            placeholder="Section heading"
-            className="w-full text-lg font-semibold text-neutral-900 dark:text-[#F3F4F6] border-0 p-0 focus:outline-none focus:ring-0 bg-transparent mb-3"
-          />
-          <div className="space-y-2">
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <input type="text" value={block.heading} onChange={(e) => onUpdate({ heading: e.target.value })} placeholder="Section heading" style={fieldInput} />
+          <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
             {block.items.map((item, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <span
-                  className="h-2 w-2 rounded-full shrink-0"
-                  style={{ backgroundColor: primaryColor }}
-                />
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{ width: 6, height: 6, borderRadius: 999, flexShrink: 0, background: primaryColor }} />
                 <input
                   type="text"
                   value={item}
@@ -553,145 +805,96 @@ function EditableBlock({ block, idx, primaryColor, brand, onUpdate, onRemove }: 
                     newItems[i] = e.target.value;
                     onUpdate({ items: newItems });
                   }}
-                  className="flex-1 text-sm text-neutral-700 dark:text-[#F3F4F6] border-0 p-0 focus:outline-none focus:ring-0 bg-transparent"
+                  style={{ ...fieldInput, flex: 1 }}
                 />
                 <button
-                  onClick={() => {
-                    const newItems = block.items.filter((_, j) => j !== i);
-                    onUpdate({ items: newItems });
-                  }}
-                  className="text-neutral-200 hover:text-red-400 transition text-xs shrink-0"
+                  onClick={() => onUpdate({ items: block.items.filter((_, j) => j !== i) })}
+                  style={{ background: "none", border: "none", color: "var(--tv-text-faint)", cursor: "pointer", flexShrink: 0 }}
                 >
                   ✕
                 </button>
               </div>
             ))}
-            <button
-              onClick={() => onUpdate({ items: [...block.items, ""] })}
-              className="mt-1 text-xs text-neutral-400 hover:text-neutral-600 transition"
-            >
+            <button onClick={() => onUpdate({ items: [...block.items, ""] })} style={{ alignSelf: "flex-start", background: "none", border: "none", color: "var(--tv-gold)", fontSize: 12, cursor: "pointer", padding: 0 }}>
               + Add item
             </button>
           </div>
+          <RemoveButton onRemove={onRemove} />
         </div>
       );
 
     case "scope_table":
       return (
-        <div className={baseClass}>
-          <BlockControls />
-          <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 dark:text-gray-500 mb-3">Scope of work</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {block.heading !== undefined && (
-            <input
-              type="text"
-              value={block.heading ?? ""}
-              onChange={(e) => onUpdate({ heading: e.target.value })}
-              placeholder="Section heading (optional)"
-              className="w-full text-lg font-semibold text-neutral-900 border-0 p-0 focus:outline-none focus:ring-0 bg-transparent mb-3"
-            />
+            <input type="text" value={block.heading ?? ""} onChange={(e) => onUpdate({ heading: e.target.value })} placeholder="Section heading (optional)" style={fieldInput} />
           )}
-          <div className="space-y-2">
-            {block.rows.map((row, i) => (
-              <div key={i} className="grid grid-cols-[1fr_2fr_60px] gap-2 items-start">
-                <input
-                  value={row.item}
-                  onChange={(e) => {
-                    const rows = [...block.rows];
-                    rows[i] = { ...rows[i], item: e.target.value };
-                    onUpdate({ rows });
-                  }}
-                  placeholder="Deliverable"
-                  className="text-sm text-neutral-900 border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#111827] rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-neutral-400 dark:focus:ring-[#0891B2] text-neutral-900 dark:text-[#F3F4F6]"
-                />
-                <input
-                  value={row.detail}
-                  onChange={(e) => {
-                    const rows = [...block.rows];
-                    rows[i] = { ...rows[i], detail: e.target.value };
-                    onUpdate({ rows });
-                  }}
-                  placeholder="Description"
-                  className="text-sm text-neutral-600 border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#111827] rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-neutral-400 dark:focus:ring-[#0891B2] text-neutral-900 dark:text-[#F3F4F6]"
-                />
-                <input
-                  type="number"
-                  value={row.weeks ?? ""}
-                  onChange={(e) => {
-                    const rows = [...block.rows];
-                    rows[i] = { ...rows[i], weeks: e.target.value ? parseInt(e.target.value) : undefined };
-                    onUpdate({ rows });
-                  }}
-                  placeholder="wks"
-                  className="text-sm text-neutral-500 border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#111827] rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-neutral-400 dark:focus:ring-[#0891B2] text-neutral-900 dark:text-[#F3F4F6]"
-                />
-              </div>
-            ))}
-            <button
-              onClick={() => onUpdate({ rows: [...block.rows, { item: "", detail: "" }] })}
-              className="mt-1 text-xs text-neutral-400 hover:text-neutral-600 transition"
-            >
-              + Add row
-            </button>
-          </div>
+          {block.rows.map((row, i) => (
+            <ScopeRow
+              key={i}
+              row={row}
+              onChange={(updates) => {
+                const rows = [...block.rows];
+                rows[i] = { ...rows[i], ...updates };
+                onUpdate({ rows });
+              }}
+              onRemove={() => onUpdate({ rows: block.rows.filter((_, j) => j !== i) })}
+            />
+          ))}
+          <button onClick={() => onUpdate({ rows: [...block.rows, { item: "", detail: "" }] })} style={{ alignSelf: "flex-start", background: "none", border: "none", color: "var(--tv-gold)", fontSize: 12, cursor: "pointer", padding: 0 }}>
+            + Add stage
+          </button>
+          <RemoveButton onRemove={onRemove} />
         </div>
       );
 
     case "timeline":
       return (
-        <div className={baseClass}>
-          <BlockControls />
-          <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 dark:text-gray-500 mb-3">Timeline</div>
-          <div className="space-y-2">
-            {block.milestones.map((m, i) => (
-              <div key={i} className="flex gap-2 items-center">
-                <div
-                  className="h-5 w-5 rounded-full text-white text-xs flex items-center justify-center shrink-0"
-                  style={{ backgroundColor: primaryColor }}
-                >
-                  {i + 1}
-                </div>
-                <input
-                  value={m.label}
-                  onChange={(e) => {
-                    const milestones = [...block.milestones];
-                    milestones[i] = { ...milestones[i], label: e.target.value };
-                    onUpdate({ milestones });
-                  }}
-                  placeholder="Milestone"
-                  className="flex-1 text-sm text-neutral-900 border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#111827] rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-neutral-400 dark:focus:ring-[#0891B2] text-neutral-900 dark:text-[#F3F4F6]"
-                />
-                <input
-                  value={m.when}
-                  onChange={(e) => {
-                    const milestones = [...block.milestones];
-                    milestones[i] = { ...milestones[i], when: e.target.value };
-                    onUpdate({ milestones });
-                  }}
-                  placeholder="When"
-                  className="w-28 text-sm text-neutral-500 border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#111827] rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-neutral-400 dark:focus:ring-[#0891B2] text-neutral-900 dark:text-[#F3F4F6]"
-                />
-              </div>
-            ))}
-            <button
-              onClick={() => onUpdate({ milestones: [...block.milestones, { label: "", when: "" }] })}
-              className="mt-1 text-xs text-neutral-400 hover:text-neutral-600 transition"
-            >
-              + Add milestone
-            </button>
-          </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+          {block.milestones.map((m, i) => (
+            <div key={i} style={{ display: "grid", gridTemplateColumns: "26px minmax(0,1fr) 130px 22px", gap: 10, alignItems: "center" }}>
+              <div style={{ fontFamily: "monospace", fontSize: 11, color: "var(--tv-gold)", textAlign: "center" }}>{String(i + 1).padStart(2, "0")}</div>
+              <input
+                value={m.label}
+                onChange={(e) => {
+                  const milestones = [...block.milestones];
+                  milestones[i] = { ...milestones[i], label: e.target.value };
+                  onUpdate({ milestones });
+                }}
+                placeholder="Milestone"
+                style={fieldInput}
+              />
+              <input
+                value={m.when}
+                onChange={(e) => {
+                  const milestones = [...block.milestones];
+                  milestones[i] = { ...milestones[i], when: e.target.value };
+                  onUpdate({ milestones });
+                }}
+                placeholder="When"
+                style={fieldInput}
+              />
+              <button onClick={() => onUpdate({ milestones: block.milestones.filter((_, j) => j !== i) })} style={{ background: "none", border: "none", color: "var(--tv-text-faint)", cursor: "pointer" }}>✕</button>
+            </div>
+          ))}
+          <button onClick={() => onUpdate({ milestones: [...block.milestones, { label: "", when: "" }] })} style={{ alignSelf: "flex-start", background: "none", border: "none", color: "var(--tv-gold)", fontSize: 12, cursor: "pointer", padding: 0 }}>
+            + Add milestone
+          </button>
+          <RemoveButton onRemove={onRemove} />
         </div>
       );
 
     case "pricing":
       return (
-        <div className={baseClass}>
-          <BlockControls />
-          <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 dark:text-gray-500 mb-3">Pricing</div>
-          <div className="space-y-2">
+        <div>
+          <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 70px 120px 22px", gap: 10, padding: "0 0 8px", fontFamily: "monospace", fontSize: 9.5, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--tv-text-faint)" }}>
+            <div>Line item</div><div>Qty</div><div>Amount</div><div />
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
             {block.lineItems.map((item, i) => {
               const sym = CURRENCY_SYMBOLS[block.currency] ?? block.currency;
               return (
-                <div key={i} className="grid grid-cols-[2fr_60px_100px_auto] gap-2 items-center">
+                <div key={i} style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 70px 120px 22px", gap: 10, alignItems: "center" }}>
                   <input
                     value={item.name}
                     onChange={(e) => {
@@ -700,7 +903,7 @@ function EditableBlock({ block, idx, primaryColor, brand, onUpdate, onRemove }: 
                       onUpdate({ lineItems: li });
                     }}
                     placeholder="Item name"
-                    className="text-sm text-neutral-900 border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#111827] rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-neutral-400 dark:focus:ring-[#0891B2] text-neutral-900 dark:text-[#F3F4F6]"
+                    style={fieldInput}
                   />
                   <input
                     type="number"
@@ -711,10 +914,10 @@ function EditableBlock({ block, idx, primaryColor, brand, onUpdate, onRemove }: 
                       li[i] = { ...li[i], qty: parseFloat(e.target.value) || 0 };
                       onUpdate({ lineItems: li });
                     }}
-                    className="text-sm text-neutral-600 border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#111827] rounded px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-neutral-400 dark:focus:ring-[#0891B2] text-neutral-900 dark:text-[#F3F4F6]"
+                    style={fieldInput}
                   />
-                  <div className="relative">
-                    <span className="absolute left-2 top-1/2 -translate-y-1/2 text-neutral-400 text-sm">{sym}</span>
+                  <div style={{ position: "relative" }}>
+                    <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--tv-text-faint)", fontSize: 13 }}>{sym}</span>
                     <input
                       type="number"
                       value={item.unitPrice}
@@ -724,77 +927,86 @@ function EditableBlock({ block, idx, primaryColor, brand, onUpdate, onRemove }: 
                         li[i] = { ...li[i], unitPrice: parseFloat(e.target.value) || 0 };
                         onUpdate({ lineItems: li });
                       }}
-                      className="w-full text-sm text-neutral-900 dark:text-[#F3F4F6] bg-white dark:bg-[#111827] border border-neutral-200 dark:border-[#374151] rounded pl-6 pr-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+                      style={{ ...fieldInput, paddingLeft: 22 }}
                     />
                   </div>
-                  <button
-                    onClick={() => {
-                      const li = block.lineItems.filter((_, j) => j !== i);
-                      onUpdate({ lineItems: li });
-                    }}
-                    className="text-neutral-200 hover:text-red-400 transition text-xs"
-                  >
-                    ✕
-                  </button>
+                  <button onClick={() => onUpdate({ lineItems: block.lineItems.filter((_, j) => j !== i) })} style={{ background: "none", border: "none", color: "var(--tv-text-faint)", cursor: "pointer" }}>✕</button>
                 </div>
               );
             })}
-            <button
-              onClick={() =>
-                onUpdate({ lineItems: [...block.lineItems, { name: "", qty: 1, unitPrice: 0 }] })
-              }
-              className="mt-1 text-xs text-neutral-400 hover:text-neutral-600 transition"
-            >
+            <button onClick={() => onUpdate({ lineItems: [...block.lineItems, { name: "", qty: 1, unitPrice: 0 }] })} style={{ alignSelf: "flex-start", background: "none", border: "none", color: "var(--tv-gold)", fontSize: 12, cursor: "pointer", padding: 0 }}>
               + Add line item
             </button>
           </div>
           <VatControls block={block} onUpdate={onUpdate} brand={brand} />
+          <RemoveButton onRemove={onRemove} />
         </div>
       );
 
     case "cta":
       return (
-        <div className={baseClass}>
-          <BlockControls />
-          <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 dark:text-gray-500 mb-3">CTA</div>
-          <input
-            type="text"
-            value={block.label}
-            onChange={(e) => onUpdate({ label: e.target.value })}
-            placeholder="Button label"
-            className="w-full text-base font-medium text-neutral-900 dark:text-[#F3F4F6] bg-white dark:bg-[#111827] border border-neutral-200 dark:border-[#374151] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-neutral-900/10"
-          />
+        <div>
+          <input type="text" value={block.label} onChange={(e) => onUpdate({ label: e.target.value })} placeholder="Button label" style={fieldInput} />
+          <RemoveButton onRemove={onRemove} />
         </div>
       );
 
     case "terms":
       return (
-        <div className={baseClass}>
-          <BlockControls />
-          <div className="text-xs font-medium uppercase tracking-wider text-neutral-400 dark:text-gray-500 mb-3">Terms</div>
-          <textarea
-            value={block.body}
-            onChange={(e) => onUpdate({ body: e.target.value })}
-            rows={5}
-            placeholder="Terms and conditions…"
-            className="w-full text-sm text-neutral-600 dark:text-[#F3F4F6] bg-white dark:bg-[#111827] border border-neutral-200 dark:border-[#374151] rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-neutral-900/10 resize-y transition"
-          />
+        <div>
+          <textarea value={block.body} onChange={(e) => onUpdate({ body: e.target.value })} rows={7} placeholder="Terms and conditions…" style={fieldTextarea} />
+          <RemoveButton onRemove={onRemove} />
         </div>
       );
 
     default:
       return (
-        <div className={baseClass}>
-          <BlockControls />
-          <div className="text-xs text-neutral-400">Block type: {(block as ProposalBlock).type}</div>
+        <div>
+          <div style={{ fontSize: 12, color: "var(--tv-text-faint)" }}>Block type: {(block as ProposalBlock).type}</div>
+          <RemoveButton onRemove={onRemove} />
         </div>
       );
   }
 }
 
+function ScopeRow({ row, onChange, onRemove }: {
+  row: { item: string; detail: string; weeks?: number };
+  onChange: (updates: Record<string, unknown>) => void;
+  onRemove: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div style={{ border: "1px solid var(--tv-border)", borderRadius: 12, background: "var(--tv-panel-accent)", overflow: "hidden" }}>
+      <div onClick={() => setOpen((o) => !o)} style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) auto auto 22px", alignItems: "center", gap: 12, padding: "12px 14px", cursor: "pointer" }}>
+        <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 14, fontWeight: 600, color: "var(--tv-text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          {row.item || "Untitled stage"}
+        </div>
+        <div style={{ fontFamily: "monospace", fontSize: 10.5, color: "var(--tv-text-faint)" }}>{typeof row.weeks === "number" ? `${row.weeks} weeks` : ""}</div>
+        <button onClick={(e) => { e.stopPropagation(); onRemove(); }} style={{ background: "none", border: "none", color: "var(--tv-text-faint)", cursor: "pointer" }}>✕</button>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" style={{ color: "var(--tv-text-faint)", transform: open ? "rotate(180deg)" : "none", transition: "transform .18s" }}>
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </div>
+      {open && (
+        <div style={{ padding: "0 14px 14px", display: "grid", gridTemplateColumns: "minmax(0,1fr) 110px", gap: 10, alignItems: "start" }}>
+          <input value={row.item} onChange={(e) => onChange({ item: e.target.value })} placeholder="Deliverable / stage name" style={fieldInput} />
+          <input type="number" value={row.weeks ?? ""} onChange={(e) => onChange({ weeks: e.target.value ? parseInt(e.target.value) : undefined })} placeholder="Weeks" style={fieldInput} />
+          <textarea
+            value={row.detail}
+            onChange={(e) => onChange({ detail: e.target.value })}
+            rows={3}
+            placeholder="Description"
+            style={{ ...fieldTextarea, gridColumn: "1 / -1" }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 const VAT_RATE_PRESETS = [
-  { rate: 20, label: "20% Standard" },
-  { rate: 0, label: "0% Zero-rated" },
+  { rate: 20, label: "20% STANDARD" },
+  { rate: 0, label: "0% ZERO-RATED" },
 ];
 
 function VatControls({
@@ -814,40 +1026,34 @@ function VatControls({
   const total = subtotal + vatAmount;
   const isPreset = VAT_RATE_PRESETS.some((p) => p.rate === vatRate);
 
-  return (
-    <div className="mt-4 pt-4 border-t border-neutral-100 dark:border-[#374151]">
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-neutral-500">Charge VAT</span>
-        <button
-          type="button"
-          onClick={() => onUpdate({ vatEnabled: !vatEnabled, vatRate: block.vatRate ?? 20 })}
-          className="w-11 h-6 rounded-full inline-flex items-center shrink-0 transition-colors"
-          style={{ background: vatEnabled ? "#DCAA33" : "rgba(120,120,130,.3)" }}
-        >
-          <span
-            className="w-4 h-4 rounded-full bg-white transition-transform"
-            style={{ transform: vatEnabled ? "translateX(24px)" : "translateX(4px)" }}
-          />
-        </button>
-      </div>
+  const pillStyle = (active: boolean): React.CSSProperties => ({
+    fontFamily: "monospace", fontSize: 10.5, letterSpacing: ".08em", padding: "8px 12px", borderRadius: 10, cursor: "pointer",
+    border: active ? "1.5px solid rgba(220,170,51,.5)" : "1px solid var(--tv-border)",
+    background: active ? "rgba(220,170,51,.12)" : "transparent",
+    color: active ? "var(--tv-gold)" : "var(--tv-text-faint)",
+  });
 
-      {vatEnabled && (
-        <div className="mt-3 flex items-center gap-2 flex-wrap">
-          {VAT_RATE_PRESETS.map((p) => (
-            <button
-              key={p.rate}
-              type="button"
-              onClick={() => onUpdate({ vatRate: p.rate })}
-              className={`text-xs px-2.5 py-1.5 rounded-md border transition ${
-                vatRate === p.rate
-                  ? "border-neutral-900 dark:border-[#0891B2] text-neutral-900 dark:text-[#F3F4F6] font-medium"
-                  : "border-neutral-200 dark:border-[#374151] text-neutral-500"
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
-          <div className="relative">
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 280px", gap: 26, marginTop: 20, paddingTop: 18, borderTop: "1px solid var(--tv-border-soft)", alignItems: "start" }}>
+      <div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, marginBottom: 12 }}>
+          <span style={{ fontSize: 13.5, color: "var(--tv-text)" }}>Charge VAT</span>
+          <button
+            type="button"
+            onClick={() => onUpdate({ vatEnabled: !vatEnabled, vatRate: block.vatRate ?? 20 })}
+            style={{ width: 42, height: 24, borderRadius: 999, display: "inline-flex", alignItems: "center", border: "none", cursor: "pointer", background: vatEnabled ? "var(--tv-gold)" : "rgba(120,120,130,.3)", flexShrink: 0 }}
+          >
+            <span style={{ width: 18, height: 18, borderRadius: 999, background: "#fff", transition: "transform .15s", transform: vatEnabled ? "translateX(20px)" : "translateX(3px)" }} />
+          </button>
+        </div>
+
+        {vatEnabled && (
+          <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
+            {VAT_RATE_PRESETS.map((p) => (
+              <div key={p.rate} onClick={() => onUpdate({ vatRate: p.rate })} style={pillStyle(vatRate === p.rate)}>
+                {p.label}
+              </div>
+            ))}
             <input
               type="number"
               min={0}
@@ -855,41 +1061,39 @@ function VatControls({
               step={0.1}
               value={!isPreset ? vatRate : ""}
               onChange={(e) => onUpdate({ vatRate: parseFloat(e.target.value) || 0 })}
-              placeholder="Custom %"
-              className="w-24 text-xs text-neutral-900 dark:text-[#F3F4F6] border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#111827] rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-neutral-400"
+              placeholder="CUSTOM %"
+              style={{ width: 100, fontFamily: "monospace", fontSize: 10.5, color: "var(--tv-text)", border: "1px solid var(--tv-border)", background: "var(--tv-panel-accent)", borderRadius: 10, padding: "8px 10px", outline: "none" }}
             />
           </div>
-        </div>
-      )}
+        )}
 
-      <div className="mt-4 space-y-1.5">
-        <div className="flex justify-between text-sm text-neutral-500">
-          <span>Subtotal</span>
-          <span>{sym}{subtotal.toLocaleString()}</span>
+        {vatEnabled && !brand?.vat_number && (
+          <p style={{ marginTop: 10, fontSize: 11.5, color: "var(--tv-warning)" }}>
+            Add your VAT number in <Link href="/dashboard/brand" style={{ color: "var(--tv-gold)" }}>Branding</Link> to display it on this proposal.
+          </p>
+        )}
+        {!vatEnabled && block.vatNote && (
+          <p style={{ fontSize: 11.5, color: "var(--tv-text-faint)", marginTop: 10 }}>{block.vatNote}</p>
+        )}
+      </div>
+
+      <div style={{ border: "1px solid var(--tv-border)", borderRadius: 14, padding: "14px 16px", background: "var(--tv-panel-accent)", display: "flex", flexDirection: "column", gap: 9 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--tv-text-dim)" }}>
+          <span>Subtotal</span><span>{sym}{subtotal.toLocaleString()}</span>
         </div>
         {vatEnabled && (
-          <div className="flex justify-between text-sm text-neutral-500">
-            <span>VAT ({vatRate}%)</span>
-            <span>{sym}{vatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
+          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, color: "var(--tv-text-dim)" }}>
+            <span>VAT ({vatRate}%)</span><span>{sym}{vatAmount.toLocaleString(undefined, { maximumFractionDigits: 2 })}</span>
           </div>
         )}
-        <div className="flex justify-between items-center pt-1.5">
-          <span className="text-sm text-neutral-500">Total</span>
-          <span className="text-lg font-semibold text-neutral-900 dark:text-[#F3F4F6]">
+        <div style={{ height: 1, background: "var(--tv-border-soft)" }} />
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+          <span style={{ fontFamily: "monospace", fontSize: 10, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--tv-text-faint)" }}>Total</span>
+          <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 26, fontWeight: 600, color: "var(--tv-text)", letterSpacing: "-.02em" }}>
             {sym}{total.toLocaleString(undefined, { maximumFractionDigits: 2 })}
           </span>
         </div>
       </div>
-
-      {vatEnabled && !brand?.vat_number && (
-        <p className="mt-2 text-xs text-amber-600">
-          Add your VAT number in <Link href="/dashboard/brand" className="underline">Branding</Link> to display it on this proposal.
-        </p>
-      )}
-
-      {!vatEnabled && block.vatNote && (
-        <p className="text-xs text-neutral-400 mt-2">{block.vatNote}</p>
-      )}
     </div>
   );
 }

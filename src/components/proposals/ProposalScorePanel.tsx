@@ -5,9 +5,9 @@
 /**
  * components/proposals/ProposalScorePanel.tsx
  *
- * The drafting coach panel. Sits at the top of the proposal editor sidebar.
- * Calls POST /api/proposals/[id]/score and renders an honest strength score
- * with a per-dimension breakdown.
+ * The drafting coach panel. Restyled (editor redesign) as a full-width
+ * card at the top of the editor instead of a sidebar card — same data,
+ * same API call, same rewrite wiring. Calls POST /api/proposals/[id]/score.
  *
  * Design (grounded in the Hooked framework):
  * - Endowed progress: a real draft opens part-way up the scale, never 0.
@@ -15,9 +15,10 @@
  *   improvable target ("strong proposals score 85+").
  * - The score is CALIBRATED and HONEST — it is not flattery.
  *
- * The "Rewrite" buttons are wired to an optional onRewrite(blockIndex)
- * prop but stay hidden until that prop is provided (i.e. once the rewrite
- * endpoint is built). Until then the panel is purely diagnostic.
+ * Per-dimension progress bars use dim.score (already returned by the API,
+ * previously unused — only dim.status drove the old dot/label). No
+ * fabricated "scored at" timestamp or edit-freshness tracking is shown;
+ * the API doesn't return either, so none is invented here.
  */
 
 import { useState, useCallback } from "react";
@@ -49,23 +50,19 @@ interface Props {
   onRewrite?: (blockIndex: number, coachingNote: string | null) => void;
   /** Whether a rewrite is currently in flight for a given block. */
   rewritingBlock?: number | null;
+  /** Called when the person clicks "Turn off scoring". Parent hides this panel. */
+  onHide?: () => void;
 }
 
 const STRONG_TARGET = 85;
 
-const STATUS_STYLES: Record<DimensionStatus, { dot: string; text: string; label: string }> = {
-  strong: { dot: "bg-green-500", text: "text-green-600", label: "Strong" },
-  okay: { dot: "bg-amber-500", text: "text-amber-600", label: "Okay" },
-  weak: { dot: "bg-red-500", text: "text-red-600", label: "Needs work" },
-};
-
 function scoreColor(score: number): string {
-  if (score >= 80) return "#16a34a"; // green-600
-  if (score >= 60) return "#d97706"; // amber-600
-  return "#dc2626"; // red-600
+  if (score >= 80) return "var(--tv-success)";
+  if (score >= 60) return "var(--tv-warning)";
+  return "#F2635C";
 }
 
-export function ProposalScorePanel({ proposalId, onRewrite, rewritingBlock }: Props) {
+export function ProposalScorePanel({ proposalId, onRewrite, rewritingBlock, onHide }: Props) {
   const [score, setScore] = useState<ProposalScore | null>(null);
   const [isScoring, setIsScoring] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,122 +87,157 @@ export function ProposalScorePanel({ proposalId, onRewrite, rewritingBlock }: Pr
     }
   }, [proposalId]);
 
-  const cardClass =
-    "rounded-xl border border-neutral-200 dark:border-[#374151] bg-white dark:bg-[#1F2937] p-4";
+  const cardStyle: React.CSSProperties = {
+    border: "1px solid var(--tv-border)",
+    borderRadius: 16,
+    background: "var(--tv-bg-panel)",
+    boxShadow: "var(--tv-shadow)",
+    padding: "18px 20px",
+    marginBottom: 4,
+  };
+
+  const eyebrow: React.CSSProperties = {
+    fontFamily: "monospace",
+    fontSize: 9.5,
+    letterSpacing: ".14em",
+    textTransform: "uppercase",
+    color: "var(--tv-text-faint)",
+  };
 
   // ---- Initial state: no score yet --------------------------------------
   if (!hasScored && !score) {
     return (
-      <div className={cardClass}>
-        <div className="flex items-center justify-between mb-2">
-          <h3 className="text-sm font-medium text-neutral-900 dark:text-[#F3F4F6]">
-            Proposal strength
-          </h3>
+      <div style={cardStyle}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+          <div>
+            <div style={eyebrow}>Proposal strength</div>
+            <p style={{ margin: "6px 0 0", fontSize: 13, color: "var(--tv-text-dim)", maxWidth: "60ch", lineHeight: 1.5 }}>
+              Get an honest score across the things that win work — and specific fixes to make this proposal
+              stronger before you send it.
+            </p>
+          </div>
+          <button
+            onClick={runScore}
+            disabled={isScoring}
+            style={{
+              flexShrink: 0,
+              borderRadius: 10,
+              padding: "11px 20px",
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontWeight: 600,
+              fontSize: 13.5,
+              border: "none",
+              cursor: isScoring ? "not-allowed" : "pointer",
+              background: "linear-gradient(135deg,#F2C84E,#DCAA33)",
+              color: "#0A1322",
+              opacity: isScoring ? 0.6 : 1,
+            }}
+          >
+            {isScoring ? "Scoring…" : "Score this proposal"}
+          </button>
         </div>
-        <p className="text-xs text-neutral-500 dark:text-gray-400 leading-relaxed mb-3">
-          Get an honest score across the things that win work — and specific
-          fixes to make this proposal stronger before you send it.
-        </p>
-        <button
-          onClick={runScore}
-          disabled={isScoring}
-          className="w-full rounded-lg bg-neutral-900 dark:bg-[#0891B2] px-3 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50 transition"
-        >
-          {isScoring ? "Scoring…" : "Score this proposal"}
-        </button>
-        {error && <p className="mt-2 text-xs text-red-600">{error}</p>}
+        {error && <p style={{ marginTop: 10, fontSize: 12.5, color: "#F2635C" }}>{error}</p>}
       </div>
     );
   }
 
   // ---- Scored state ------------------------------------------------------
   return (
-    <div className={cardClass}>
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-medium text-neutral-900 dark:text-[#F3F4F6]">
-          Proposal strength
-        </h3>
-        <button
-          onClick={runScore}
-          disabled={isScoring}
-          title="Re-score after making edits"
-          className="text-xs text-neutral-400 hover:text-neutral-700 dark:hover:text-gray-200 disabled:opacity-50 transition"
-        >
-          {isScoring ? "Scoring…" : "↺ Re-score"}
-        </button>
+    <div style={cardStyle}>
+      <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+          <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 38, fontWeight: 600, letterSpacing: "-.02em", color: "var(--tv-text)", lineHeight: 1 }}>
+            {score?.overall_score}%
+          </div>
+          <div>
+            <div style={eyebrow}>Proposal strength</div>
+            <div style={{ fontSize: 12.5, color: "var(--tv-text-dim)", marginTop: 3 }}>
+              {score?.headline} · strong proposals score {STRONG_TARGET}+
+            </div>
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginLeft: "auto" }}>
+          <button
+            onClick={runScore}
+            disabled={isScoring}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 7,
+              padding: "9px 14px",
+              borderRadius: 10,
+              border: "1.5px solid var(--tv-border)",
+              background: "var(--tv-panel-accent)",
+              color: "var(--tv-text)",
+              fontFamily: "'Space Grotesk', sans-serif",
+              fontSize: 13,
+              fontWeight: 600,
+              cursor: isScoring ? "not-allowed" : "pointer",
+              opacity: isScoring ? 0.6 : 1,
+            }}
+          >
+            {isScoring ? "Scoring…" : "↺ Rescore changes"}
+          </button>
+          {onHide && (
+            <button
+              onClick={onHide}
+              style={{ padding: "9px 12px", borderRadius: 10, color: "var(--tv-text-faint)", fontSize: 12.5, cursor: "pointer", background: "none", border: "none" }}
+            >
+              Turn off scoring
+            </button>
+          )}
+        </div>
       </div>
 
       {score && (
-        <>
-          {/* Overall score + bar */}
-          <div className="flex items-baseline gap-2 mb-1">
-            <span
-              className="text-3xl font-bold leading-none"
-              style={{ color: scoreColor(score.overall_score) }}
-            >
-              {score.overall_score}
-            </span>
-            <span className="text-xs text-neutral-400 dark:text-gray-500">
-              / 100 · strong proposals score {STRONG_TARGET}+
-            </span>
-          </div>
-          <div className="h-2 rounded-full bg-neutral-100 dark:bg-[#111827] overflow-hidden mb-3">
-            <div
-              className="h-full rounded-full transition-all duration-500"
-              style={{
-                width: `${score.overall_score}%`,
-                backgroundColor: scoreColor(score.overall_score),
-              }}
-            />
-          </div>
-
-          {/* Headline */}
-          <p className="text-xs text-neutral-600 dark:text-gray-300 leading-relaxed mb-4">
-            {score.headline}
-          </p>
-
-          {/* Dimensions */}
-          <ul className="space-y-2.5">
-            {score.dimensions.map((dim) => {
-              const styles = STATUS_STYLES[dim.status];
-              const canRewrite =
-                !!onRewrite && dim.status !== "strong" && dim.block_index !== null;
-              const isRewriting = rewritingBlock === dim.block_index;
-              return (
-                <li key={dim.key}>
-                  <div className="flex items-center gap-2">
-                    <span className={`h-2 w-2 rounded-full shrink-0 ${styles.dot}`} />
-                    <span className="flex-1 text-xs text-neutral-700 dark:text-gray-200">
-                      {dim.label}
-                    </span>
-                    <span className={`text-xs font-medium shrink-0 ${styles.text}`}>
-                      {styles.label}
-                    </span>
-                  </div>
-                  {dim.status !== "strong" && dim.coaching_note && (
-                    <div className="ml-4 mt-1">
-                      <p className="text-xs text-neutral-500 dark:text-gray-400 leading-relaxed">
-                        {dim.coaching_note}
-                      </p>
-                      {canRewrite && (
-                        <button
-                          onClick={() => onRewrite!(dim.block_index!, dim.coaching_note ?? null)}
-                          disabled={isRewriting}
-                          className="mt-1 text-xs font-medium text-neutral-700 dark:text-[#0891B2] hover:underline disabled:opacity-50"
-                        >
-                          {isRewriting ? "Rewriting…" : "Rewrite this section ↗"}
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-
-          {error && <p className="mt-3 text-xs text-red-600">{error}</p>}
-        </>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+            gap: "14px 18px",
+            marginTop: 20,
+            paddingTop: 18,
+            borderTop: "1px solid var(--tv-border-soft)",
+          }}
+        >
+          {score.dimensions.map((dim) => {
+            const canRewrite = !!onRewrite && dim.status !== "strong" && dim.block_index !== null;
+            const isRewriting = rewritingBlock === dim.block_index;
+            const color = scoreColor(dim.score);
+            return (
+              <div key={dim.key} style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                  <span style={{ fontFamily: "monospace", fontSize: 9.5, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--tv-text-faint)" }}>
+                    {dim.label}
+                  </span>
+                  <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, fontWeight: 600, color }}>
+                    {dim.score}%
+                  </span>
+                </div>
+                <div style={{ height: 8, borderRadius: 999, background: "var(--tv-panel-accent)", overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${dim.score}%`, background: color, borderRadius: 999, transition: "width .4s" }} />
+                </div>
+                {dim.coaching_note && (
+                  <p style={{ margin: 0, fontSize: 11, lineHeight: 1.45, color: "var(--tv-text-faint)" }}>
+                    {dim.coaching_note}
+                  </p>
+                )}
+                {canRewrite && (
+                  <button
+                    onClick={() => onRewrite!(dim.block_index!, dim.coaching_note ?? null)}
+                    disabled={isRewriting}
+                    style={{ alignSelf: "flex-start", background: "none", border: "none", padding: 0, fontSize: 11, fontWeight: 600, color: "var(--tv-gold)", cursor: isRewriting ? "not-allowed" : "pointer" }}
+                  >
+                    {isRewriting ? "Rewriting…" : "Rewrite this section ↗"}
+                  </button>
+                )}
+              </div>
+            );
+          })}
+        </div>
       )}
+
+      {error && <p style={{ marginTop: 12, fontSize: 12.5, color: "#F2635C" }}>{error}</p>}
     </div>
   );
 }
