@@ -19,6 +19,7 @@ export const dynamic = 'force-dynamic';
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { getWorkspaceId } from "@/lib/workspace";
+import { checkGeneralRateLimit } from "@/lib/rate-limit";
 import { getClosingIntelligence } from "@/lib/engagement";
 
 export async function GET(
@@ -32,6 +33,11 @@ export async function GET(
     }
 
     const workspaceId = await getWorkspaceId(userId);
+
+    // Rate limit (general API bucket)
+    const rateLimitResponse = await checkGeneralRateLimit(userId);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const intelligence = await getClosingIntelligence(params.id, workspaceId);
 
     if (!intelligence) {

@@ -16,6 +16,7 @@ export const dynamic = 'force-dynamic';
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { getWorkspaceId } from "@/lib/workspace";
+import { checkScoringRateLimit } from "@/lib/rate-limit";
 import { createAdminClient } from "@/lib/supabase";
 import { getClosingIntelligence } from "@/lib/engagement";
 import { getAnthropicClient, GENERATION_MODEL, GENERATION_LIMITS } from "@/lib/anthropic";
@@ -38,6 +39,11 @@ export async function GET(
     }
 
     const workspaceId = await getWorkspaceId(userId);
+
+    // Rate limit (AI endpoint — shares the scoring bucket)
+    const rateLimitResponse = await checkScoringRateLimit(userId);
+    if (rateLimitResponse) return rateLimitResponse;
+
     const supabase = createAdminClient();
 
     const { data: proposal, error: proposalError } = await supabase
