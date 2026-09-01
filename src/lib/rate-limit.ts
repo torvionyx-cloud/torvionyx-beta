@@ -236,7 +236,16 @@ export async function checkWorkspaceGenerationRateLimit(
 ): Promise<NextResponse | null> {
   const limiter = makeWorkspaceGenerationLimiter();
   if (!limiter) {
-    console.warn("[rate-limit] Upstash not configured — workspace generation rate limiting disabled");
+    // Same fail-closed reasoning as checkGenerationRateLimit — must not run
+    // unlimited in production just because Upstash isn't configured.
+    if (process.env.NODE_ENV === "production") {
+      console.error("[rate-limit] Upstash not configured in production — failing closed on workspace generation endpoint");
+      return NextResponse.json(
+        { error: "Service temporarily unavailable" },
+        { status: 503 }
+      );
+    }
+    console.warn("[rate-limit] Upstash not configured — workspace generation rate limiting disabled (dev mode)");
     return null;
   }
 
@@ -265,7 +274,19 @@ export async function checkGeneralRateLimit(
   key: string
 ): Promise<NextResponse | null> {
   const limiter = makeGeneralLimiter();
-  if (!limiter) return null;
+  if (!limiter) {
+    // Same fail-closed reasoning as checkGenerationRateLimit — must not run
+    // unlimited in production just because Upstash isn't configured.
+    if (process.env.NODE_ENV === "production") {
+      console.error("[rate-limit] Upstash not configured in production — failing closed on general API endpoint");
+      return NextResponse.json(
+        { error: "Service temporarily unavailable" },
+        { status: 503 }
+      );
+    }
+    console.warn("[rate-limit] Upstash not configured — general rate limiting disabled (dev mode)");
+    return null;
+  }
 
   const result = await limiter.limit(key);
   if (!result.success) {
@@ -287,7 +308,19 @@ export async function checkPublicRateLimit(
   ip: string
 ): Promise<NextResponse | null> {
   const limiter = makePublicLimiter();
-  if (!limiter) return null;
+  if (!limiter) {
+    // Same fail-closed reasoning as checkGenerationRateLimit — must not run
+    // unlimited in production just because Upstash isn't configured.
+    if (process.env.NODE_ENV === "production") {
+      console.error("[rate-limit] Upstash not configured in production — failing closed on public endpoint");
+      return NextResponse.json(
+        { error: "Service temporarily unavailable" },
+        { status: 503 }
+      );
+    }
+    console.warn("[rate-limit] Upstash not configured — public rate limiting disabled (dev mode)");
+    return null;
+  }
 
   const result = await limiter.limit(ip);
   if (!result.success) {
