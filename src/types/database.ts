@@ -90,6 +90,14 @@ export interface PricingBlock {
   vatEnabled?: boolean;
   /** VAT percentage, e.g. 20 (standard), 0 (zero-rated), or a custom figure. */
   vatRate?: number;
+  /**
+   * Whether the quantity (and unit price) column is shown. Undefined means
+   * true (every proposal saved before this field existed keeps its
+   * appearance). New pricing blocks default this to false — see
+   * applyPricingDefaults() in lib/prompt.ts. Presentational only: never
+   * changes stored qty values or totals.
+   */
+  showQuantity?: boolean;
 }
 
 export interface CtaBlock {

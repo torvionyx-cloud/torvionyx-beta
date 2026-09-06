@@ -317,6 +317,7 @@ export function buildFallbackContent(input: GenerateProposalInput): ProposalCont
         currency,
         lineItems: [{ name: "Project work", qty: 1, unitPrice: 0 }],
         showTotals: true,
+        showQuantity: false,
       },
       {
         type: "cta",
@@ -348,6 +349,27 @@ export function applyVatDefault(
     blocks: content.blocks.map((block) =>
       block.type === "pricing"
         ? { ...block, vatEnabled: hasVatNumber, vatRate: hasVatNumber ? 20 : block.vatRate }
+        : block
+    ),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Pricing block defaults
+//
+// The AI's tool schema doesn't include showQuantity (quantity is presentational,
+// not something the model decides) — this sets it on freshly generated content,
+// same timing/pattern as applyVatDefault: called once after content is
+// finalised (AI success or fallback), never re-applied on later edits, so it
+// won't stomp a user's manual toggle in the editor.
+// ---------------------------------------------------------------------------
+
+export function applyPricingDefaults(content: ProposalContent): ProposalContent {
+  return {
+    ...content,
+    blocks: content.blocks.map((block) =>
+      block.type === "pricing" && block.showQuantity === undefined
+        ? { ...block, showQuantity: false }
         : block
     ),
   };

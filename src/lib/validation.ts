@@ -324,6 +324,7 @@ const pricingBlockSchema = z.object({
   vatNote: z.string().max(300).optional(),
   vatEnabled: z.boolean().optional(),
   vatRate: z.number().min(0).max(100).optional(),
+  showQuantity: z.boolean().optional(),
 }).strict();
 
 const ctaBlockSchema = z.object({

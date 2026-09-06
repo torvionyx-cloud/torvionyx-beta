@@ -287,6 +287,16 @@ function PricingBlock({
   const total = subtotal + vatAmount;
   const heading = block.heading ?? "Investment";
 
+  // Undefined showQuantity means "true" — every proposal saved before this
+  // field existed renders unchanged. If any line item's qty isn't 1, the
+  // quantity/unit-price columns are shown regardless of the stored flag —
+  // hiding them would make a qty-driven total look wrong with no visible
+  // multiplier to explain it. Hiding is presentational only: qty values and
+  // the total calculation are always the same either way.
+  const hasNonUnitQty = block.lineItems.some((item) => item.qty !== 1);
+  const showQuantity = hasNonUnitQty ? true : block.showQuantity ?? true;
+  const footerColSpan = showQuantity ? 3 : 1;
+
   return (
     <section className="py-8 px-1 print:break-inside-avoid">
       <h2 className="text-xl font-semibold mb-5 tracking-tight" style={{ color: theme.textPrimary }}>
@@ -302,12 +312,16 @@ function PricingBlock({
               <th className="px-4 py-3 text-left font-medium" style={{ color: theme.textMuted }}>
                 Item
               </th>
-              <th className="px-4 py-3 text-right font-medium w-16" style={{ color: theme.textMuted }}>
-                Qty
-              </th>
-              <th className="px-4 py-3 text-right font-medium w-32" style={{ color: theme.textMuted }}>
-                Unit price
-              </th>
+              {showQuantity && (
+                <>
+                  <th className="px-4 py-3 text-right font-medium w-16" style={{ color: theme.textMuted }}>
+                    Qty
+                  </th>
+                  <th className="px-4 py-3 text-right font-medium w-32" style={{ color: theme.textMuted }}>
+                    Unit price
+                  </th>
+                </>
+              )}
               <th className="px-4 py-3 text-right font-medium w-32" style={{ color: theme.textMuted }}>
                 Amount
               </th>
@@ -332,13 +346,17 @@ function PricingBlock({
                     </span>
                   )}
                 </td>
-                <td className="px-4 py-3.5 text-right" style={{ color: theme.textMuted }}>
-                  {item.qty}
-                </td>
-                <td className="px-4 py-3.5 text-right" style={{ color: theme.textMuted }}>
-                  {symbol}
-                  {item.unitPrice.toLocaleString()}
-                </td>
+                {showQuantity && (
+                  <>
+                    <td className="px-4 py-3.5 text-right" style={{ color: theme.textMuted }}>
+                      {item.qty}
+                    </td>
+                    <td className="px-4 py-3.5 text-right" style={{ color: theme.textMuted }}>
+                      {symbol}
+                      {item.unitPrice.toLocaleString()}
+                    </td>
+                  </>
+                )}
                 <td className="px-4 py-3.5 text-right font-medium" style={{ color: theme.textPrimary }}>
                   {symbol}
                   {(item.qty * item.unitPrice).toLocaleString()}
@@ -349,7 +367,7 @@ function PricingBlock({
           {block.showTotals && vatEnabled && (
             <tfoot>
               <tr style={{ borderTop: `1px solid ${theme.cardBorderSoft}` }}>
-                <td colSpan={3} className="px-4 py-2 text-sm text-right" style={{ color: theme.textMuted }}>
+                <td colSpan={footerColSpan} className="px-4 py-2 text-sm text-right" style={{ color: theme.textMuted }}>
                   Subtotal
                 </td>
                 <td className="px-4 py-2 text-right text-sm" style={{ color: theme.textMuted }}>
@@ -358,7 +376,7 @@ function PricingBlock({
                 </td>
               </tr>
               <tr style={{ borderTop: `1px solid ${theme.cardBorderSoft}` }}>
-                <td colSpan={3} className="px-4 py-2 text-sm text-right" style={{ color: theme.textMuted }}>
+                <td colSpan={footerColSpan} className="px-4 py-2 text-sm text-right" style={{ color: theme.textMuted }}>
                   VAT ({vatRate}%)
                 </td>
                 <td className="px-4 py-2 text-right text-sm" style={{ color: theme.textMuted }}>
@@ -367,7 +385,7 @@ function PricingBlock({
                 </td>
               </tr>
               <tr style={{ borderTop: `2px solid ${theme.cardBorder}`, backgroundColor: theme.accent + "0d" }}>
-                <td colSpan={3} className="px-4 py-4 font-semibold text-right" style={{ color: theme.textPrimary }}>
+                <td colSpan={footerColSpan} className="px-4 py-4 font-semibold text-right" style={{ color: theme.textPrimary }}>
                   Total (inc. VAT)
                 </td>
                 <td className="px-4 py-4 text-right text-lg font-bold" style={{ color: theme.accent }}>
@@ -380,7 +398,7 @@ function PricingBlock({
           {block.showTotals && !vatEnabled && (
             <tfoot>
               <tr style={{ borderTop: `2px solid ${theme.cardBorder}`, backgroundColor: theme.accent + "0d" }}>
-                <td colSpan={3} className="px-4 py-4 font-semibold text-right" style={{ color: theme.textPrimary }}>
+                <td colSpan={footerColSpan} className="px-4 py-4 font-semibold text-right" style={{ color: theme.textPrimary }}>
                   Total
                 </td>
                 <td className="px-4 py-4 text-right text-lg font-bold" style={{ color: theme.accent }}>

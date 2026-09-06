@@ -31,6 +31,7 @@ import {
   proposalTool,
   buildFallbackContent,
   applyVatDefault,
+  applyPricingDefaults,
 } from "@/lib/prompt";
 import type { ProposalContent, BrandSettings } from "@/types/database";
 import type { GenerateProposalInput } from "@/lib/validation";
@@ -160,6 +161,7 @@ export async function POST(
     }
 
     content = applyVatDefault(content, brandSettings as BrandSettings | null);
+    content = applyPricingDefaults(content);
 
     // Update the proposal with new content
     const { data: updated, error: updateError } = await supabase

@@ -224,16 +224,17 @@ export async function POST(
       );
     }
 
-    // The AI's tool schema doesn't include vatEnabled/vatRate — VAT is a
-    // user-controlled toggle, not something the model regenerates. Carry the
-    // existing values forward so rewriting the pricing block's copy doesn't
-    // silently reset the user's VAT setting.
+    // The AI's tool schema doesn't include vatEnabled/vatRate/showQuantity —
+    // those are user-controlled presentation toggles, not something the model
+    // regenerates. Carry the existing values forward so rewriting the pricing
+    // block's copy doesn't silently reset the user's settings.
     const finalBlock: typeof newBlock =
       newBlock.type === "pricing" && currentContent.blocks[block_index].type === "pricing"
         ? {
             ...newBlock,
             vatEnabled: (currentContent.blocks[block_index] as PricingBlock).vatEnabled,
             vatRate: (currentContent.blocks[block_index] as PricingBlock).vatRate,
+            showQuantity: (currentContent.blocks[block_index] as PricingBlock).showQuantity,
           }
         : newBlock;
 

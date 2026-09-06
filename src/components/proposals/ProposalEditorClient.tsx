@@ -233,6 +233,7 @@ export function ProposalEditorClient({ proposal, brand, scopeLibrary, feeTemplat
             currency: "GBP",
             lineItems: resolved.lineItems,
             showTotals: true,
+            showQuantity: false,
           };
           blocks.push(scopeBlock, newPricingBlock);
         } else {
@@ -884,17 +885,49 @@ function BlockFields({ block, primaryColor, brand, onUpdate, onRemove }: {
         </div>
       );
 
-    case "pricing":
+    case "pricing": {
+      // Undefined showQuantity means "true" — every proposal saved before
+      // this field existed keeps its column. If any line item's qty isn't 1,
+      // the column can't be hidden: hiding it would make a qty-driven total
+      // look wrong with no visible multiplier to explain it.
+      const hasNonUnitQty = block.lineItems.some((item) => item.qty !== 1);
+      const showQuantity = hasNonUnitQty ? true : block.showQuantity ?? true;
+      const gridCols = showQuantity ? "minmax(0,1fr) 70px 120px 22px" : "minmax(0,1fr) 120px 22px";
+
       return (
         <div>
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 70px 120px 22px", gap: 10, padding: "0 0 8px", fontFamily: "monospace", fontSize: 9.5, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--tv-text-faint)" }}>
-            <div>Line item</div><div>Qty</div><div>Amount</div><div />
+          <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 10, marginBottom: 10 }}>
+            <span
+              style={{ fontSize: 12.5, color: hasNonUnitQty ? "var(--tv-text-faint)" : "var(--tv-text-dim)" }}
+              title={hasNonUnitQty ? "Can't hide the quantity column while a line item has a quantity other than 1 — the total would look wrong with no visible multiplier." : undefined}
+            >
+              Show quantity column
+            </span>
+            <button
+              type="button"
+              disabled={hasNonUnitQty}
+              title={hasNonUnitQty ? "Can't hide the quantity column while a line item has a quantity other than 1 — the total would look wrong with no visible multiplier." : undefined}
+              onClick={() => onUpdate({ showQuantity: !showQuantity })}
+              style={{
+                width: 42, height: 24, borderRadius: 999, display: "inline-flex", alignItems: "center", border: "none",
+                cursor: hasNonUnitQty ? "not-allowed" : "pointer",
+                background: showQuantity ? "var(--tv-gold)" : "rgba(120,120,130,.3)",
+                opacity: hasNonUnitQty ? 0.5 : 1,
+                flexShrink: 0,
+              }}
+            >
+              <span style={{ width: 18, height: 18, borderRadius: 999, background: "#fff", transition: "transform .15s", transform: showQuantity ? "translateX(20px)" : "translateX(3px)" }} />
+            </button>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: gridCols, gap: 10, padding: "0 0 8px", fontFamily: "monospace", fontSize: 9.5, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--tv-text-faint)" }}>
+            <div>Line item</div>{showQuantity && <div>Qty</div>}<div>Amount</div><div />
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
             {block.lineItems.map((item, i) => {
               const sym = CURRENCY_SYMBOLS[block.currency] ?? block.currency;
               return (
-                <div key={i} style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 70px 120px 22px", gap: 10, alignItems: "center" }}>
+                <div key={i} style={{ display: "grid", gridTemplateColumns: gridCols, gap: 10, alignItems: "center" }}>
                   <input
                     value={item.name}
                     onChange={(e) => {
@@ -905,17 +938,19 @@ function BlockFields({ block, primaryColor, brand, onUpdate, onRemove }: {
                     placeholder="Item name"
                     style={fieldInput}
                   />
-                  <input
-                    type="number"
-                    value={item.qty}
-                    min={0}
-                    onChange={(e) => {
-                      const li = [...block.lineItems];
-                      li[i] = { ...li[i], qty: parseFloat(e.target.value) || 0 };
-                      onUpdate({ lineItems: li });
-                    }}
-                    style={fieldInput}
-                  />
+                  {showQuantity && (
+                    <input
+                      type="number"
+                      value={item.qty}
+                      min={0}
+                      onChange={(e) => {
+                        const li = [...block.lineItems];
+                        li[i] = { ...li[i], qty: parseFloat(e.target.value) || 0 };
+                        onUpdate({ lineItems: li });
+                      }}
+                      style={fieldInput}
+                    />
+                  )}
                   <div style={{ position: "relative" }}>
                     <span style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--tv-text-faint)", fontSize: 13 }}>{sym}</span>
                     <input
@@ -942,6 +977,7 @@ function BlockFields({ block, primaryColor, brand, onUpdate, onRemove }: {
           <RemoveButton onRemove={onRemove} />
         </div>
       );
+    }
 
     case "cta":
       return (
