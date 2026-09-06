@@ -43,3 +43,8 @@ Thumbs.db
 # --- Misc ---
 *.pem
 .env*
+
+# Design revamp source archives (implemented in f8a6a0d / 4126db7)
+docs/*.zip
+docs/Proposal editing space revamp/
+docs/Torvionyx proposal page revamp/
