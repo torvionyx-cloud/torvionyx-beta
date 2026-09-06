@@ -78,6 +78,15 @@ export interface TimelineMilestone {
 export interface TimelineBlock {
   type: "timeline";
   heading?: string;
+  /**
+   * Project start date as an ISO "YYYY-MM-DD" string. Optional — leaving it
+   * unset (true for every proposal saved before this field existed) renders
+   * exactly as before, no dates. When set, real DD/MM/YYYY dates are derived
+   * at render time from each milestone's startWeek/endWeek — see
+   * formatMilestoneDateRange() in lib/timeline.ts. Never stored per
+   * milestone, so changing this reflows every derived date automatically.
+   */
+  startDate?: string;
   milestones: TimelineMilestone[];
 }
 

@@ -15,6 +15,7 @@
 
 import type { ProposalContent, ProposalBlock, BrandSettings } from "@/types/database";
 import { getTheme, type ProposalTheme } from "@/lib/themes";
+import { formatMilestoneDateRange } from "@/lib/timeline";
 
 // ---------------------------------------------------------------------------
 // Component
@@ -240,24 +241,28 @@ function TimelineBlock({
           style={{ backgroundColor: theme.accent, opacity: 0.15 }}
         />
         <ol className="space-y-5">
-          {block.milestones.map((m, i) => (
-            <li key={i} className="flex items-start gap-4">
-              <div
-                className="mt-0.5 h-6 w-6 rounded-full border-2 border-white flex items-center justify-center shrink-0 z-10 shadow-sm"
-                style={{ backgroundColor: theme.accent }}
-              >
-                <span className="text-white text-[11px] font-bold">{i + 1}</span>
-              </div>
-              <div className="pt-0.5">
-                <p className="font-medium leading-snug" style={{ color: theme.textPrimary }}>
-                  {m.label}
-                </p>
-                <p className="text-sm mt-0.5" style={{ color: theme.textFaint }}>
-                  {m.when}
-                </p>
-              </div>
-            </li>
-          ))}
+          {block.milestones.map((m, i) => {
+            const dateLabel = formatMilestoneDateRange(block.startDate, m);
+            return (
+              <li key={i} className="flex items-start gap-4">
+                <div
+                  className="mt-0.5 h-6 w-6 rounded-full border-2 border-white flex items-center justify-center shrink-0 z-10 shadow-sm"
+                  style={{ backgroundColor: theme.accent }}
+                >
+                  <span className="text-white text-[11px] font-bold">{i + 1}</span>
+                </div>
+                <div className="pt-0.5">
+                  <p className="font-medium leading-snug" style={{ color: theme.textPrimary }}>
+                    {m.label}
+                  </p>
+                  <p className="text-sm mt-0.5" style={{ color: theme.textFaint }}>
+                    {m.when}
+                    {dateLabel && <span> · {dateLabel}</span>}
+                  </p>
+                </div>
+              </li>
+            );
+          })}
         </ol>
       </div>
     </section>

@@ -308,6 +308,7 @@ const timelineMilestoneSchema = z.object({
 const timelineBlockSchema = z.object({
   type: z.literal("timeline"),
   heading: z.string().max(300).optional(),
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Expected an ISO date (YYYY-MM-DD)").optional(),
   milestones: z.array(timelineMilestoneSchema).min(1).max(30),
 }).strict();
 

@@ -25,6 +25,7 @@ import type { Proposal, ProposalContent, ProposalBlock, BrandSettings, ScopeLibr
 import { RIBA_STAGES } from "@/lib/riba";
 import { resolveStage } from "@/lib/stageResolver";
 import { PROJECT_TYPES, PROPOSAL_TYPE_LABELS } from "@/lib/validation";
+import { formatMilestoneDateRange } from "@/lib/timeline";
 import { TorvionyxLogo } from "@/components/ui/TorvionyxLogo";
 import { ProposalScorePanel } from "@/components/proposals/ProposalScorePanel";
 
@@ -951,61 +952,84 @@ function BlockFields({ block, primaryColor, brand, onUpdate, onRemove }: {
       const timelineGridCols = "26px minmax(0,1fr) 130px 64px 64px 22px";
       return (
         <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 2 }}>
+            <span style={{ fontSize: 12.5, color: "var(--tv-text-dim)" }}>Project start date</span>
+            <input
+              type="date"
+              value={block.startDate ?? ""}
+              onChange={(e) => onUpdate({ startDate: e.target.value === "" ? undefined : e.target.value })}
+              style={{ ...fieldInput, width: 170 }}
+            />
+            {block.startDate && (
+              <span style={{ fontSize: 11, color: "var(--tv-text-faint)" }}>
+                Dates below are derived from Start wk/End wk — DD/MM/YYYY.
+              </span>
+            )}
+          </div>
+
           <div style={{ display: "grid", gridTemplateColumns: timelineGridCols, gap: 10, padding: "0 0 2px", fontFamily: "monospace", fontSize: 9.5, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--tv-text-faint)" }}>
             <div /><div>Milestone</div><div>When</div><div>Start wk</div><div>End wk</div><div />
           </div>
-          {block.milestones.map((m, i) => (
-            <div key={i} style={{ display: "grid", gridTemplateColumns: timelineGridCols, gap: 10, alignItems: "center" }}>
-              <div style={{ fontFamily: "monospace", fontSize: 11, color: "var(--tv-gold)", textAlign: "center" }}>{String(i + 1).padStart(2, "0")}</div>
-              <input
-                value={m.label}
-                onChange={(e) => {
-                  const milestones = [...block.milestones];
-                  milestones[i] = { ...milestones[i], label: e.target.value };
-                  onUpdate({ milestones });
-                }}
-                placeholder="Milestone"
-                style={fieldInput}
-              />
-              <input
-                value={m.when}
-                onChange={(e) => {
-                  const milestones = [...block.milestones];
-                  milestones[i] = { ...milestones[i], when: e.target.value };
-                  onUpdate({ milestones });
-                }}
-                placeholder="When"
-                style={fieldInput}
-              />
-              <input
-                type="number"
-                min={0}
-                value={m.startWeek ?? ""}
-                onChange={(e) => {
-                  const milestones = [...block.milestones];
-                  milestones[i] = { ...milestones[i], startWeek: e.target.value === "" ? undefined : parseFloat(e.target.value) };
-                  onUpdate({ milestones });
-                }}
-                placeholder="Wk"
-                title="Start week (optional) — enables overlap warnings and, if the timeline has a project start date, a real date"
-                style={fieldInput}
-              />
-              <input
-                type="number"
-                min={0}
-                value={m.endWeek ?? ""}
-                onChange={(e) => {
-                  const milestones = [...block.milestones];
-                  milestones[i] = { ...milestones[i], endWeek: e.target.value === "" ? undefined : parseFloat(e.target.value) };
-                  onUpdate({ milestones });
-                }}
-                placeholder="Wk"
-                title="End week (optional) — enables overlap warnings and, if the timeline has a project start date, a real date"
-                style={fieldInput}
-              />
-              <button onClick={() => onUpdate({ milestones: block.milestones.filter((_, j) => j !== i) })} style={{ background: "none", border: "none", color: "var(--tv-text-faint)", cursor: "pointer" }}>✕</button>
-            </div>
-          ))}
+          {block.milestones.map((m, i) => {
+            const dateLabel = formatMilestoneDateRange(block.startDate, m);
+            return (
+              <div key={i} style={{ display: "grid", gridTemplateColumns: timelineGridCols, gap: 10, alignItems: "start" }}>
+                <div style={{ fontFamily: "monospace", fontSize: 11, color: "var(--tv-gold)", textAlign: "center", paddingTop: 11 }}>{String(i + 1).padStart(2, "0")}</div>
+                <input
+                  value={m.label}
+                  onChange={(e) => {
+                    const milestones = [...block.milestones];
+                    milestones[i] = { ...milestones[i], label: e.target.value };
+                    onUpdate({ milestones });
+                  }}
+                  placeholder="Milestone"
+                  style={fieldInput}
+                />
+                <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                  <input
+                    value={m.when}
+                    onChange={(e) => {
+                      const milestones = [...block.milestones];
+                      milestones[i] = { ...milestones[i], when: e.target.value };
+                      onUpdate({ milestones });
+                    }}
+                    placeholder="When"
+                    style={fieldInput}
+                  />
+                  {dateLabel && (
+                    <span style={{ fontFamily: "monospace", fontSize: 10, color: "var(--tv-gold)" }}>{dateLabel}</span>
+                  )}
+                </div>
+                <input
+                  type="number"
+                  min={0}
+                  value={m.startWeek ?? ""}
+                  onChange={(e) => {
+                    const milestones = [...block.milestones];
+                    milestones[i] = { ...milestones[i], startWeek: e.target.value === "" ? undefined : parseFloat(e.target.value) };
+                    onUpdate({ milestones });
+                  }}
+                  placeholder="Wk"
+                  title="Start week (optional) — enables overlap warnings and, if a project start date is set, a real date"
+                  style={fieldInput}
+                />
+                <input
+                  type="number"
+                  min={0}
+                  value={m.endWeek ?? ""}
+                  onChange={(e) => {
+                    const milestones = [...block.milestones];
+                    milestones[i] = { ...milestones[i], endWeek: e.target.value === "" ? undefined : parseFloat(e.target.value) };
+                    onUpdate({ milestones });
+                  }}
+                  placeholder="Wk"
+                  title="End week (optional) — enables overlap warnings and, if a project start date is set, a real date"
+                  style={fieldInput}
+                />
+                <button onClick={() => onUpdate({ milestones: block.milestones.filter((_, j) => j !== i) })} style={{ background: "none", border: "none", color: "var(--tv-text-faint)", cursor: "pointer", marginTop: 8 }}>✕</button>
+              </div>
+            );
+          })}
           <button onClick={() => onUpdate({ milestones: [...block.milestones, { label: "", when: "" }] })} style={{ alignSelf: "flex-start", background: "none", border: "none", color: "var(--tv-gold)", fontSize: 12, cursor: "pointer", padding: 0 }}>
             + Add milestone
           </button>
