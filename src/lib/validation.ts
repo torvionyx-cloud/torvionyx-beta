@@ -302,6 +302,8 @@ const scopeTableBlockSchema = z.object({
 const timelineMilestoneSchema = z.object({
   label: z.string().min(1).max(300),
   when: z.string().min(1).max(200),
+  startWeek: z.number().min(0).max(520).optional(),
+  endWeek: z.number().min(0).max(520).optional(),
 });
 const timelineBlockSchema = z.object({
   type: z.literal("timeline"),

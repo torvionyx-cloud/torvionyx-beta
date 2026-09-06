@@ -64,6 +64,15 @@ export interface ScopeTableBlock {
 export interface TimelineMilestone {
   label: string;
   when: string;
+  /**
+   * Optional structured position, in weeks from the project start, used only
+   * for overlap detection (and, when the timeline block has a startDate, to
+   * derive a real date). Undefined on every milestone saved before these
+   * fields existed — no overlap checking or dates for those. Independent of
+   * `when`, which stays the free-text label shown everywhere.
+   */
+  startWeek?: number;
+  endWeek?: number;
 }
 
 export interface TimelineBlock {

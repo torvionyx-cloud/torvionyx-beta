@@ -21,7 +21,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import type { Proposal, ProposalContent, ProposalBlock, BrandSettings, ScopeLibraryRow, FeeResourcingTemplateRow, RateCard, TextBlock, PricingBlock, PricingLineItem } from "@/types/database";
+import type { Proposal, ProposalContent, ProposalBlock, BrandSettings, ScopeLibraryRow, FeeResourcingTemplateRow, RateCard, TextBlock, PricingBlock, PricingLineItem, TimelineMilestone } from "@/types/database";
 import { RIBA_STAGES } from "@/lib/riba";
 import { resolveStage } from "@/lib/stageResolver";
 import { PROJECT_TYPES, PROPOSAL_TYPE_LABELS } from "@/lib/validation";
@@ -142,6 +142,86 @@ function blockMeta(block: ProposalBlock): string {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Timeline milestone overlap detection
+//
+// Only milestones with both startWeek and endWeek set (structured position)
+// are checked — free-text-only milestones (every one saved before these
+// fields existed) are silently skipped, never flagged. Ranges that only
+// touch at a boundary (e.g. 2–4 and 4–7) are not an overlap; they must
+// actually intersect.
+// ---------------------------------------------------------------------------
+
+interface MilestoneOverlap {
+  aIndex: number;
+  bIndex: number;
+  aLabel: string;
+  bLabel: string;
+  aStart: number;
+  aEnd: number;
+  bStart: number;
+  bEnd: number;
+}
+
+function findMilestoneOverlaps(milestones: TimelineMilestone[]): MilestoneOverlap[] {
+  const overlaps: MilestoneOverlap[] = [];
+  const positioned = milestones
+    .map((m, i) => ({ m, i }))
+    .filter(({ m }) => typeof m.startWeek === "number" && typeof m.endWeek === "number");
+
+  for (let x = 0; x < positioned.length; x++) {
+    for (let y = x + 1; y < positioned.length; y++) {
+      const { m: a, i: aIndex } = positioned[x];
+      const { m: b, i: bIndex } = positioned[y];
+      if (a.startWeek < b.endWeek && b.startWeek < a.endWeek) {
+        overlaps.push({
+          aIndex,
+          bIndex,
+          aLabel: a.label?.trim() || `Milestone ${aIndex + 1}`,
+          bLabel: b.label?.trim() || `Milestone ${bIndex + 1}`,
+          aStart: a.startWeek,
+          aEnd: a.endWeek,
+          bStart: b.startWeek,
+          bEnd: b.endWeek,
+        });
+      }
+    }
+  }
+  return overlaps;
+}
+
+function overlapsSignature(overlaps: MilestoneOverlap[]): string {
+  return overlaps.map((o) => `${o.aIndex}:${o.aStart}-${o.aEnd}|${o.bIndex}:${o.bStart}-${o.bEnd}`).join(",");
+}
+
+function TimelineOverlapWarning({ overlaps, onDismiss }: { overlaps: MilestoneOverlap[]; onDismiss: () => void }) {
+  return (
+    <div
+      style={{
+        display: "flex", alignItems: "flex-start", gap: 14, padding: "12px 16px", borderRadius: 12,
+        background: "rgba(242,169,59,.12)", border: "1px solid rgba(242,169,59,.35)",
+      }}
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--tv-warning)" strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0, marginTop: 2 }}>
+        <path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
+      </svg>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
+        {overlaps.map((o, i) => (
+          <p key={i} style={{ margin: 0, fontSize: 12.5, color: "var(--tv-text)" }}>
+            <strong>{o.aLabel}</strong> ({o.aStart} to {o.aEnd}) overlaps <strong>{o.bLabel}</strong> ({o.bStart} to {o.bEnd}).
+          </p>
+        ))}
+      </div>
+      <button
+        onClick={onDismiss}
+        style={{ flexShrink: 0, background: "none", border: "1px solid rgba(242,169,59,.4)", borderRadius: 8, color: "var(--tv-warning)", fontSize: 11.5, fontWeight: 600, padding: "5px 10px", cursor: "pointer" }}
+      >
+        Keep anyway
+      </button>
+    </div>
+  );
+}
+
 interface Props {
   proposal: Proposal;
   brand: BrandSettings | null;
@@ -179,6 +259,11 @@ export function ProposalEditorClient({ proposal, brand, scopeLibrary, feeTemplat
     });
     return initial;
   });
+
+  // Timeline overlap warnings dismissed this session, keyed by block index →
+  // the overlap signature that was dismissed. Not persisted; if the
+  // milestones change again the signature changes and the check reruns.
+  const [dismissedOverlaps, setDismissedOverlaps] = useState<Record<number, string>>({});
 
   const sectionRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
@@ -625,22 +710,35 @@ export function ProposalEditorClient({ proposal, brand, scopeLibrary, feeTemplat
           </div>
 
           {/* Blocks */}
-          {content.blocks.map((block, idx) => (
-            <BlockRow
-              key={idx}
-              ref={(el) => { sectionRefs.current[idx] = el; }}
-              block={block}
-              idx={idx}
-              total={content.blocks.length}
-              isOpen={!!openBlocks[idx]}
-              onToggle={() => toggleBlock(idx)}
-              onMove={(dir) => moveBlock(idx, dir)}
-              primaryColor={primaryColor}
-              brand={brand}
-              onUpdate={(updates) => updateBlock(idx, updates)}
-              onRemove={() => removeBlock(idx)}
-            />
-          ))}
+          {content.blocks.map((block, idx) => {
+            const overlaps = block.type === "timeline" ? findMilestoneOverlaps(block.milestones) : [];
+            const sig = overlapsSignature(overlaps);
+            const showOverlapWarning = overlaps.length > 0 && dismissedOverlaps[idx] !== sig;
+
+            return (
+              <div key={idx} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {showOverlapWarning && (
+                  <TimelineOverlapWarning
+                    overlaps={overlaps}
+                    onDismiss={() => setDismissedOverlaps((prev) => ({ ...prev, [idx]: sig }))}
+                  />
+                )}
+                <BlockRow
+                  ref={(el) => { sectionRefs.current[idx] = el; }}
+                  block={block}
+                  idx={idx}
+                  total={content.blocks.length}
+                  isOpen={!!openBlocks[idx]}
+                  onToggle={() => toggleBlock(idx)}
+                  onMove={(dir) => moveBlock(idx, dir)}
+                  primaryColor={primaryColor}
+                  brand={brand}
+                  onUpdate={(updates) => updateBlock(idx, updates)}
+                  onRemove={() => removeBlock(idx)}
+                />
+              </div>
+            );
+          })}
         </main>
       </div>
     </div>
@@ -849,11 +947,15 @@ function BlockFields({ block, primaryColor, brand, onUpdate, onRemove }: {
         </div>
       );
 
-    case "timeline":
+    case "timeline": {
+      const timelineGridCols = "26px minmax(0,1fr) 130px 64px 64px 22px";
       return (
         <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+          <div style={{ display: "grid", gridTemplateColumns: timelineGridCols, gap: 10, padding: "0 0 2px", fontFamily: "monospace", fontSize: 9.5, letterSpacing: ".1em", textTransform: "uppercase", color: "var(--tv-text-faint)" }}>
+            <div /><div>Milestone</div><div>When</div><div>Start wk</div><div>End wk</div><div />
+          </div>
           {block.milestones.map((m, i) => (
-            <div key={i} style={{ display: "grid", gridTemplateColumns: "26px minmax(0,1fr) 130px 22px", gap: 10, alignItems: "center" }}>
+            <div key={i} style={{ display: "grid", gridTemplateColumns: timelineGridCols, gap: 10, alignItems: "center" }}>
               <div style={{ fontFamily: "monospace", fontSize: 11, color: "var(--tv-gold)", textAlign: "center" }}>{String(i + 1).padStart(2, "0")}</div>
               <input
                 value={m.label}
@@ -875,6 +977,32 @@ function BlockFields({ block, primaryColor, brand, onUpdate, onRemove }: {
                 placeholder="When"
                 style={fieldInput}
               />
+              <input
+                type="number"
+                min={0}
+                value={m.startWeek ?? ""}
+                onChange={(e) => {
+                  const milestones = [...block.milestones];
+                  milestones[i] = { ...milestones[i], startWeek: e.target.value === "" ? undefined : parseFloat(e.target.value) };
+                  onUpdate({ milestones });
+                }}
+                placeholder="Wk"
+                title="Start week (optional) — enables overlap warnings and, if the timeline has a project start date, a real date"
+                style={fieldInput}
+              />
+              <input
+                type="number"
+                min={0}
+                value={m.endWeek ?? ""}
+                onChange={(e) => {
+                  const milestones = [...block.milestones];
+                  milestones[i] = { ...milestones[i], endWeek: e.target.value === "" ? undefined : parseFloat(e.target.value) };
+                  onUpdate({ milestones });
+                }}
+                placeholder="Wk"
+                title="End week (optional) — enables overlap warnings and, if the timeline has a project start date, a real date"
+                style={fieldInput}
+              />
               <button onClick={() => onUpdate({ milestones: block.milestones.filter((_, j) => j !== i) })} style={{ background: "none", border: "none", color: "var(--tv-text-faint)", cursor: "pointer" }}>✕</button>
             </div>
           ))}
@@ -884,6 +1012,7 @@ function BlockFields({ block, primaryColor, brand, onUpdate, onRemove }: {
           <RemoveButton onRemove={onRemove} />
         </div>
       );
+    }
 
     case "pricing": {
       // Undefined showQuantity means "true" — every proposal saved before
