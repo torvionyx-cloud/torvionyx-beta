@@ -24,6 +24,8 @@ Step 2 added optional `startWeek`/`endWeek` fields to each timeline milestone (w
 
 This is **the same existing behavior** that already drops a user's hand-edited milestone label text on that path — it's not a new regression, and the user has explicitly said to leave it as-is for this ship. But unlike a label, `startWeek`/`endWeek` now feed overlap warnings and (from Step 3) visible dates, so silently losing them is more consequential than losing prose. Worth fixing properly at some point — likely by having the rewrite route carry forward `startWeek`/`endWeek` by matching milestone label text between old and new arrays where they line up, similar to how `vatEnabled`/`vatRate`/`showQuantity` are carried forward verbatim for pricing-block rewrites (those are block-level scalars, so carrying them forward is unambiguous; per-milestone fields on a re-authored array are not).
 
+**Resolved:** fixed in `fix(timeline): preserve startWeek/endWeek/startDate on AI rewrite`, using exactly the label-matching approach floated above. `startDate` is block-level and carried forward unconditionally, like the pricing toggles. `startWeek`/`endWeek` are matched old→new milestone by exact label text; a renamed or newly-added milestone falls back to no weeks (today's behaviour) rather than risk pairing weeks to the wrong milestone.
+
 Not blocking, not touched this session past this note.
 
 ---

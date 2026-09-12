@@ -32,7 +32,7 @@ import {
   buildBlockRewriteMessage,
   proposalTool,
 } from "@/lib/prompt";
-import type { ProposalContent, PricingBlock } from "@/types/database";
+import type { ProposalContent, PricingBlock, TimelineBlock } from "@/types/database";
 import type { GenerateProposalInput } from "@/lib/validation";
 
 const rewriteSchema = z.object({
@@ -228,13 +228,39 @@ export async function POST(
     // those are user-controlled presentation toggles, not something the model
     // regenerates. Carry the existing values forward so rewriting the pricing
     // block's copy doesn't silently reset the user's settings.
+    //
+    // Same problem for timeline: the tool schema's milestone shape is just
+    // {label, when} — no startWeek/endWeek, and no startDate on the block at
+    // all — so a rewrite silently dropped them, which used to only cost a
+    // label but now silently deletes a visible date range and defeats the
+    // overlap warning. startDate is block-level and always safe to carry
+    // forward. startWeek/endWeek are per-milestone, and the model is free to
+    // add/reorder/reword milestones for the block it's rewriting, so a
+    // positional carry-forward could reattach one milestone's weeks to a
+    // different milestone. Match by exact label instead: same label, carry
+    // its weeks forward; anything renamed or new falls back to no weeks,
+    // same as today's behaviour, rather than risking a wrong pairing.
+    const oldBlock = currentContent.blocks[block_index];
     const finalBlock: typeof newBlock =
-      newBlock.type === "pricing" && currentContent.blocks[block_index].type === "pricing"
+      newBlock.type === "pricing" && oldBlock.type === "pricing"
         ? {
             ...newBlock,
-            vatEnabled: (currentContent.blocks[block_index] as PricingBlock).vatEnabled,
-            vatRate: (currentContent.blocks[block_index] as PricingBlock).vatRate,
-            showQuantity: (currentContent.blocks[block_index] as PricingBlock).showQuantity,
+            vatEnabled: (oldBlock as PricingBlock).vatEnabled,
+            vatRate: (oldBlock as PricingBlock).vatRate,
+            showQuantity: (oldBlock as PricingBlock).showQuantity,
+          }
+        : newBlock.type === "timeline" && oldBlock.type === "timeline"
+        ? {
+            ...newBlock,
+            startDate: (oldBlock as TimelineBlock).startDate,
+            milestones: newBlock.milestones.map((m) => {
+              const existing = (oldBlock as TimelineBlock).milestones.find(
+                (om) => om.label === m.label
+              );
+              return existing
+                ? { ...m, startWeek: existing.startWeek, endWeek: existing.endWeek }
+                : m;
+            }),
           }
         : newBlock;
 
